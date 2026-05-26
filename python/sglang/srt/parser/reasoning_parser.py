@@ -426,6 +426,7 @@ class Glm45Detector(BaseReasoningFormatDetector):
         stream_reasoning: bool = True,
         force_reasoning: bool = False,
         force_nonempty_content: bool = False,
+        reasoning_default: str = "enable_thinking",
     ):
         think_excluded_tokens = [
             "<tool_call>",
@@ -442,9 +443,51 @@ class Glm45Detector(BaseReasoningFormatDetector):
             stream_reasoning=stream_reasoning,
             tool_start_token="<tool_call>",
             thinks_internally=True,
-            reasoning_default="enable_thinking",
+            reasoning_default=reasoning_default,
             force_nonempty_content=force_nonempty_content,
         )
+
+
+class Ling3Detector(Glm45Detector):
+    """
+    Detector for Ling3 models.
+
+    Ling3 is a hybrid-thinking model whose chat template defaults to thinking
+    off. Tool calls also terminate reasoning when the model omits </think>.
+
+    If non-streaming output only contains reasoning text and no tool call, Ling3
+    moves that text into normal content as a client-experience fallback. Streaming
+    parsing still emits reasoning increments as they arrive because this parser
+    does not receive a final end-of-generation signal.
+    """
+
+    def __init__(
+        self,
+        stream_reasoning: bool = True,
+        force_reasoning: bool = False,
+        force_nonempty_content: bool = True,
+    ):
+        super().__init__(
+            stream_reasoning=stream_reasoning,
+            force_reasoning=force_reasoning,
+            reasoning_default="explicit_enable_thinking",
+        )
+        # Deliberately NOT forwarded to the base force_nonempty_content
+        # machinery: that also rewrites STREAMING increments, while this
+        # fallback is non-streaming only and skips tool-call outputs (see the
+        # docstring). Kept as a Ling3-private flag + detect_and_parse override.
+        self._ling3_force_nonempty_content = force_nonempty_content
+
+    def detect_and_parse(self, text: str) -> StreamingParseResult:
+        ret = super().detect_and_parse(text)
+        if (
+            self._ling3_force_nonempty_content
+            and ret.reasoning_text
+            and not ret.normal_text
+            and self.tool_start_token not in text
+        ):
+            ret.normal_text, ret.reasoning_text = ret.reasoning_text, ret.normal_text
+        return ret
 
 
 class GptOssDetector(BaseReasoningFormatDetector):
@@ -1418,6 +1461,7 @@ class ReasoningParser:
         "deepseek-v3": _DeepSeekV3Detector,
         "deepseek-v4": DeepSeekV4Detector,
         "glm45": Glm45Detector,
+        "ling3": Ling3Detector,
         "hunyuan": HunyuanDetector,
         "gpt-oss": GptOssDetector,
         "kimi": KimiDetector,
