@@ -480,8 +480,12 @@ class ModelRunner:
         if server_args.show_time_cost:
             enable_show_time_cost()
 
-        # Model-specific adjustment
-        self.model_specific_adjustment()
+        # Model-specific adjustment (target worker only; draft init must not
+        # clobber target-derived server_args state).
+        if not self.is_draft_worker:
+            ModelRunner.model_specific_adjustment(
+                server_args=self.server_args, model_config=self.model_config
+            )
 
         # Set the global server_args in the scheduler process (target worker
         # only, so a draft init cannot clobber target-derived global state).
@@ -1334,18 +1338,20 @@ class ModelRunner:
                 )
             self.model.set_dflash_layers_to_capture(self.dflash_target_layer_ids)
 
-    def model_specific_adjustment(self):
-        if self.is_draft_worker:
-            return
-
-        server_args = self.server_args
+    @staticmethod
+    def model_specific_adjustment(
+        *, server_args: ServerArgs, model_config: ModelConfig
+    ) -> None:
+        from sglang.srt.model_executor.model_runner import (
+            CHUNKED_PREFIX_CACHE_SUPPORTED_ATTENTION_BACKENDS,
+        )
 
         # HRM-Text needs bidirectional prompt attention (prefill), which only the
         # Triton backend honors and only with cuda graph / chunked prefill off
         # (TritonAttnBackend.allow_bidirectional_attention_in_extend). Radix cache
         # is also unsafe: the recurrent forward writes direction-dependent KV
         # across many slots.
-        hf_config = self.model_config.hf_config
+        hf_config = model_config.hf_config
         is_hrm_text = getattr(
             hf_config, "model_type", None
         ) == "hrm_text" or "HrmTextForCausalLM" in getattr(
@@ -1373,16 +1379,17 @@ class ModelRunner:
                 "prompt attention."
             )
 
-        if self.is_multimodal:
-            if not self.is_multimodal_chunked_prefill_supported:
+        if model_config.is_multimodal:
+            if not model_config.is_multimodal_chunked_prefill_supported:
                 server_args.chunked_prefill_size = -1
                 logger.info(
                     f"Automatically turn off --chunked-prefill-size as it is not supported for "
-                    f"{self.model_config.hf_config.model_type}"
+                    f"{model_config.hf_config.model_type}"
                 )
 
+        use_mla_backend = model_config.attention_arch == AttentionArch.MLA
         if (
-            not self.use_mla_backend
+            not use_mla_backend
             or server_args.attention_backend
             not in CHUNKED_PREFIX_CACHE_SUPPORTED_ATTENTION_BACKENDS
         ):
