@@ -4,6 +4,7 @@ from typing import List, Optional
 
 import torch
 
+from sglang.srt.configs.hybrid_arch import mambaish_config
 from sglang.srt.distributed import get_tp_group
 from sglang.srt.managers.schedule_batch import ScheduleBatch
 from sglang.srt.managers.scheduler import GenerationBatchResult
@@ -118,7 +119,7 @@ class DFlashWorkerV2(BaseSpecWorker):
         self._target_worker = target_worker
         self.model_runner = target_worker.model_runner
         self._need_mamba_verify_commit = (
-            self.model_runner.mambaish_config is not None
+            mambaish_config(self.model_runner.model_config) is not None
             and hasattr(
                 self.model_runner.attn_backend, "update_mamba_state_after_mtp_verify"
             )
