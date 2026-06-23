@@ -527,7 +527,7 @@ class DSV4PoolConfigurator(MemoryPoolConfigurator):
         self.context_len = kvc.model_config.context_len
         # PP-local slice; matches DeepSeekV4TokenToKVPool's stage_ratios.
         self.compression_ratios = cfg.compress_ratios[kvc.start_layer : kvc.end_layer]
-        if kvc.pp_size > 1:
+        if kvc.ps.pp_size > 1:
             logger.info(
                 f"DSV4 pool PP slice: rank={kvc.pp_group.rank_in_group} "
                 f"layers=[{kvc.start_layer},{kvc.end_layer}) "
