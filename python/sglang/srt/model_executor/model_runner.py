@@ -130,6 +130,7 @@ from sglang.srt.model_executor.model_runner_components.expert_location_helpers i
     get_healthy_expert_location_src_rank,
 )
 from sglang.srt.model_executor.model_runner_components.layer_setup import (
+    ModelLayerInfo,
     adjust_hybrid_swa_layer_ids,
     resolve_layer_indices,
 )
@@ -551,9 +552,9 @@ class ModelRunner:
             use_mla_backend=self.use_mla_backend,
             mambaish_config=mambaish_config(self.model_config),
             hybrid_gdn_config=hybrid_gdn_config(self.model_config),
-            start_layer=self.start_layer,
-            end_layer=self.end_layer,
-            num_effective_layers=self.num_effective_layers,
+            start_layer=self.layer_info.start_layer,
+            end_layer=self.layer_info.end_layer,
+            num_effective_layers=self.layer_info.num_effective_layers,
             req_to_token_pool=self.req_to_token_pool,
             token_to_kv_pool_allocator=self.token_to_kv_pool_allocator,
             memory_pool_config=self.memory_pool_config,
@@ -649,20 +650,17 @@ class ModelRunner:
 
         self.remote_instance_weight_transport.maybe_register_and_publish_weight_info()
 
-        layer_info = resolve_layer_indices(
+        self.layer_info: ModelLayerInfo = resolve_layer_indices(
             model=self.model,
             model_config=self.model_config,
             is_draft_worker=self.is_draft_worker,
             spec_algorithm=self.spec_algorithm,
         )
-        self.start_layer = layer_info.start_layer
-        self.end_layer = layer_info.end_layer
-        self.num_effective_layers = layer_info.num_effective_layers
 
         adjust_hybrid_swa_layer_ids(
             model_config=self.model_config,
-            start_layer=self.start_layer,
-            end_layer=self.end_layer,
+            start_layer=self.layer_info.start_layer,
+            end_layer=self.layer_info.end_layer,
             is_hybrid_swa=self.is_hybrid_swa,
         )
 
@@ -721,7 +719,7 @@ class ModelRunner:
             model_config=self.model_config,
             pp_size=self.ps.pp_size,
             pp_rank=self.ps.pp_rank,
-            start_layer=self.start_layer,
+            start_layer=self.layer_info.start_layer,
         )
 
     def decode_num_tokens_per_bs(
@@ -852,12 +850,12 @@ class ModelRunner:
         mamba_layer_ids = [
             i
             for i in config.mamba2_cache_params.layers
-            if self.start_layer <= i < self.end_layer
+            if self.layer_info.start_layer <= i < self.layer_info.end_layer
         ]
         full_attention_layer_ids = [
             i
             for i in config.full_attention_layer_ids
-            if self.start_layer <= i < self.end_layer
+            if self.layer_info.start_layer <= i < self.layer_info.end_layer
         ]
 
         bundle = init_unified_mamba_pools(
@@ -866,8 +864,8 @@ class ModelRunner:
             head_num=self.model_config.get_num_kv_heads(get_attention_tp_size()),
             head_dim=self.model_config.head_dim,
             page_size=self.page_size,
-            start_layer=self.start_layer,
-            end_layer=self.end_layer,
+            start_layer=self.layer_info.start_layer,
+            end_layer=self.layer_info.end_layer,
             is_draft_worker=self.is_draft_worker,
             use_mla_backend=self.use_mla_backend,
             mamba_layer_ids=mamba_layer_ids,
@@ -943,12 +941,12 @@ class ModelRunner:
         swa_attention_layer_ids = [
             i
             for i in self.model_config.swa_attention_layer_ids
-            if self.start_layer <= i < self.end_layer
+            if self.layer_info.start_layer <= i < self.layer_info.end_layer
         ]
         full_attention_layer_ids = [
             i
             for i in self.model_config.full_attention_layer_ids
-            if self.start_layer <= i < self.end_layer
+            if self.layer_info.start_layer <= i < self.layer_info.end_layer
         ]
 
         bundle = init_unified_swa_pools(
@@ -961,8 +959,8 @@ class ModelRunner:
             swa_head_dim=swa_head_dim,
             swa_v_head_dim=swa_v_head_dim,
             page_size=self.page_size,
-            start_layer=self.start_layer,
-            end_layer=self.end_layer,
+            start_layer=self.layer_info.start_layer,
+            end_layer=self.layer_info.end_layer,
             swa_attention_layer_ids=swa_attention_layer_ids,
             full_attention_layer_ids=full_attention_layer_ids,
             full_max_total_num_tokens=self.full_max_total_num_tokens,
