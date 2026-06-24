@@ -164,6 +164,7 @@ from sglang.srt.model_executor.model_runner_components.server_args_adjustment im
     model_specific_adjustment,
 )
 from sglang.srt.model_executor.model_runner_components.spec_aux_hidden_state import (
+    SpecAuxHiddenStateConfig,
     resolve_spec_aux_hidden_state_config,
 )
 from sglang.srt.model_executor.model_runner_components.weight_exporter import (
@@ -503,18 +504,14 @@ class ModelRunner:
         )
 
     def init_spec_aux_hidden_state(self):
-        config = resolve_spec_aux_hidden_state_config(
-            server_args=self.server_args,
-            model_config=self.model_config,
-            spec_algorithm=self.spec_algorithm,
-            is_draft_worker=self.is_draft_worker,
+        self.spec_aux_config: SpecAuxHiddenStateConfig = (
+            resolve_spec_aux_hidden_state_config(
+                server_args=self.server_args,
+                model_config=self.model_config,
+                spec_algorithm=self.spec_algorithm,
+                is_draft_worker=self.is_draft_worker,
+            )
         )
-        self.eagle_use_aux_hidden_state = config.eagle_use_aux_hidden_state
-        self.eagle_draft_num_layers = config.eagle_draft_num_layers
-        self.eagle_aux_hidden_state_layer_ids = config.eagle_aux_hidden_state_layer_ids
-        self.dflash_use_aux_hidden_state = config.dflash_use_aux_hidden_state
-        self.dflash_draft_num_layers = config.dflash_draft_num_layers
-        self.dflash_target_layer_ids = config.dflash_target_layer_ids
 
     def init_weight_exporter(self):
         self.weight_exporter = WeightExporter(_mr=self)
@@ -548,7 +545,7 @@ class ModelRunner:
             spec_algorithm=self.spec_algorithm,
             is_draft_worker=self.is_draft_worker,
             post_capture_kv_active=self.post_capture_kv_active,
-            dflash_draft_num_layers=self.dflash_draft_num_layers,
+            dflash_draft_num_layers=self.spec_aux_config.dflash_draft_num_layers,
             is_hybrid_swa=self.is_hybrid_swa,
             is_hybrid_swa_compress=self.is_hybrid_swa_compress,
             use_mla_backend=self.use_mla_backend,
@@ -1091,10 +1088,10 @@ class ModelRunner:
         # runs with aux hidden state capture enabled.
         configure_aux_hidden_state_capture(
             model=self.model,
-            eagle_use_aux_hidden_state=self.eagle_use_aux_hidden_state,
-            eagle_aux_hidden_state_layer_ids=self.eagle_aux_hidden_state_layer_ids,
-            dflash_use_aux_hidden_state=self.dflash_use_aux_hidden_state,
-            dflash_target_layer_ids=self.dflash_target_layer_ids,
+            eagle_use_aux_hidden_state=self.spec_aux_config.eagle_use_aux_hidden_state,
+            eagle_aux_hidden_state_layer_ids=self.spec_aux_config.eagle_aux_hidden_state_layer_ids,
+            dflash_use_aux_hidden_state=self.spec_aux_config.dflash_use_aux_hidden_state,
+            dflash_target_layer_ids=self.spec_aux_config.dflash_target_layer_ids,
         )
         backends = build_attention_backends(model_runner=self)
         self.attn_backend = backends.attn_backend
