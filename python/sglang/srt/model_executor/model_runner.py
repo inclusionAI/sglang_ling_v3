@@ -1072,13 +1072,8 @@ class ModelRunner:
         self.init_routed_experts_capturer()
         self.init_indexer_capturer()
 
-        self.attn_backend = None
-        self.decode_attn_backend = None
-        self.decode_attn_backend_group = []
-        self.decode_cuda_graph_runner = None
-        self.graph_mem_usage = 0
-        self.prefill_cuda_graph_runner = None
         self.graph_shared_output = None
+
 
     def init_attention_backends(self):
         """Initialize attention backends only (no cuda graph capture)."""
