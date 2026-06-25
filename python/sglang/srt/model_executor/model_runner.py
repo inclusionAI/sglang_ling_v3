@@ -239,6 +239,7 @@ def add_chunked_prefix_cache_attention_backend(backend_name):
             f"Added {backend_name} to CHUNKED_PREFIX_CACHE_SUPPORTED_ATTENTION_BACKENDS."
         )
 
+
 # Detect stragger ranks in model loading
 UNBALANCED_MODEL_LOADING_TIMEOUT_S = 480  # leave more time for post data processing
 
@@ -253,7 +254,6 @@ class ModelRunnerOutput:
     expert_distribution_metrics: Optional[ExpertDistributionMetrics] = None
     routed_experts_output: Optional[TopkCaptureOutput] = None
     indexer_topk_output: Optional[TopkCaptureOutput] = None
-
 
 
 def _should_enable_lazy_compaction() -> bool:
@@ -535,13 +535,18 @@ class ModelRunner:
         self.kv_cache_configurator = KVCacheConfigurator(
             device=self.device,
             gpu_id=self.gpu_id,
+            ps=self.ps,
+            pp_group=self.pp_group,
             model_config=self.model_config,
             server_args=self.server_args,
             kv_cache_dtype=self.kv_cache_dtype,
             model_dtype=self.dtype,
+            page_size=self.page_size,
+            sliding_window_size=self.sliding_window_size,
             spec_algorithm=self.spec_algorithm,
             is_draft_worker=self.is_draft_worker,
             post_capture_kv_active=self.post_capture_kv_active,
+            spec_aux_config=self.spec_aux_config,
             dflash_draft_num_layers=self.spec_aux_config.dflash_draft_num_layers,
             is_hybrid_swa=self.is_hybrid_swa,
             is_hybrid_swa_compress=self.is_hybrid_swa_compress,
@@ -782,7 +787,9 @@ class ModelRunner:
             # Re-calculate max_running_requests for the now smaller pool
             capped_reqs = min(
                 self.max_running_requests,
-                self.kv_cache_configurator._resolve_max_num_reqs(config.max_total_num_tokens),
+                self.kv_cache_configurator._resolve_max_num_reqs(
+                    config.max_total_num_tokens
+                ),
             )
             if capped_reqs < self.max_running_requests:
                 logger.warning(
@@ -977,9 +984,7 @@ class ModelRunner:
                 self.swa_max_total_num_tokens = config.swa_max_total_num_tokens
             if mambaish_config(self.model_config) is not None:
                 self._init_unified_mamba_pools(self.max_running_requests)
-            elif self.is_hybrid_swa and not is_deepseek_v4(
-                self.model_config.hf_config
-            ):
+            elif self.is_hybrid_swa and not is_deepseek_v4(self.model_config.hf_config):
                 self._init_unified_swa_pools(self.max_running_requests)
             else:
                 # Fail loud, not silently fall through to the normal pools (which
@@ -1045,7 +1050,6 @@ class ModelRunner:
         self.init_indexer_capturer()
 
         self.graph_shared_output = None
-
 
     def init_attention_backends(self):
         """Initialize attention backends only (no cuda graph capture)."""

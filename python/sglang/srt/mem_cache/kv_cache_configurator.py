@@ -30,13 +30,17 @@ from sglang.srt.mem_cache.allocator import (
     PagedTokenToKVPoolAllocator,
     TokenToKVPoolAllocator,
 )
-from sglang.srt.mem_cache.common import get_req_to_token_extra_context_len
-from sglang.srt.mem_cache.deepseek_v4_memory_pool import DeepSeekV4TokenToKVPool
-from sglang.srt.mem_cache.hisparse_memory_pool import (
+from sglang.srt.mem_cache.allocator.hisparse import (
     DeepSeekV4HiSparseTokenToKVPoolAllocator,
-    HiSparseDSATokenToKVPool,
     HiSparseTokenToKVPoolAllocator,
 )
+from sglang.srt.mem_cache.allocator.swa import (
+    PureSWATokenToKVPoolAllocator,
+    SWATokenToKVPoolAllocator,
+)
+from sglang.srt.mem_cache.common import get_req_to_token_extra_context_len
+from sglang.srt.mem_cache.deepseek_v4_memory_pool import DeepSeekV4TokenToKVPool
+from sglang.srt.mem_cache.hisparse_memory_pool import HiSparseDSATokenToKVPool
 from sglang.srt.mem_cache.memory_pool import (
     DSATokenToKVPool,
     HybridLinearKVPool,
@@ -49,11 +53,7 @@ from sglang.srt.mem_cache.memory_pool import (
     NoOpMHATokenToKVPool,
     PageMajorMHATokenToKVPool,
 )
-from sglang.srt.mem_cache.swa_memory_pool import (
-    PureSWATokenToKVPoolAllocator,
-    SWAKVPool,
-    SWATokenToKVPoolAllocator,
-)
+from sglang.srt.mem_cache.swa_memory_pool import SWAKVPool
 from sglang.srt.platforms import current_platform
 from sglang.srt.server_args import ServerArgs
 from sglang.srt.speculative.spec_info import SpeculativeAlgorithm
@@ -92,8 +92,15 @@ MAMBA_CACHE_V2_ADDITIONAL_RATIO_OVERLAP_LAZY = 1
 MAMBA_CACHE_V2_ADDITIONAL_RATIO_NO_OVERLAP = 1
 
 if TYPE_CHECKING:
+    from sglang.srt.distributed.parallel_state_wrapper import ParallelState
+    from sglang.srt.model_executor.model_runner_components.layer_setup import (
+        ModelLayerInfo,
+    )
     from sglang.srt.model_executor.model_runner_components.pool_configurator import (
         MemoryPoolConfig,
+    )
+    from sglang.srt.model_executor.model_runner_components.spec_aux_hidden_state import (
+        SpecAuxHiddenStateConfig,
     )
 
 
@@ -144,15 +151,20 @@ class KVCacheConfigurator:
     # deployment env (runtime, not in server_args)
     device: str
     gpu_id: int
+    ps: ParallelState
+    pp_group: Any
     # model / dtype (resolved objects, not in server_args)
     model_config: ModelConfig
     server_args: ServerArgs
     kv_cache_dtype: torch.dtype
     model_dtype: torch.dtype
+    page_size: int
+    sliding_window_size: Optional[int]
     # speculative decoding (runtime / derived, not in server_args)
     spec_algorithm: SpeculativeAlgorithm
     is_draft_worker: bool
     post_capture_kv_active: bool
+    spec_aux_config: SpecAuxHiddenStateConfig
     # DFLASH-only: target's `cell_size` is scaled to include draft KV cache.
     # ``pool_configurator.DefaultPoolConfigurator`` reads this off the
     # configurator (was ``getattr(mr, "dflash_draft_num_layers", None)`` in
@@ -175,6 +187,18 @@ class KVCacheConfigurator:
     token_to_kv_pool_allocator: Optional[BaseTokenToKVPoolAllocator]
     # draft worker budget
     memory_pool_config: Optional[MemoryPoolConfig]
+
+    @property
+    def layer_info(self) -> ModelLayerInfo:
+        from sglang.srt.model_executor.model_runner_components.layer_setup import (
+            ModelLayerInfo,
+        )
+
+        return ModelLayerInfo(
+            start_layer=self.start_layer,
+            end_layer=self.end_layer,
+            num_effective_layers=self.num_effective_layers,
+        )
 
     def configure(self, *, pre_model_load_memory: int) -> KVCacheConfigResult:
         if not self.spec_algorithm.is_none() and self.is_draft_worker:
@@ -459,6 +483,8 @@ class KVCacheConfigurator:
             speculative_eagle_topk=self.server_args.speculative_eagle_topk,
             enable_overlap_schedule=not self.server_args.disable_overlap_schedule,
             start_layer=self.start_layer,
+            enable_linear_replayssm=self.server_args.enable_linear_replayssm,
+            linear_replayssm_cache_len=self.server_args.linear_replayssm_cache_len,
             mamba_envelope_layout=self.server_args.enable_page_major_kv_layout,
         )
 
@@ -1270,7 +1296,7 @@ class KVCacheConfigurator:
 
         max_num_reqs = self.server_args.max_running_requests
         if max_num_reqs is not None:
-            requested_per_worker = max_num_reqs // self.server_args.dp_size
+            requested_per_worker = max_num_reqs // self.ps.attn_dp_size
             max_num_reqs = min(requested_per_worker, token_capacity // 2)
         else:
             requested_per_worker = None
@@ -1330,7 +1356,9 @@ class KVCacheConfigurator:
         )
 
         configurator = create_memory_pool_configurator(self)
-        config = configurator.calculate_pool_sizes(budget_bytes, self.server_args.page_size)
+        config = configurator.calculate_pool_sizes(
+            budget_bytes, self.server_args.page_size
+        )
         max_tokens = self._apply_token_constraints(config.max_total_num_tokens)
         if cap_tokens is not None:
             max_tokens = min(max_tokens, cap_tokens)
