@@ -58,6 +58,7 @@ class KVCacheConfigurator:
     # speculative decoding (runtime / derived, not in server_args)
     spec_algorithm: SpeculativeAlgorithm
     is_draft_worker: bool
+    post_capture_kv_active: bool
     # DFLASH-only: target's `cell_size` is scaled to include draft KV cache.
     # ``pool_configurator.DefaultPoolConfigurator`` reads this off the
     # configurator (was ``getattr(mr, "dflash_draft_num_layers", None)`` in
