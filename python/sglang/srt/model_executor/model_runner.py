@@ -615,6 +615,7 @@ class ModelRunner(ModelRunnerKVCacheMixin):
             model_config=self.model_config,
             server_args=self.server_args,
             kv_cache_dtype=self.kv_cache_dtype,
+            model_dtype=self.dtype,
             spec_algorithm=self.spec_algorithm,
             is_draft_worker=self.is_draft_worker,
             post_capture_kv_active=self.post_capture_kv_active,
