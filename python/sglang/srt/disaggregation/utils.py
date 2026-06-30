@@ -734,9 +734,12 @@ def filter_kv_indices_for_cp_rank(
 
 def is_mla_backend(target_kv_pool) -> bool:
     from sglang.srt.mem_cache.deepseek_v4_memory_pool import DeepSeekV4TokenToKVPool
-    from sglang.srt.mem_cache.memory_pool import MLATokenToKVPool
+    from sglang.srt.mem_cache.memory_pool import HybridLinearKVPool, MLATokenToKVPool
 
-    return isinstance(target_kv_pool, (MLATokenToKVPool, DeepSeekV4TokenToKVPool))
+    return isinstance(target_kv_pool, (MLATokenToKVPool, DeepSeekV4TokenToKVPool)) or (
+        isinstance(target_kv_pool, HybridLinearKVPool)
+        and getattr(target_kv_pool, "use_mla", False)
+    )
 
 
 def should_send_replicated_state(
