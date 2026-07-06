@@ -453,7 +453,7 @@ class Ling3Detector(Glm45Detector):
     Detector for Ling3 models.
 
     Ling3 is a hybrid-thinking model whose chat template defaults to thinking
-    off. Tool calls also terminate reasoning when the model omits </think>.
+    on. Tool calls also terminate reasoning when the model omits </think>.
 
     If non-streaming output only contains reasoning text and no tool call, Ling3
     moves that text into normal content as a client-experience fallback. Streaming
@@ -470,7 +470,7 @@ class Ling3Detector(Glm45Detector):
         super().__init__(
             stream_reasoning=stream_reasoning,
             force_reasoning=force_reasoning,
-            reasoning_default="explicit_enable_thinking",
+            reasoning_default="enable_thinking",
         )
         # Deliberately NOT forwarded to the base force_nonempty_content
         # machinery: that also rewrites STREAMING increments, while this

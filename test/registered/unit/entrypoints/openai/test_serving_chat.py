@@ -2156,6 +2156,26 @@ class ServingChatTestCase(unittest.TestCase):
         )
         self.assertFalse(self.chat._get_reasoning_from_request(req_disabled))
 
+    def test_ling3_enable_thinking_mode_default_on(self):
+        self._setup_fallback("ling3")
+        cases = [
+            (None, True),
+            ({}, True),
+            ({"enable_thinking": True}, True),
+            ({"enable_thinking": False}, False),
+        ]
+
+        for chat_template_kwargs, expected in cases:
+            with self.subTest(chat_template_kwargs=chat_template_kwargs):
+                req = ChatCompletionRequest(
+                    model="x",
+                    messages=[{"role": "user", "content": "Hi?"}],
+                    chat_template_kwargs=chat_template_kwargs,
+                )
+                self.assertEqual(
+                    self.chat._get_reasoning_from_request(req), expected
+                )
+
     def test_fallback_explicit_thinking_mode_default_off(self):
         self._setup_fallback("deepseek-v3")
         req_default = ChatCompletionRequest(
