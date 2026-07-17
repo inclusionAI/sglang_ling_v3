@@ -1,0 +1,135 @@
+---
+title: Ling-3.0-flash
+metatags:
+    description: "Deploy Ling-3.0-flash with SGLang on a single 4× H20-3e node using BF16, Ling3 reasoning and tool calling, NEXTN, and YaRN context extension."
+tag: NEW
+---
+
+## 1. Model Introduction
+
+{/* TODO: The model designers will provide the final introduction and key-feature prose. */}
+
+**Available Models:**
+
+- **BF16**: [inclusionAI/Ling-3.0-flash](https://huggingface.co/inclusionAI/Ling-3.0-flash) — 124B total / 5.1B active
+
+**Context Length:** Native 128K, extendable to 256K and 1M with YaRN.
+
+**License:** MIT
+
+## 2. SGLang Installation
+
+SGLang offers multiple installation methods. You can choose the most suitable method for your hardware and environment.
+
+Please refer to the [official SGLang installation guide](../../../docs/get-started/install) for installation instructions.
+
+## 3. Model Deployment
+
+Ling-3.0-flash is a 124B/5.1B-active BF16 MoE model. The reference deployment uses a single node with 4× H20-3e and tensor parallelism set to 4.
+
+import { Deployment } from "/src/snippets/_deployment.jsx";
+import { config } from "/src/snippets/configs/inclusionAI/ling-3.0-flash.jsx";
+import { benchmarks } from "/src/snippets/configs/inclusionAI/ling-3.0-flash-benchmarks.jsx";
+
+<Deployment config={config} benchmarks={benchmarks} />
+
+### Configuration Tips
+
+- `--trust-remote-code` is required for the `BailingMoeV3ForCausalLM` implementation.
+- `--tp 4` is the reference layout for a single 4× H20-3e node.
+- `--reasoning-parser ling3` and `--tool-call-parser ling3` enable Ling-3.0-specific reasoning and structured tool-call parsing.
+- Thinking is enabled by default. Set `chat_template_kwargs.enable_thinking` to `false` per request to disable it.
+- `--speculative-algorithm NEXTN` enables the NEXTN speculative decoding path.
+- Native context is 128K. The reference recipe sets `--context-length 262144` and applies YaRN with factor 2.0 to extend it to 256K.
+- The 1M YaRN recipe, SGLang version, and verified performance results will be added after final-model validation.
+
+## 4. Model Invocation
+
+Launch Ling-3.0-flash on a single 4× H20-3e node:
+
+```bash Command
+sglang serve \
+  --model-path inclusionAI/Ling-3.0-flash \
+  --trust-remote-code \
+  --tp 4 \
+  --enable-cache-report \
+  --log-level info \
+  --enable-metrics \
+  --mem-fraction-static 0.85 \
+  --max-running-requests 64 \
+  --chunked-prefill-size 8192 \
+  --allow-auto-output-truncate \
+  --enable-trace \
+  --tool-call-parser ling3 \
+  --reasoning-parser ling3 \
+  --context-length 262144 \
+  --max-mamba-cache-size 320 \
+  --speculative-algorithm NEXTN \
+  --json-model-override-args '{"rope_scaling":{"rope_type":"yarn","factor":2.0,"rope_theta":6000000,"partial_rotary_factor":0.5,"original_max_position_embeddings":131072}}' \
+  --host 0.0.0.0 \
+  --port 30000
+```
+
+### 4.1 Basic Usage
+
+```bash Command
+curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "inclusionAI/Ling-3.0-flash", "messages": [{"role": "user", "content": "What is the capital of France?"}]}'
+```
+
+{/* TODO: Paste output from the final released model. */}
+
+### 4.2 Tool Calling Example
+
+```bash Command
+curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "inclusionAI/Ling-3.0-flash",
+    "messages": [{"role": "user", "content": "Search for the latest news about AI"}],
+    "tools": [{
+      "type": "function",
+      "function": {
+        "name": "search",
+        "description": "Search for information on the internet",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {"type": "string", "description": "The search query"}
+          },
+          "required": ["query"]
+        }
+      }
+    }],
+    "tool_choice": "auto"
+  }'
+```
+
+{/* TODO: Paste output from the final released model. */}
+
+### 4.3 Thinking Mode
+
+Ling-3.0-flash defaults to thinking mode when `chat_template_kwargs.enable_thinking` is omitted or set to `true`. With `--reasoning-parser ling3`, reasoning is returned in `message.reasoning_content` and the final answer in `message.content`.
+
+#### Disabling thinking
+
+Set `enable_thinking` to `false` for requests that should answer directly:
+
+```bash Command
+curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "inclusionAI/Ling-3.0-flash",
+    "messages": [{"role": "user", "content": "What is 15% of 240?"}],
+    "chat_template_kwargs": {"enable_thinking": false}
+  }'
+```
+
+{/* TODO: Paste thinking-on and thinking-off outputs from the final released model. */}
+
+For more API examples, see the [SGLang Basic Usage Guide](../../../docs/basic_usage/send_request).
+
+## 5. Benchmark
+
+{/* TODO: Add accuracy, throughput, latency, and the reproducible SGLang version after validating the final model on 4× H20-3e. */}
