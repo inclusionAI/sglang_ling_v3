@@ -203,7 +203,7 @@ class BailingHybridConfig(PretrainedConfig):
         if self.use_kda:
             shape = KimiLinearStateShape.create(
                 tp_world_size=get_parallel().attn_tp_size,
-                num_heads=self.num_attention_heads,  # tptest v_heads?
+                num_heads=self.num_attention_heads,
                 head_dim=self.head_dim,
                 conv_kernel_size=self.short_conv_kernel_size,
             )

@@ -74,7 +74,7 @@ from sglang.srt.models.deepseek_common.utils import (
     _is_hip,
     _use_aiter_gfx95,
 )
-from sglang.srt.models.deepseek_v2 import DeepseekV2AttentionMLA, DeepseekV2MLP
+from sglang.srt.models.deepseek_v2 import DeepseekV2AttentionMLA
 from sglang.srt.models.kimi_linear import KimiDeltaAttention
 from sglang.srt.runtime_context import get_parallel
 from sglang.srt.server_args import get_global_server_args
@@ -83,9 +83,6 @@ from sglang.srt.utils import (
     add_prefix,
     bind_or_assign,
     get_bool_env_var,
-    is_cuda,
-    is_flashinfer_available,
-    is_sm100_supported,
     log_info_on_rank0,
     make_layers,
 )
@@ -110,9 +107,6 @@ else:
 
 if _is_hip:
     pass
-
-_is_flashinfer_available = is_flashinfer_available()
-_is_sm100_supported = is_cuda() and is_sm100_supported()
 
 
 class DsV3MLA(DeepseekV2AttentionMLA):
@@ -200,7 +194,10 @@ class DsV3MLA(DeepseekV2AttentionMLA):
             llama_4_scaling=llama_4_scaling,
         )
         gate = self._forward_gated(hidden_states)
-        s = (s[0], s[1], s[2], s[3] + (gate,))
+        # inner_state is None on the zero-token short-circuit; forward_core
+        # early-returns on it, so only append the gate when there is real work.
+        if s[3] is not None:
+            s = (s[0], s[1], s[2], s[3] + (gate,))
         return self.forward_core(s)
 
     def _forward_gated(self, hidden_states: torch.Tensor):
@@ -225,7 +222,6 @@ class DsV3MLA(DeepseekV2AttentionMLA):
         return attn_output
 
 
-LoraConfig = None
 logger = logging.getLogger(__name__)
 
 
@@ -289,7 +285,6 @@ def weight_loader_with_alias(alias: str):
             prefix: str = None,
             **kwargs,
         ):
-            # pf = "[vLLM][load]" + " " if prefix is None else f"[{prefix}] "
             value = func(param, loaded_weight, *args, **kwargs)
             return value
 
@@ -979,9 +974,6 @@ class BailingMoELinearDecoderLayer(nn.Module):
         self.layer_id = layer_id
         self.use_mla = getattr(config, "full_attention_type", "mla") == "mla"
         self.attention_type = config.attention_type
-        # todo nextn
-
-        is_kda = True
         self.config = config
 
         if config.attention_type == 0:  # Linear layer
@@ -1008,7 +1000,7 @@ class BailingMoELinearDecoderLayer(nn.Module):
                     kv_lora_rank=config.kv_lora_rank,
                     rope_theta=config.rope_parameters.get("rope_theta", 600000),
                     rope_scaling=config.rope_parameters,
-                    max_position_embeddings=262144,
+                    max_position_embeddings=config.max_position_embeddings,
                     quant_config=quant_config,
                     layer_id=layer_id,
                     reduce_results=False,
@@ -1020,7 +1012,7 @@ class BailingMoELinearDecoderLayer(nn.Module):
                     ),
                 )
             else:
-                logger.info(f"==={layer_id=} use gqa")
+                logger.debug(f"{layer_id=} use gqa")
                 self.attention = BailingMoEAttention(
                     config,
                     quant_config=quant_config,
@@ -1539,7 +1531,7 @@ class BailingMoeV3ForCausalLM(nn.Module):
                             and layer_id >= self.model.start_layer
                         ):
                             layer_ids.add(layer_id)
-        logger.info(f"=====layer_ids {layer_ids}")
+        logger.debug(f"post_load_weights layer_ids={layer_ids}")
 
         for layer_id in layer_ids:
             self_attn = (
@@ -1704,64 +1696,47 @@ class BailingMoeV3ForCausalLM(nn.Module):
     def _weight_requant_ue8m0(self, is_nextn=False):
         weight_block_size = self.quant_config.weight_block_size
 
-        moe_layers = list(
-            range(
-                self.config.first_k_dense_replace,
-                self.config.num_hidden_layers,
-                self.config.moe_layer_freq,
-            )
-        )
-
-        num_hidden_layers = 1 if is_nextn else self.config.num_hidden_layers
-
-        for layer_id in range(num_hidden_layers):
-            if is_nextn:
-                layer = self.model.decoder
-            else:
-                layer = self.model.layers[layer_id]
-
-            module_list = [
-                layer.self_attn.kv_b_proj,
-                layer.self_attn.o_proj,
+        if is_nextn:
+            layers = [self.model.decoder]
+        else:
+            layers = [
+                self.model.layers[layer_id]
+                for layer_id in range(self.model.start_layer, self.model.end_layer)
             ]
 
-            if self.config.q_lora_rank is not None:
-                module_list.append(layer.self_attn.fused_qkv_a_proj_with_mqa)
-                module_list.append(layer.self_attn.q_b_proj)
-            else:
-                module_list.append(layer.self_attn.kv_a_proj_with_mqa)
-                module_list.append(layer.self_attn.q_proj)
+        for layer in layers:
+            # Hybrid model: full-attn layers carry MLA projections; KDA
+            # (linear-attn) layers have none, so requant attention only when the
+            # MLA weights are present.
+            self_attn = layer.attention
+            if hasattr(self_attn, "kv_b_proj"):
+                module_list = [self_attn.kv_b_proj, self_attn.o_proj]
+                if self.config.q_lora_rank is not None:
+                    module_list.append(self_attn.fused_qkv_a_proj_with_mqa)
+                    module_list.append(self_attn.q_b_proj)
+                else:
+                    module_list.append(self_attn.kv_a_proj_with_mqa)
+                    module_list.append(self_attn.q_proj)
+                for module in module_list:
+                    requant_weight_ue8m0_inplace(
+                        module.weight, module.weight_scale_inv, weight_block_size
+                    )
 
-            for module in module_list:
-                requant_weight_ue8m0_inplace(
-                    module.weight, module.weight_scale_inv, weight_block_size
-                )
-
-            if layer_id in moe_layers or is_nextn:
-                shared_experts = getattr(layer.mlp, "shared_experts", None)
-                if shared_experts is not None:
+            mlp = layer.mlp
+            if isinstance(mlp, BailingMoE):
+                if mlp.shared_experts is not None:
                     for module in [
-                        shared_experts.gate_up_proj,
-                        shared_experts.down_proj,
+                        mlp.shared_experts.gate_up_proj,
+                        mlp.shared_experts.down_proj,
                     ]:
                         requant_weight_ue8m0_inplace(
                             module.weight, module.weight_scale_inv, weight_block_size
                         )
-
-                experts = layer.mlp.experts
-                if isinstance(experts, DeepEPMoE):
-                    for w in [
-                        experts.w13_weight_fp8,
-                        experts.w2_weight_fp8,
-                    ]:
+                if isinstance(mlp.experts, DeepEPMoE):
+                    for w in [mlp.experts.w13_weight_fp8, mlp.experts.w2_weight_fp8]:
                         requant_weight_ue8m0_inplace(w[0], w[1], weight_block_size)
             else:
-                mlp = layer.mlp
-                assert isinstance(mlp, DeepseekV2MLP)
-                for module in [
-                    mlp.gate_up_proj,
-                    mlp.down_proj,
-                ]:
+                for module in [mlp.gate_up_proj, mlp.down_proj]:
                     requant_weight_ue8m0_inplace(
                         module.weight, module.weight_scale_inv, weight_block_size
                     )
@@ -2068,22 +2043,11 @@ class BailingMoeV3ForCausalLM(nn.Module):
                             weight_loader(param, loaded_weight)
             finally:
                 if not found:
-                    # print(f"fail load: {name0}")
-                    pass
+                    logger.debug(f"weight not matched to any param, skipped: {name0}")
             loaded_params.add(name)
         self.post_load_weights(is_nextn=is_nextn, weight_names=weight_names)
 
         return loaded_params
-
-    def post_process_weights_if_quant(self):
-        for name, module in self.named_modules():
-            quant_method = getattr(module, "quant_method", None)
-            if quant_method is not None:
-                post_process = getattr(
-                    quant_method, "process_weights_after_loading", None
-                )
-                if post_process is not None:
-                    post_process(module)
 
     def get_embed_and_head(self):
         return self.model.word_embeddings.weight, self.lm_head.weight
