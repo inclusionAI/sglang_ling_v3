@@ -44,8 +44,10 @@ from sglang.srt.models.bailing_moe_linear import (
     BailingMoeV2_5ForCausalLM,
 )
 from sglang.srt.models.bailing_moe_v3 import (
-    BailingMoeV3ForCausalLM,
     BailingMoELinearDecoderLayer as BailingMoeV3DecoderLayer,
+)
+from sglang.srt.models.bailing_moe_v3 import (
+    BailingMoeV3ForCausalLM,
 )
 from sglang.srt.models.utils import WeightsMapper
 from sglang.srt.runtime_context import get_parallel
@@ -56,9 +58,8 @@ logger = logging.getLogger(__name__)
 
 
 def _is_bailing_moe_v3_config(config: PretrainedConfig) -> bool:
-    return (
-        getattr(config, "model_type", None) == "bailing_hybrid"
-        and hasattr(config, "gated_attention_proj_granularity_type")
+    return getattr(config, "model_type", None) == "bailing_hybrid" and hasattr(
+        config, "gated_attention_proj_granularity_type"
     )
 
 
@@ -232,7 +233,6 @@ class BailingMoeForCausalLMNextN(nn.Module):
                 self, "BailingMoeForCausalLMNextN"
             )
         elif hasattr(self, "determine_num_fused_shared_experts"):
-            # Asystem has determine_num_fused_shared_experts but theta does not.
             self.determine_num_fused_shared_experts("BailingMoeForCausalLMNextN")
 
         self.model = BailingMoEModelNextN(
@@ -252,7 +252,9 @@ class BailingMoeForCausalLMNextN(nn.Module):
         if is_bailing_moe_v3:
             self.base_load_weights_func = BailingMoeV3ForCausalLM.load_weights
             self.post_load_weights_func = BailingMoeV3ForCausalLM.post_load_weights
-        elif hasattr(self.config, "model_type") and config.model_type == "bailing_hybrid":
+        elif (
+            hasattr(self.config, "model_type") and config.model_type == "bailing_hybrid"
+        ):
             self.base_load_weights_func = BailingMoeV2_5ForCausalLM.load_weights
             self.post_load_weights_func = BailingMoeV2_5ForCausalLM.post_load_weights
         else:
