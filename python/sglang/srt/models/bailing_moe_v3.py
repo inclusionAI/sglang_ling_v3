@@ -42,9 +42,7 @@ from sglang.srt.layers.moe.ep_moe.layer import DeepEPMoE, get_moe_impl_class
 from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
 from sglang.srt.layers.moe.topk import TopK
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
-from sglang.srt.layers.quantization.fp8_kernel import (
-    is_fp8_fnuz,
-)
+from sglang.kernels.ops.quantization.fp8_kernel import is_fp8_fnuz
 from sglang.srt.layers.quantization.fp8_utils import (
     block_quant_dequant,
     block_quant_to_tensor_quant,
@@ -733,15 +731,11 @@ class BailingMoE(nn.Module):
 
         if self.moe_ep_size > 1 and not should_skip_post_experts_all_reduce(
             is_tp_path=False,
-            use_reduce_scatter=use_reduce_scatter,
-            should_allreduce_fusion=should_allreduce_fusion,
         ):
             final_hidden_states = moe_expert_parallel_all_reduce(final_hidden_states)
 
         if self.moe_tp_size > 1 and not should_skip_post_experts_all_reduce(
             is_tp_path=True,
-            use_reduce_scatter=use_reduce_scatter,
-            should_allreduce_fusion=should_allreduce_fusion,
         ):
             final_hidden_states = moe_tensor_model_parallel_all_reduce(
                 final_hidden_states

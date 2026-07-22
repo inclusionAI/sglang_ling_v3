@@ -2,6 +2,10 @@ from typing import Optional, Tuple, Union
 
 import torch
 
+from sglang.kernels.ops.mamba.causal_conv1d_triton import (
+    causal_conv1d_fn,
+    causal_conv1d_update,
+)
 from sglang.srt.layers.attention.hybrid_linear_attn_backend import MambaAttnBackendBase
 from sglang.srt.layers.attention.linear.kernels.kda_triton import TritonKDAKernel
 from sglang.srt.layers.attention.linear.utils import (
@@ -9,12 +13,7 @@ from sglang.srt.layers.attention.linear.utils import (
     get_linear_attn_decode_backend,
     get_linear_attn_prefill_backend,
 )
-from sglang.srt.layers.attention.mamba.causal_conv1d_triton import (
-    causal_conv1d_fn,
-    causal_conv1d_update,
-)
 from sglang.srt.layers.radix_linear_attention import RadixLinearAttention
-from sglang.srt.mem_cache.memory_pool import MambaPool
 from sglang.srt.utils import is_cpu, is_cuda, is_npu
 from sglang.srt.utils.common import rank0_log
 
@@ -42,7 +41,6 @@ class KDAKernelDispatcher:
         prefill_backend: LinearAttnKernelBackend,
     ):
         triton_kernel = TritonKDAKernel()
-        self.triton_kernel = triton_kernel
 
         if decode_backend.is_triton():
             self.decode_kernel = triton_kernel
@@ -54,11 +52,31 @@ class KDAKernelDispatcher:
             )
 
             self.decode_kernel = CuteDSLKDAKernel()
+        elif decode_backend.is_flashinfer():
+            # FlashInfer recurrent_kda: SM100 decode + MTP (target_verify).
+            # Prefill stays on Triton / CuTe DSL (FlashInfer has no KDA chunk kernel).
+            if not is_cuda():
+                raise ValueError("KDA FlashInfer backend requires CUDA")
+            from sglang.srt.layers.attention.linear.kernels.kda_flashinfer import (
+                FlashInferKDAKernel,
+            )
+
+            self.decode_kernel = FlashInferKDAKernel()
         else:
             raise ValueError(
                 f"Unsupported KDA decode backend: {decode_backend}. "
-                "KDA currently only supports 'triton'."
+                "KDA supports 'triton', 'cutedsl', or 'flashinfer'."
             )
+
+        # target_verify (MTP / speculative decode) kernel: each decode backend
+        # verifies with its own kernel. FlashInfer decode uses recurrent_kda (SM100,
+        # chain only); Triton -- and CuTe DSL, which has no verify of its own -- use
+        # the Triton fused KDA verify, which handles chain + tree
+        # (retrieve_parent_token) and per-step checkpointing and is the reference the
+        # KDA backend correctness tests assert against.
+        self.verify_kernel = (
+            self.decode_kernel if decode_backend.is_flashinfer() else triton_kernel
+        )
 
         if prefill_backend.is_triton():
             self.extend_kernel = triton_kernel
@@ -99,6 +117,7 @@ class KDAKernelDispatcher:
 
         rank0_log(
             f"KDA kernel dispatcher: decode={self.decode_kernel.__class__.__name__}, "
+            f"verify={self.verify_kernel.__class__.__name__}, "
             f"extend={self.extend_kernel.__class__.__name__} "
             f"packed_decode={self.supports_packed_decode}"
         )
@@ -151,12 +170,7 @@ class KDAKernelDispatcher:
         query_start_loc: torch.Tensor,
         **kwargs,
     ) -> torch.Tensor:
-        kernel = self.decode_kernel
-        if kwargs.get("lower_bound") is not None and not getattr(
-            kernel, "supports_safe_gate", True
-        ):
-            kernel = self.triton_kernel
-        return kernel.decode(
+        return self.decode_kernel.decode(
             q,
             k,
             v,
@@ -183,11 +197,16 @@ class KDAKernelDispatcher:
         ssm_states: torch.Tensor,
         cache_indices: torch.Tensor,
         query_start_loc: torch.Tensor,
+        intermediate_states_buffer: torch.Tensor,
+        intermediate_state_indices: torch.Tensor,
+        cache_steps: int,
+        retrieve_parent_token: torch.Tensor,
         **kwargs,
     ) -> torch.Tensor:
-        # Target verify needs rollback/intermediate-state support. Keep it on
-        # Triton even when a faster decode-only backend was selected.
-        return self.triton_kernel.target_verify(
+        """MTP / speculative-decode verify, routed to ``self.verify_kernel``
+        (FlashInfer decode -> recurrent_kda; Triton / CuTe DSL decode -> the Triton
+        fused KDA verify)."""
+        return self.verify_kernel.target_verify(
             A_log=A_log,
             dt_bias=dt_bias,
             q=q,
@@ -198,7 +217,10 @@ class KDAKernelDispatcher:
             ssm_states=ssm_states,
             cache_indices=cache_indices,
             query_start_loc=query_start_loc,
-            **kwargs,
+            intermediate_states_buffer=intermediate_states_buffer,
+            intermediate_state_indices=intermediate_state_indices,
+            cache_steps=cache_steps,
+            retrieve_parent_token=retrieve_parent_token,
         )
 
     def extend(
@@ -213,13 +235,8 @@ class KDAKernelDispatcher:
         cache_indices: torch.Tensor,
         query_start_loc: torch.Tensor,
         **kwargs,
-    ) -> tuple[torch.Tensor, torch.Tensor | None]:
-        kernel = self.extend_kernel
-        if kwargs.get("lower_bound") is not None and not getattr(
-            kernel, "supports_safe_gate", True
-        ):
-            kernel = self.triton_kernel
-        return kernel.extend(
+    ) -> torch.Tensor:
+        return self.extend_kernel.extend(
             q,
             k,
             v,
@@ -237,6 +254,7 @@ class KDAAttnBackend(MambaAttnBackendBase):
 
     def __init__(self, model_runner: ModelRunner):
         super().__init__(model_runner)
+        # mamba_cache.conv is [..., kernel-1, dim] while conv_states_shape expects the window length (kernel-1) at shape[-1], hence the transpose.
         self.conv_states_shape = (
             model_runner.req_to_token_pool.mamba_pool.mamba_cache.conv[0]
             .transpose(-1, -2)
@@ -244,13 +262,22 @@ class KDAAttnBackend(MambaAttnBackendBase):
         )
         decode_backend = get_linear_attn_decode_backend()
         prefill_backend = get_linear_attn_prefill_backend()
+        # KDA FlashInfer speculative decode (target_verify) is linear-chain only --
+        # recurrent_kda has no tree-ancestor traversal. Reject EAGLE tree verify
+        # (topk > 1) early at setup instead of deep in the per-step verify call.
+        # (The kernel keeps a per-call retrieve_parent_token guard as a backstop; it
+        # also covers ngram tree, which this topk field does not.)
+        speculative_topk = model_runner.server_args.speculative_eagle_topk or 1
+        if decode_backend.is_flashinfer() and speculative_topk > 1:
+            raise ValueError(
+                "KDA FlashInfer speculative decoding only supports topk=1 "
+                "(EAGLE tree verify / retrieve_parent_token is unsupported)."
+            )
         self.kernel_dispatcher = KDAKernelDispatcher(decode_backend, prefill_backend)
-        max_verify_batch_size = model_runner.max_running_requests
-        self.verify_has_initial_state = torch.ones(
-            max_verify_batch_size, dtype=torch.bool, device=model_runner.device
-        )
+        # Per-request row index into the speculative `intermediate_ssm` scratch,
+        # used by the MTP / target_verify path (mirrors GDNAttnBackend).
         self.verify_intermediate_state_indices = torch.arange(
-            max_verify_batch_size, dtype=torch.int32, device=model_runner.device
+            self.req_to_token_pool.size, dtype=torch.int32, device=model_runner.device
         )
 
     def init_forward_metadata(self, forward_batch: ForwardBatch):
@@ -259,12 +286,11 @@ class KDAAttnBackend(MambaAttnBackendBase):
             self.forward_metadata.mamba_track_mask_indices = (
                 forward_batch.mamba_track_mask.nonzero(as_tuple=True)[0]
             )
-            if not forward_batch.forward_mode.is_target_verify():
-                self.forward_metadata.conv_states_mask_indices = (
-                    forward_batch.mamba_track_indices[
-                        self.forward_metadata.mamba_track_mask_indices
-                    ]
-                )
+            self.forward_metadata.conv_states_mask_indices = (
+                forward_batch.mamba_track_indices[
+                    self.forward_metadata.mamba_track_mask_indices
+                ]
+            )
 
     def forward_decode(
         self,
@@ -280,19 +306,12 @@ class KDAAttnBackend(MambaAttnBackendBase):
         ssm_states = layer_cache.temporal
         query_start_loc = self.forward_metadata.query_start_loc
         cache_indices = self.forward_metadata.mamba_cache_indices
+        # KDA safe-gate lower bound must be applied during decode too, else the
+        # bounded gate never fires and generation cannot emit EOS.
+        lower_bound = getattr(layer, "lower_bound", None)
 
-        # ReplaySSM ring: per-layer ring slices + the once-per-forward per-row
-        # write cursor. All None unless --enable-linear-replayssm, so packed_decode
-        # falls through to the byte-identical legacy KDA path. KDA ships WITHOUT
-        # radix coordination for now, so force_flush is None/zeroed (the ring
-        # flushes only at the natural write_pos == L-1 wrap; set in the shared
-        # HybridLinearAttn metadata, which zeroes force_flush for KDA models).
-        # NOTE: ReplaySSM decode is a GDN (scalar-gate) bandwidth win; on KDA the
-        # per-K g_cache is K x larger and the reconstruction refolds the per-K
-        # decay every step, so it is correct but SLOWER than packed (a measured
-        # decode regression). Kept wired for correctness + the spec-decode path;
-        # not recommended for KDA decode. Revisit on Blackwell (more tensor-core
-        # throughput may flip the compute/bandwidth tradeoff).
+        # ReplaySSM is mostly a GDN bandwidth optimization. It remains wired for
+        # KDA correctness paths, but packed decode is faster for KDA today.
         replayssm_write_pos = getattr(
             self.forward_metadata, "replayssm_write_pos", None
         )
@@ -312,24 +331,14 @@ class KDAAttnBackend(MambaAttnBackendBase):
             conv_state_indices=cache_indices,
         )
 
-        lower_bound = kwargs.get("lower_bound", getattr(layer, "lower_bound", None))
-
-        # Skip split + reshape by consuming the packed mixed_qkv directly in a
-        # single fused Triton kernel (KDA per-K gate variant of GDN PR #20627).
-        #
-        # The packed kernel hard-assumes one token per sequence (T=1): it has no
-        # query_start_loc / per-sequence loop. forward_decode is only entered in
-        # decode mode (see HybridLinearAttnBackend.forward dispatch), where each
-        # request contributes exactly one token, so #tokens == #requests. Multi-
-        # token-per-seq speculative paths (target_verify / draft_extend) go
-        # through forward_extend instead. Assert the invariant so a future
-        # routing change fails loudly rather than silently corrupting state.
+        # The packed kernel assumes one token per request. Assert the dispatch
+        # invariant before taking the fused path.
         if self.kernel_dispatcher.supports_packed_decode:
             assert qkv.shape[0] == cache_indices.shape[0], (
                 "KDA packed decode requires one token per sequence (T=1): "
                 f"got {qkv.shape[0]} tokens for {cache_indices.shape[0]} requests."
             )
-            result = self.kernel_dispatcher.packed_decode(
+            core_attn_out = self.kernel_dispatcher.packed_decode(
                 mixed_qkv=qkv,
                 a=a,
                 b=b,
@@ -347,18 +356,17 @@ class KDAAttnBackend(MambaAttnBackendBase):
                 replayssm_write_pos=replayssm_write_pos,
                 replayssm_force_flush=replayssm_force_flush,
             )
-            if not forward_batch.forward_mode.is_target_verify():
-                self._track_mamba_state_decode(
-                    forward_batch, conv_states, ssm_states, cache_indices
-                )
-            return result
+            self._track_mamba_state_decode(
+                forward_batch, conv_states, ssm_states, cache_indices
+            )
+            return core_attn_out
 
         q, k, v = qkv.split([layer.q_dim, layer.k_dim, layer.v_dim], dim=-1)
         q = q.unflatten(-1, (-1, layer.head_q_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
         k = k.unflatten(-1, (-1, layer.head_k_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
         v = v.unflatten(-1, (-1, layer.head_v_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
 
-        result = self.kernel_dispatcher.decode(
+        core_attn_out = self.kernel_dispatcher.decode(
             q=q,
             k=k,
             v=v,
@@ -366,21 +374,17 @@ class KDAAttnBackend(MambaAttnBackendBase):
             b=b,
             A_log=layer.A_log,
             dt_bias=layer.dt_bias,
+            lower_bound=lower_bound,
             ssm_states=ssm_states,
             cache_indices=cache_indices,
             query_start_loc=query_start_loc,
-            lower_bound=lower_bound,
         )
 
-        # Track SSM/conv states for prefix caching during decode.
-        # The kernel updates ssm_states in-place; copy the updated states to
-        # persistent track slots so the radix cache can store them.
-        if not forward_batch.forward_mode.is_target_verify():
-            self._track_mamba_state_decode(
-                forward_batch, conv_states, ssm_states, cache_indices
-            )
+        self._track_mamba_state_decode(
+            forward_batch, conv_states, ssm_states, cache_indices
+        )
 
-        return result
+        return core_attn_out
 
     def forward_extend(
         self,
@@ -391,6 +395,11 @@ class KDAAttnBackend(MambaAttnBackendBase):
         b: torch.Tensor,
         **kwargs,
     ):
+        # MTP / speculative-decode verify is a multi-token-per-seq path with
+        # per-step state checkpointing + central rollback; handled separately.
+        if forward_batch.forward_mode.is_target_verify():
+            return self._forward_target_verify(layer, forward_batch, mixed_qkv, a, b)
+
         query_start_loc = self.forward_metadata.query_start_loc
         cache_indices = self.forward_metadata.mamba_cache_indices
 
@@ -399,69 +408,15 @@ class KDAAttnBackend(MambaAttnBackendBase):
 
         ssm_states = mamba_cache_params.temporal
 
-        is_target_verify = forward_batch.forward_mode.is_target_verify()
-        if forward_batch.extend_prefix_lens is not None:
-            has_initial_state = forward_batch.extend_prefix_lens > 0
-            extend_seq_lens_cpu = forward_batch.extend_seq_lens_cpu
-        elif forward_batch.spec_info is not None and hasattr(
-            forward_batch.spec_info, "draft_token_num"
-        ):
-            bs = forward_batch.batch_size
-            draft_token_num = forward_batch.spec_info.draft_token_num
-            has_initial_state = self.verify_has_initial_state[:bs]
-            extend_seq_lens_cpu = [draft_token_num] * bs
-        else:
-            raise RuntimeError(
-                "extend_prefix_lens is None but target-verify metadata is unavailable."
-            )
+        has_initial_state = forward_batch.extend_prefix_lens > 0
+
+        if self.forward_metadata.has_mamba_track_mask:
+            mamba_cache_params.conv[0][
+                self.forward_metadata.conv_states_mask_indices
+            ] = mixed_qkv[self.forward_metadata.track_conv_indices]
 
         splits = [layer.q_dim, layer.k_dim, layer.v_dim]
-
-        if is_target_verify:
-            assert isinstance(mamba_cache_params, MambaPool.SpeculativeState)
-            intermediate_conv_window_cache = (
-                mamba_cache_params.intermediate_conv_window[0]
-            )
-            intermediate_state_cache = mamba_cache_params.intermediate_ssm
-            seq_len = mixed_qkv.shape[0]
-            batch_size = seq_len // forward_batch.spec_info.draft_token_num
-            draft_token_num = forward_batch.spec_info.draft_token_num
-            conv_state_indices = cache_indices[:batch_size]
-            intermediate_state_indices = self.verify_intermediate_state_indices
-            retrieve_next_token = self.forward_metadata.retrieve_next_token
-            retrieve_next_sibling = self.forward_metadata.retrieve_next_sibling
-            retrieve_parent_token = self.forward_metadata.retrieve_parent_token
-
-            # Reshape mixed_qkv: (seq_len, dim) -> (batch_size, dim, draft_token_num)
-            mixed_qkv_reshaped = mixed_qkv.reshape(
-                batch_size, draft_token_num, -1
-            ).transpose(1, 2)
-            mixed_qkv_processed = causal_conv1d_update(
-                mixed_qkv_reshaped,
-                conv_states,
-                layer.conv_weights,
-                layer.bias,
-                activation="silu",
-                conv_state_indices=conv_state_indices,
-                intermediate_conv_window=intermediate_conv_window_cache.transpose(-1, -2),
-                intermediate_state_indices=intermediate_state_indices[:batch_size],
-                retrieve_next_token=retrieve_next_token,
-                retrieve_next_sibling=retrieve_next_sibling,
-                retrieve_parent_token=retrieve_parent_token,
-            )
-            mixed_qkv = mixed_qkv_processed.transpose(1, 2).reshape(seq_len, -1)
-            q, k, v = mixed_qkv.split(splits, dim=-1)
-        else:
-            mixed_qkv_t = mixed_qkv.transpose(0, 1)
-            if self.forward_metadata.has_mamba_track_mask:
-                mixed_qkv_to_track = mixed_qkv_t[
-                    :, self.forward_metadata.track_conv_indices
-                ].transpose(0, 1)
-                conv_states[self.forward_metadata.conv_states_mask_indices] = (
-                    mixed_qkv_to_track
-                )
-            q, k, v = mixed_qkv_t.split(splits, dim=0)
-
+        q, k, v = mixed_qkv.transpose(0, 1).split(splits, dim=0)
         q_conv_weight, k_conv_weight, v_conv_weight = layer.conv_weights.split(
             splits, dim=0
         )
@@ -471,71 +426,147 @@ class KDAAttnBackend(MambaAttnBackendBase):
         else:
             q_bias, k_bias, v_bias = None, None, None
 
-        if not is_target_verify:
-            q = causal_conv1d_fn(
-                q, q_conv_weight, q_bias, activation="silu",
-                conv_states=q_conv_state, has_initial_state=has_initial_state,
-                cache_indices=cache_indices, query_start_loc=query_start_loc,
-                seq_lens_cpu=extend_seq_lens_cpu,
-            ).transpose(0, 1)
-            k = causal_conv1d_fn(
-                k, k_conv_weight, k_bias, activation="silu",
-                conv_states=k_conv_state, has_initial_state=has_initial_state,
-                cache_indices=cache_indices, query_start_loc=query_start_loc,
-                seq_lens_cpu=extend_seq_lens_cpu,
-            ).transpose(0, 1)
-            v = causal_conv1d_fn(
-                v, v_conv_weight, v_bias, activation="silu",
-                conv_states=v_conv_state, has_initial_state=has_initial_state,
-                cache_indices=cache_indices, query_start_loc=query_start_loc,
-                seq_lens_cpu=extend_seq_lens_cpu,
-            ).transpose(0, 1)
+        q = causal_conv1d_fn(
+            q,
+            q_conv_weight,
+            q_bias,
+            activation="silu",
+            conv_states=q_conv_state,
+            has_initial_state=has_initial_state,
+            cache_indices=cache_indices,
+            query_start_loc=query_start_loc,
+            seq_lens_cpu=forward_batch.extend_seq_lens_cpu,
+        ).transpose(0, 1)
+        k = causal_conv1d_fn(
+            k,
+            k_conv_weight,
+            k_bias,
+            activation="silu",
+            conv_states=k_conv_state,
+            has_initial_state=has_initial_state,
+            cache_indices=cache_indices,
+            query_start_loc=query_start_loc,
+            seq_lens_cpu=forward_batch.extend_seq_lens_cpu,
+        ).transpose(0, 1)
+        v = causal_conv1d_fn(
+            v,
+            v_conv_weight,
+            v_bias,
+            activation="silu",
+            conv_states=v_conv_state,
+            has_initial_state=has_initial_state,
+            cache_indices=cache_indices,
+            query_start_loc=query_start_loc,
+            seq_lens_cpu=forward_batch.extend_seq_lens_cpu,
+        ).transpose(0, 1)
 
         q = q.unflatten(-1, (-1, layer.head_q_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
         k = k.unflatten(-1, (-1, layer.head_k_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
         v = v.unflatten(-1, (-1, layer.head_v_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
 
-        h = None
-        if is_target_verify:
-            core_attn_out = self.kernel_dispatcher.target_verify(
-                A_log=layer.A_log,
-                dt_bias=layer.dt_bias,
-                q=q,
-                k=k,
-                v=v,
-                a=a,
-                b=b,
-                ssm_states=ssm_states,
-                cache_indices=cache_indices[:batch_size],
-                query_start_loc=query_start_loc,
-                intermediate_states_buffer=intermediate_state_cache,
-                intermediate_state_indices=intermediate_state_indices[:batch_size],
-                cache_steps=draft_token_num,
-                retrieve_parent_token=retrieve_parent_token,
-                lower_bound=getattr(layer, "lower_bound", None),
-            )
-        else:
-            core_attn_out, h = self.kernel_dispatcher.extend(
-                q=q,
-                k=k,
-                v=v,
-                g=a,
-                beta=b,
-                ssm_states=ssm_states,
-                cache_indices=cache_indices,
-                query_start_loc=query_start_loc,
-                A_log=layer.A_log,
-                dt_bias=layer.dt_bias,
-                lower_bound=getattr(layer, "lower_bound", None),
-                extend_seq_lens_cpu=extend_seq_lens_cpu,
-                is_spec_decode=forward_batch.forward_mode.is_draft_extend_v2(),
-            )
-
-        # Track SSM states at chunk boundaries for prefix caching.
-        # The h tensor from the FLA kernel contains per-chunk boundary states.
-        if h is not None and not forward_batch.forward_mode.is_target_verify():
+        track_ssm = self.forward_metadata.has_mamba_track_mask
+        core_attn_out = self.kernel_dispatcher.extend(
+            q=q,
+            k=k,
+            v=v,
+            g=a,
+            beta=b,
+            ssm_states=ssm_states,
+            cache_indices=cache_indices,
+            query_start_loc=query_start_loc,
+            A_log=layer.A_log,
+            dt_bias=layer.dt_bias,
+            lower_bound=getattr(layer, "lower_bound", None),
+            extend_seq_lens_cpu=forward_batch.extend_seq_lens_cpu,
+            # draft_extend_v2 must stay rollback-able, so kernels that commit state
+            # in place (e.g. FlashKDA) must not run for it.
+            is_spec_decode=forward_batch.forward_mode.is_draft_extend_v2(),
+            return_intermediate_states=track_ssm,
+        )
+        if track_ssm:
+            core_attn_out, h = core_attn_out
             self._track_mamba_state_extend(
                 forward_batch, h, ssm_states, self.forward_metadata
             )
 
         return core_attn_out
+
+    def _forward_target_verify(
+        self,
+        layer: RadixLinearAttention,
+        forward_batch: ForwardBatch,
+        mixed_qkv: torch.Tensor,
+        a: torch.Tensor,
+        b: torch.Tensor,
+    ):
+        """MTP / speculative-decode verify (topk=1), mirroring the GDN backend.
+
+        Conv1d runs per draft token with intermediate-window checkpointing; the
+        SSM verify kernel writes each draft token's post-state into the
+        speculative `intermediate_ssm` scratch so the central post-verify rollback
+        (update_mamba_state_after_mtp_verify) can commit the accepted-length state.
+        """
+        fm = self.forward_metadata
+        seq_len = mixed_qkv.shape[0]
+        query_start_loc = fm.query_start_loc
+        cache_indices = fm.mamba_cache_indices
+        retrieve_next_token = fm.retrieve_next_token
+        retrieve_next_sibling = fm.retrieve_next_sibling
+        retrieve_parent_token = fm.retrieve_parent_token
+
+        mamba_cache_params = self.req_to_token_pool.mamba2_layer_cache(layer.layer_id)
+        conv_states = mamba_cache_params.conv[0]
+        ssm_states = mamba_cache_params.temporal
+        intermediate_state_cache = getattr(mamba_cache_params, "intermediate_ssm", None)
+        if intermediate_state_cache is None:
+            raise RuntimeError(
+                "KDA target_verify requires a speculative mamba cache "
+                "(MambaPool.SpeculativeState); none found."
+            )
+        intermediate_conv_window_cache = mamba_cache_params.intermediate_conv_window[0]
+        intermediate_state_indices = self.verify_intermediate_state_indices
+
+        draft_token_num = forward_batch.spec_info.draft_token_num
+        batch_size = seq_len // draft_token_num
+
+        # causal_conv1d_update expects [.., dim, width]. KDA keeps dense conv-window
+        # scratch because the deduplicated overlapping layout cannot be transposed.
+        mixed_qkv_reshaped = mixed_qkv.view(batch_size, draft_token_num, -1).transpose(
+            1, 2
+        )
+        mixed_qkv_processed = causal_conv1d_update(
+            mixed_qkv_reshaped,
+            conv_states.transpose(-1, -2),
+            layer.conv_weights,
+            layer.bias,
+            activation="silu",
+            conv_state_indices=cache_indices[:batch_size],
+            intermediate_conv_window=intermediate_conv_window_cache.transpose(-1, -2),
+            intermediate_state_indices=intermediate_state_indices[:batch_size],
+            retrieve_next_token=retrieve_next_token,
+            retrieve_next_sibling=retrieve_next_sibling,
+            retrieve_parent_token=retrieve_parent_token,
+        )
+        mixed_qkv = mixed_qkv_processed.transpose(1, 2).reshape(seq_len, -1)
+
+        q, k, v = mixed_qkv.split([layer.q_dim, layer.k_dim, layer.v_dim], dim=-1)
+        q = q.unflatten(-1, (-1, layer.head_q_dim)).unsqueeze(0)  # n (h d) -> 1 n h d
+        k = k.unflatten(-1, (-1, layer.head_k_dim)).unsqueeze(0)
+        v = v.unflatten(-1, (-1, layer.head_v_dim)).unsqueeze(0)
+
+        return self.kernel_dispatcher.target_verify(
+            A_log=layer.A_log,
+            dt_bias=layer.dt_bias,
+            q=q,
+            k=k,
+            v=v,
+            a=a,
+            b=b,
+            ssm_states=ssm_states,
+            cache_indices=cache_indices,
+            query_start_loc=query_start_loc,
+            intermediate_states_buffer=intermediate_state_cache,
+            intermediate_state_indices=intermediate_state_indices,
+            cache_steps=draft_token_num,
+            retrieve_parent_token=retrieve_parent_token,
+        )
