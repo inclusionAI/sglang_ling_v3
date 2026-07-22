@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch import nn
 from transformers import PretrainedConfig
 
+from sglang.kernels.ops.quantization.fp8_kernel import is_fp8_fnuz
 from sglang.srt.configs import KimiLinearConfig
 from sglang.srt.distributed import (
     get_pp_group,
@@ -42,7 +43,6 @@ from sglang.srt.layers.moe.ep_moe.layer import DeepEPMoE, get_moe_impl_class
 from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
 from sglang.srt.layers.moe.topk import TopK
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
-from sglang.kernels.ops.quantization.fp8_kernel import is_fp8_fnuz
 from sglang.srt.layers.quantization.fp8_utils import (
     block_quant_dequant,
     block_quant_to_tensor_quant,
@@ -64,6 +64,9 @@ from sglang.srt.model_executor.forward_batch_info import ForwardBatch, PPProxyTe
 from sglang.srt.model_executor.runner import get_is_capture_mode
 from sglang.srt.model_loader.weight_utils import (
     default_weight_loader,
+)
+from sglang.srt.models.deepseek_common.attention_forward_methods.forward_methods import (
+    AttnForwardMethod,
 )
 from sglang.srt.models.deepseek_common.utils import (
     _is_cpu,
@@ -111,6 +114,18 @@ if _is_hip:
 
 _is_flashinfer_available = is_flashinfer_available()
 _is_sm100_supported = is_cuda() and is_sm100_supported()
+
+
+# Only the CUDA MHA/MLA core methods accept the trailing gate arg; the
+# ROCm/CPU/NPU cores do not (gated attention is unsupported there anyway).
+_GATED_ATTN_FORWARD_METHODS = frozenset(
+    {
+        AttnForwardMethod.MHA,
+        AttnForwardMethod.MLA,
+        AttnForwardMethod.MHA_CHUNKED_KV,
+        AttnForwardMethod.MHA_ONE_SHOT,
+    }
+)
 
 
 class DsV3MLA(DeepseekV2AttentionMLA):
@@ -198,8 +213,25 @@ class DsV3MLA(DeepseekV2AttentionMLA):
             llama_4_scaling=llama_4_scaling,
         )
         gate = self._forward_gated(hidden_states)
-        s = (s[0], s[1], s[2], s[3] + (gate,))
-        return self.forward_core(s)
+        return self.forward_core(self._attach_gate(s, gate))
+
+    def _attach_gate(self, s, gate: Optional[torch.Tensor]):
+        # Empty DP-attention shards short-circuit forward_prepare to a bare tensor
+        # or an inner_state=None 4-tuple; both must reach forward_core untouched.
+        if gate is None or not isinstance(s, tuple):
+            return s
+        hidden_states, attn_forward_method, forward_batch, inner_state = s
+        if (
+            inner_state is None
+            or attn_forward_method not in _GATED_ATTN_FORWARD_METHODS
+        ):
+            return s
+        return (
+            hidden_states,
+            attn_forward_method,
+            forward_batch,
+            inner_state + (gate,),
+        )
 
     def _forward_gated(self, hidden_states: torch.Tensor):
         if self.g_proj:

@@ -76,6 +76,7 @@ from sglang.srt.utils import (
     make_layers,
 )
 from sglang.srt.utils.common import rank0_log
+from sglang.srt.utils.hf_transformers_utils import get_rope_config
 
 _is_hip = is_hip()
 _is_cuda = is_cuda()
@@ -516,12 +517,13 @@ class BailingMoELinearAttention(nn.Module):
         else:
             rotary_dim = self.head_dim
 
+        rope_theta, rope_scaling = get_rope_config(config)
         self.rotary_emb = get_rope_wrapper(
             self.head_dim,
             rotary_dim=rotary_dim,
             max_position=self.max_position_embeddings,
-            base=config.rope_parameters.get("rope_theta", 600000),
-            rope_scaling=config.rope_parameters,
+            base=rope_theta,
+            rope_scaling=rope_scaling,
             is_neox_style=True,
             device=get_device().device,
             dtype=torch.float32,
@@ -677,12 +679,13 @@ class BailingMoEAttention(nn.Module):
         else:
             self.rotary_dim = self.head_dim
         self.max_position_embeddings = config.max_position_embeddings
+        rope_theta, rope_scaling = get_rope_config(config)
         self.rotary_emb = get_rope_wrapper(
             self.head_dim,
             rotary_dim=self.rotary_dim,
             max_position=self.max_position_embeddings,
-            base=config.rope_parameters.get("rope_theta", 600000),
-            rope_scaling=config.rope_parameters,
+            base=rope_theta,
+            rope_scaling=rope_scaling,
             device=get_device().device,
         )
         self.attn = RadixAttention(

@@ -1425,6 +1425,26 @@ def biased_grouped_topk_gpu(
         )
     if (
         _is_cuda
+        and num_experts == 512
+        and num_expert_group == 8
+        and topk_group == 4
+        and topk_routed <= 8
+    ):
+        from sglang.jit_kernel.bailing_moe_topk import bailing_moe_biased_grouped_topk
+
+        return bailing_moe_biased_grouped_topk(
+            gating_output.to(dtype=torch.float32),
+            correction_bias.to(dtype=torch.float32),
+            num_expert_group,
+            topk_group,
+            topk,
+            renormalize,
+            num_fused_shared_experts,
+            routed_scaling_factor if routed_scaling_factor is not None else 1.0,
+            bool(apply_routed_scaling_factor_on_output),
+        )
+    if (
+        _is_cuda
         and fused_topk_deepseek is not None
         and is_power_of_two(num_experts)
         # flashinfer constraints (applied to routed experts only)
