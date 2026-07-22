@@ -1,12 +1,16 @@
 ---
 title: Ling-3.0-flash
-description: "Deploy Ling-3.0-flash with SGLang on a single 4× H20-3e node using BF16, Ling3 reasoning and tool calling, NEXTN, and YaRN context extension."
+description: "Deploy Ling-3.0-flash with SGLang on H20-3e, H200, H800, H100, or Blackwell using BF16, Ling3 reasoning and tool calling, NEXTN, and YaRN context extension."
 tag: NEW
 ---
 
 ## 1. Model Introduction
 
-{/* TODO: The model designers will provide the final introduction and key-feature prose. */}
+Ling-3.0-flash is a hybrid-attention Mixture-of-Experts (MoE) language model from the BailingMoeV3 family. It interleaves Kimi Delta Attention (KDA) linear-attention layers with gated Multi-head Latent Attention (MLA) full-attention layers, on top of a fine-grained MoE feed-forward network. This keeps per-token inference cost close to a small model — **124B total parameters with only 5.1B active** — while retaining large-model capacity.
+
+It is a hybrid-reasoning model with thinking enabled by default, and it supports structured tool calling. Native context length is 128K, extendable to 256K and 1M with YaRN.
+
+{/* Final positioning and key-feature prose to be provided by the model team. */}
 
 **Available Models:**
 
@@ -24,7 +28,7 @@ Please refer to the [official SGLang installation guide](/docs/get-started/insta
 
 ## 3. Model Deployment
 
-Ling-3.0-flash is a 124B/5.1B-active BF16 MoE model. The reference deployment uses a single node with 4× H20-3e and tensor parallelism set to 4.
+Ling-3.0-flash is a 124B/5.1B-active BF16 MoE model. The deployment selector below covers single-node H20-3e, H200, H800, H100, and Blackwell (B200); pick your GPU to get the matching tensor-parallel layout.
 
 import { Deployment } from "/src/snippets/_deployment.jsx";
 import { config } from "/src/snippets/configs/inclusionAI/ling-3.0-flash.jsx";
@@ -35,16 +39,16 @@ import { benchmarks } from "/src/snippets/configs/inclusionAI/ling-3.0-flash-ben
 ### Configuration Tips
 
 - `--trust-remote-code` is required for the `BailingMoeV3ForCausalLM` implementation.
-- `--tp 4` is the reference layout for a single 4× H20-3e node.
+- Tensor parallelism follows the GPU: `--tp 4` on 141 GB-class cards (H20-3e, H200) and Blackwell (B200); `--tp 8` on 80 GB cards (H100, H800).
 - `--reasoning-parser ling3` and `--tool-call-parser ling3` enable Ling-3.0-specific reasoning and structured tool-call parsing.
-- Thinking is enabled by default. Set `chat_template_kwargs.enable_thinking` to `false` per request to disable it.
+- Thinking is enabled by default; the chain-of-thought is returned in `reasoning_content` (see §4.3). A per-request thinking switch is being finalized for the public release.
 - `--speculative-algorithm NEXTN` enables the NEXTN speculative decoding path.
 - Native context is 128K. The reference recipe sets `--context-length 262144` and applies YaRN with factor 2.0 to extend it to 256K.
 - The 1M YaRN recipe, SGLang version, and verified performance results will be added after final-model validation.
 
 ## 4. Model Invocation
 
-Launch Ling-3.0-flash on a single 4× H20-3e node:
+Launch Ling-3.0-flash (the reference command below uses `--tp 4`; use `--tp 8` on 80 GB cards such as H100 / H800):
 
 ```bash Command
 sglang serve \
@@ -83,7 +87,24 @@ curl -s http://localhost:30000/v1/chat/completions \
 
 <Accordion title="Example Output">
 
-Pending update after the final model is released.
+With `--reasoning-parser ling3`, the chain-of-thought is returned in `reasoning_content` and the final answer in `content`:
+
+```json
+{
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "\n\nThe capital of France is **Paris**.\n\n",
+        "reasoning_content": "\n<think>\nThe user is asking a simple factual question about the capital of France. This is basic general knowledge - the capital of France is Paris.\n",
+        "tool_calls": null
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": { "prompt_tokens": 20, "completion_tokens": 46, "reasoning_tokens": 32 }
+}
+```
 
 </Accordion>
 
@@ -119,27 +140,44 @@ curl -s http://localhost:30000/v1/chat/completions \
 
 <Accordion title="Example Output">
 
-Pending update after the final model is released.
+With `--tool-call-parser ling3`, structured calls are parsed into `tool_calls` and `finish_reason` is `tool_calls`:
+
+```json
+{
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Let me search for the latest news about AI for you!",
+        "reasoning_content": "\n<think>\nThe user wants me to search for the latest news about AI. I'll use the search tool to find relevant results.\n",
+        "tool_calls": [
+          {
+            "id": "call_605ef1b731fa46f5ba46fe16",
+            "type": "function",
+            "function": { "name": "search", "arguments": "{\"query\": \"latest news about AI\"}" }
+          }
+        ]
+      },
+      "finish_reason": "tool_calls"
+    }
+  ]
+}
+```
 
 </Accordion>
 
 ### 4.3 Thinking Mode
 
-Ling-3.0-flash defaults to thinking mode when `chat_template_kwargs.enable_thinking` is omitted or set to `true`. With `--reasoning-parser ling3`, reasoning is returned in `message.reasoning_content` and the final answer in `message.content`.
+Ling-3.0-flash is a hybrid-reasoning model and reasons by default. With `--reasoning-parser ling3`, the chain-of-thought is returned in `message.reasoning_content` and the final answer in `message.content`:
 
-#### Disabling thinking
-
-Set `enable_thinking` to `false` for requests that should answer directly:
-
-<Accordion title="Thinking-off request">
+<Accordion title="Thinking-mode request">
 
 ```bash Command
 curl -s http://localhost:30000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "inclusionAI/Ling-3.0-flash",
-    "messages": [{"role": "user", "content": "What is 15% of 240?"}],
-    "chat_template_kwargs": {"enable_thinking": false}
+    "messages": [{"role": "user", "content": "What is 15% of 240?"}]
   }'
 ```
 
@@ -147,12 +185,54 @@ curl -s http://localhost:30000/v1/chat/completions \
 
 <Accordion title="Example Output">
 
-Pending update after the final model is released.
+```json
+{
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "\n\n**15% of 240 = 36**\n\n**Calculation:**\n240 × 0.15 = 36\n\n**Quick check:** 10% of 240 = 24, and 5% of 240 = 12. So 15% = 24 + 12 = **36** ✓\n\n",
+        "reasoning_content": "\n<think>\nThe question asks to find 15% of 240.\n\n15% = 0.15 = 15/100\n\n240 × 15/100 = 36\n\nVerification: 10% of 240 = 24, 5% of 240 = 12, so 15% = 24 + 12 = 36. ✓\n",
+        "tool_calls": null
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}
+```
 
 </Accordion>
+
+<Note>
+A per-request thinking switch (`chat_template_kwargs.enable_thinking`) is being finalized for the public release. On the current pre-release checkpoint the model reasons by default and this toggle has no effect; the disable-thinking recipe will be added after final-model validation.
+</Note>
 
 For more API examples, see the [SGLang Basic Usage Guide](/docs/basic_usage/send_request).
 
 ## 5. Benchmark
 
-{/* TODO: Add accuracy, throughput, latency, and the reproducible SGLang version after validating the final model on 4× H20-3e. */}
+**Accuracy** — GSM8K, full 1319-question split, thinking mode on:
+
+<table style={{width: "100%", borderCollapse: "collapse", tableLayout: "fixed"}}>
+  <thead>
+    <tr style={{borderBottom: "2px solid #d55816"}}>
+      <th style={{textAlign: "left", padding: "10px 12px", fontWeight: 700}}>Benchmark</th>
+      <th style={{textAlign: "left", padding: "10px 12px", fontWeight: 700}}>Accuracy</th>
+      <th style={{textAlign: "left", padding: "10px 12px", fontWeight: 700}}>Measurement setup</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style={{padding: "9px 12px"}}>GSM8K (1319, thinking on)</td>
+      <td style={{padding: "9px 12px"}}>96.13% (stop-rate 100%)</td>
+      <td style={{padding: "9px 12px"}}>BF16, TP4, temperature 1.0 / top_p 0.95</td>
+    </tr>
+  </tbody>
+</table>
+
+<Info>
+Accuracy is a model-quality metric and is hardware-independent; the value above was
+measured on a 4× H200 node (BF16, TP4) with the recipe on this page. Throughput and
+latency on the reference 4× H20-3e node, the 1M-context YaRN recipe, and the
+reproducible SGLang version will be added after final-model validation on that hardware.
+</Info>
