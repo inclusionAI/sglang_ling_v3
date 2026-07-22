@@ -3,7 +3,7 @@ export const config = {
 
   supportedHardware: ["h20-3e"],
   hardware: [
-    { id: "h20-3e", label: "H20-3e", vram: "", vendor: "nvidia" },
+    { id: "h20-3e", label: "H20-3e", vram: "141 GB", vendor: "nvidia" },
   ],
 
   variants: [
@@ -79,7 +79,7 @@ export const config = {
         "--mem-fraction-static 0.85",
         "--max-running-requests 64",
         "--chunked-prefill-size 8192",
-        "--allow-auto-output-truncate",
+        "--allow-auto-truncate",
         "--enable-trace",
         "--tool-call-parser ling3",
         "--reasoning-parser ling3",

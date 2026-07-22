@@ -1,7 +1,6 @@
 ---
 title: Ling-3.0-flash
-metatags:
-    description: "Deploy Ling-3.0-flash with SGLang on a single 4× H20-3e node using BF16, Ling3 reasoning and tool calling, NEXTN, and YaRN context extension."
+description: "Deploy Ling-3.0-flash with SGLang on a single 4× H20-3e node using BF16, Ling3 reasoning and tool calling, NEXTN, and YaRN context extension."
 tag: NEW
 ---
 
@@ -21,7 +20,7 @@ tag: NEW
 
 SGLang offers multiple installation methods. You can choose the most suitable method for your hardware and environment.
 
-Please refer to the [official SGLang installation guide](../../../docs/get-started/install) for installation instructions.
+Please refer to the [official SGLang installation guide](/docs/get-started/install) for installation instructions.
 
 ## 3. Model Deployment
 
@@ -58,7 +57,7 @@ sglang serve \
   --mem-fraction-static 0.85 \
   --max-running-requests 64 \
   --chunked-prefill-size 8192 \
-  --allow-auto-output-truncate \
+  --allow-auto-truncate \
   --enable-trace \
   --tool-call-parser ling3 \
   --reasoning-parser ling3 \
@@ -72,18 +71,28 @@ sglang serve \
 
 ### 4.1 Basic Usage
 
+<Accordion title="Chat completion request">
+
 ```bash Command
-curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
+curl -s http://localhost:30000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model": "inclusionAI/Ling-3.0-flash", "messages": [{"role": "user", "content": "What is the capital of France?"}]}'
 ```
 
-{/* TODO: Paste output from the final released model. */}
+</Accordion>
+
+<Accordion title="Example Output">
+
+Pending update after the final model is released.
+
+</Accordion>
 
 ### 4.2 Tool Calling Example
 
+<Accordion title="Tool-calling request">
+
 ```bash Command
-curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
+curl -s http://localhost:30000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "inclusionAI/Ling-3.0-flash",
@@ -106,7 +115,13 @@ curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
   }'
 ```
 
-{/* TODO: Paste output from the final released model. */}
+</Accordion>
+
+<Accordion title="Example Output">
+
+Pending update after the final model is released.
+
+</Accordion>
 
 ### 4.3 Thinking Mode
 
@@ -116,8 +131,10 @@ Ling-3.0-flash defaults to thinking mode when `chat_template_kwargs.enable_think
 
 Set `enable_thinking` to `false` for requests that should answer directly:
 
+<Accordion title="Thinking-off request">
+
 ```bash Command
-curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
+curl -s http://localhost:30000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "inclusionAI/Ling-3.0-flash",
@@ -126,9 +143,15 @@ curl -s http://${MASTER_IP}:${PORT}/v1/chat/completions \
   }'
 ```
 
-{/* TODO: Paste thinking-on and thinking-off outputs from the final released model. */}
+</Accordion>
 
-For more API examples, see the [SGLang Basic Usage Guide](../../../docs/basic_usage/send_request).
+<Accordion title="Example Output">
+
+Pending update after the final model is released.
+
+</Accordion>
+
+For more API examples, see the [SGLang Basic Usage Guide](/docs/basic_usage/send_request).
 
 ## 5. Benchmark
 
