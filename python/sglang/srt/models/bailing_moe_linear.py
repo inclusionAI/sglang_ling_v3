@@ -150,7 +150,6 @@ def weight_loader_with_alias(alias: str):
             prefix: str = None,
             **kwargs,
         ):
-            # pf = "[vLLM][load]" + " " if prefix is None else f"[{prefix}] "
             value = func(param, loaded_weight, *args, **kwargs)
             return value
 
@@ -598,7 +597,6 @@ class BailingMoELinearAttention(nn.Module):
         q = q.view((qkv.shape[0], self.tp_heads, self.head_dim))
         k = k.view((qkv.shape[0], self.tp_kv_heads, self.head_dim))
         v = v.view((qkv.shape[0], self.tp_kv_heads, self.head_dim))
-        # logger.warning(f"===={self.layer_id=}, 1-2 {q.shape=}, {k.shape=}, {v.shape=}")
 
         if self.linear_scale:
             q = q * self.scaling
@@ -856,9 +854,6 @@ class BailingMoELinearDecoderLayer(nn.Module):
         hidden_states, residual = self.layer_communicator.prepare_attn(
             hidden_states, residual, forward_batch
         )
-        # logger.warning(
-        #     f"===={self.layer_id=}, 1 shape= {hidden_states.shape}, {residual.shape}"
-        # )
         if not forward_batch.forward_mode.is_idle():
             if self.use_mla:
                 hidden_states = self.attention(
@@ -873,15 +868,9 @@ class BailingMoELinearDecoderLayer(nn.Module):
                     positions=positions,
                     forward_batch=forward_batch,
                 )
-        # logger.warning(
-        #     f"===={self.layer_id=}, 2 shape= {hidden_states.shape}, {residual.shape}"
-        # )
         hidden_states, residual = self.layer_communicator.prepare_mlp(
             hidden_states, residual, forward_batch
         )
-        # logger.warning(
-        #     f"===={self.layer_id=}, 3 shape= {hidden_states.shape}, {residual.shape}"
-        # )
         fuse_mlp_allreduce = (
             self.layer_communicator.should_fuse_mlp_allreduce_with_next_layer(
                 forward_batch
