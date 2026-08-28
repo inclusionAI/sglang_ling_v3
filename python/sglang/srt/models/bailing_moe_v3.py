@@ -2694,10 +2694,49 @@ class BailingMoeV3ForCausalLM(nn.Module):
                     param_name, weight_name, expert_id, shard_id = mapping
                     if weight_name not in name:
                         continue
-                    name = name.replace(weight_name, param_name)
 
-                    if name not in params_dict:
+                    # Compressed-tensors MXFP4 ships routed experts as
+                    # `<proj>.weight_packed`. HummingMoEMethod registers that
+                    # name verbatim, while Mxfp4MoEMethod registers the same
+                    # fused parameter without the `_packed` suffix -- so resolve
+                    # the unsuffixed alias only when the exact name is absent.
+                    # Do not rewrite `name` before the lookup: a miss has to
+                    # leave it intact for the remaining mappings.
+                    mapped_name = name.replace(weight_name, param_name)
+                    candidate_names = [mapped_name]
+                    if mapped_name.endswith("_weight_packed"):
+                        candidate_names.append(mapped_name.removesuffix("_packed"))
+                    resolved_name = next(
+                        (
+                            candidate_name
+                            for candidate_name in candidate_names
+                            if candidate_name in params_dict
+                        ),
+                        None,
+                    )
+                    if resolved_name is None:
+                        if mapped_name.endswith("_weight_packed"):
+                            # Silently dropping a packed expert tensor whose
+                            # layer IS local serves garbage, so fail loudly.
+                            # PP ranks and truncated configs own no parameter
+                            # under this prefix at all and stay on the skip path.
+                            module_prefix = mapped_name.rsplit(".", 1)[0]
+                            if any(
+                                f"{module_prefix}.{fused}" in params_dict
+                                for fused in (
+                                    "w13_weight",
+                                    "w13_weight_packed",
+                                    "w2_weight",
+                                    "w2_weight_packed",
+                                )
+                            ):
+                                raise RuntimeError(
+                                    "Unable to map required MXFP4 expert tensor "
+                                    f"{name!r}; expected one of {candidate_names!r}"
+                                )
                         continue
+
+                    name = resolved_name
                     if is_pp_missing_parameter(name, self):
                         continue
                     if name.endswith("weight_scale_inv"):

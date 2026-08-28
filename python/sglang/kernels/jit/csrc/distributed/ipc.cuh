@@ -80,8 +80,12 @@ struct IPCManager : public tvm::ffi::Object {
     tvm::ffi::Array<uintptr_t> result;
     result.reserve(handles.size());
     for (const auto& pair : handles) {
-      const auto ipc_handle = to_ipc_handle(get<0>(pair));
-      const auto offset = get<1>(pair);
+      // Call the member accessor directly: the ADL free `tvm::ffi::get<I>`
+      // trips a GCC 10 template-deduction bug ("couldn't deduce template
+      // parameter 'I'") on hosts whose system compiler is that old, and the
+      // free function is a plain forwarder to this member anyway.
+      const auto ipc_handle = to_ipc_handle(pair.template get<0>());
+      const auto offset = pair.template get<1>();
       result.push_back(open_handle(ipc_handle) + offset);
     }
     return result;

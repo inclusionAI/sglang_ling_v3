@@ -22,7 +22,6 @@ from sglang.srt.layers.moe.moe_runner.base import (
     MoeRunnerCore,
     RunnerInput,
     RunnerOutput,
-    register_fused_func,
     register_post_permute,
     register_pre_permute,
 )
@@ -531,6 +530,14 @@ class HummingRunnerCore(MoeRunnerCore):
             and intermediate % 256 == 0
             and num_threads <= 1024
             and num_experts <= min(256, num_threads)
+            and self.config.top_k is not None
+            and self.config.top_k > 0
+            # The kernel only knows the `swiglu_limit` clamp. `gemm1_clamp_limit`
+            # is the other SwiGLU clamp semantics (clamp silu(gate) from above,
+            # up symmetrically) -- feeding it in as swiglu_limit, or dropping it,
+            # both change the result, so fall back to apply_activation, which
+            # implements it. Ling-3.0-plus sets it on its late layers.
+            and self.gemm1_clamp_limit is None
         )
         if use_fused_masked_act_quant:
             from sglang.kernels.ops.moe.dsv4 import silu_and_mul_masked_post_quant
@@ -992,32 +999,6 @@ class HummingRunnerCore(MoeRunnerCore):
         )
 
         return buffers["down_output"]
-
-
-@register_fused_func("none", "humming")
-def fused_experts_none_to_humming(
-    dispatch_output: StandardDispatchOutput,
-    quant_info: HummingMoeQuantInfo,
-    runner_config: MoeRunnerConfig,
-) -> StandardCombineInput:
-    from sglang.srt.layers.moe.token_dispatcher.standard import StandardCombineInput
-
-    hidden_states = dispatch_output.hidden_states
-    topk_output = dispatch_output.topk_output
-    topk_ids = topk_output.topk_ids
-    topk_weights = topk_output.topk_weights
-
-    runner_input = HummingRunnerInput(
-        hidden_states=hidden_states,
-        topk_weights=topk_weights,
-        topk_ids=topk_ids,
-        gemm_type=get_standard_humming_moe_gemm_type(),
-    )
-
-    runner_core = HummingRunnerCore(runner_config)
-    runner_output = runner_core.run(runner_input, quant_info, {})
-
-    return StandardCombineInput(hidden_states=runner_output.hidden_states)
 
 
 def _validate_deepep_dispatch_input(

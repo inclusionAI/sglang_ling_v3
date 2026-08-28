@@ -182,6 +182,11 @@ ACTIVATION_SCHEMES = ["static", "dynamic"]
 
 logger = logging.getLogger(__name__)
 
+# MXFP4 experts scale one E8M0 exponent per group of 32 values along K.
+# Unrelated to `weight_block_size`, which describes FP8 [block_n, block_k]
+# blocks and applies only to the FP8-quantized weights in the same layer.
+MXFP4_GROUP_SIZE = 32
+
 DSV4_DEQUANT_FP4_TABLE = torch.tensor(
     [
         0.0,
@@ -1695,7 +1700,7 @@ class Fp8MoEMethod(FusedMoEMethodBase):
 
         # WEIGHT_SCALES
         if is_fp4_expert:
-            fp4_block_k = 32
+            fp4_block_k = MXFP4_GROUP_SIZE
             if fp4_scale_dtype is None:
                 fp4_scale_dtype = (
                     torch.float8_e8m0fnu if _use_aiter or is_xpu() else torch.float32
