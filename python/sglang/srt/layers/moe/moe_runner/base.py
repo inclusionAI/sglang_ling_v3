@@ -113,6 +113,12 @@ class MoeRunnerCore(ABC):
     @abstractmethod
     def runner_backend(self) -> MoeRunnerBackend: ...
 
+    @property
+    def supports_fused_output_add(self) -> bool:
+        """Whether this core folds ``DispatchOutput.output_add`` into its finalize
+        epilogue instead of leaving the caller a separate elementwise add."""
+        return False
+
     def runner_backend_is_triton(self) -> TypeGuard[TritonRunnerCore]:
         return self.runner_backend == MoeRunnerBackend.TRITON
 

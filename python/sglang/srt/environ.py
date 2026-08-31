@@ -1283,6 +1283,12 @@ class Envs:
     # standard dispatcher, and the triton MoE runner; falls back silently
     # otherwise.
     SGLANG_OPT_MOE_QUANT_ONCE = EnvBool(False)
+    # Fold the shared-expert output into the MoE finalize epilogue
+    # (moe_fused_mul_sum) instead of a separate [num_tokens, hidden] elementwise
+    # add before the post-experts all-reduce. Bit-identical to the unfused add;
+    # only engages on the standard dispatcher with a runner that reports
+    # supports_fused_output_add (humming indexed gemm today).
+    SGLANG_OPT_MOE_FUSED_OUTPUT_ADD = EnvBool(True)
 
     # ===================================================================
     # DeepGEMM Mega MoE

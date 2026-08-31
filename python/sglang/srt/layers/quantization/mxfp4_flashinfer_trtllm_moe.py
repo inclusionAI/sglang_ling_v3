@@ -12,6 +12,7 @@ from sglang.srt.distributed.device_communicators.pynccl_allocator import (
 )
 from sglang.srt.layers.dp_attention import is_allocation_symmetric
 from sglang.srt.layers.moe.utils import RoutingMethodType
+from sglang.srt.layers.quantization.base_config import FusedMoEMethodBase
 from sglang.srt.runtime_context import (
     get_exec,
     get_parallel,
@@ -112,7 +113,7 @@ class Mxfp8RoutedInputPreQuant(NamedTuple):
     ready: Optional[torch.cuda.Event]
 
 
-class Mxfp4FlashinferTrtllmMoEMethod:
+class Mxfp4FlashinferTrtllmMoEMethod(FusedMoEMethodBase):
     fuse_routed_scaling_factor_in_topk = True
 
     def __init__(self, fp8_method, prefix: str):

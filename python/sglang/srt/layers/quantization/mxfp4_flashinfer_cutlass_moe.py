@@ -14,6 +14,7 @@ import torch
 from torch.nn import Module
 from torch.nn.parameter import Parameter
 
+from sglang.srt.layers.quantization.base_config import FusedMoEMethodBase
 from sglang.srt.runtime_context import get_exec, get_platform
 from sglang.srt.utils import is_flashinfer_available, log_info_on_rank0
 
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 _GROUP_SIZE = 32
 
 
-class Mxfp4FlashinferCutlassMoEMethod:
+class Mxfp4FlashinferCutlassMoEMethod(FusedMoEMethodBase):
     """FlashInfer MXFP4 MoE: W4A16/W4A8 on SM90 and W4A8 on SM120."""
 
     fuse_routed_scaling_factor_in_topk = True

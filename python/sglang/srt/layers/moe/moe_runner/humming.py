@@ -79,6 +79,7 @@ class HummingRunnerInput(RunnerInput):
     expected_m: int | None = None
     hidden_states_scale: torch.Tensor | None = None
     apply_routed_scaling_factor: bool = True
+    output_add: torch.Tensor | None = None
 
     @property
     def runner_backend(self) -> MoeRunnerBackend:
@@ -99,7 +100,24 @@ class HummingMoeQuantInfo(MoeQuantInfo):
     layer: torch.nn.Module
 
 
-@register_custom_op()
+def _humming_moe_runner_core_run_fake(
+    moe_runner_id: int,
+    gemm_type: str,
+    hidden_states: torch.Tensor,
+    topk_weights: torch.Tensor,
+    topk_ids: torch.Tensor,
+    expert_num_tokens: torch.Tensor | None = None,
+    expected_m: int | None = None,
+    hidden_states_scale: torch.Tensor | None = None,
+    apply_routed_scaling_factor: bool = True,
+    output_add: torch.Tensor | None = None,
+) -> torch.Tensor:
+    runner = HummingRunnerCore.runner_cores[moe_runner_id]
+    output_dtype = runner.config.params_dtype or hidden_states.dtype
+    return torch.empty_like(hidden_states, dtype=output_dtype)
+
+
+@register_custom_op(fake_impl=_humming_moe_runner_core_run_fake)
 def humming_moe_runner_core_run(
     moe_runner_id: int,
     gemm_type: str,
@@ -110,6 +128,7 @@ def humming_moe_runner_core_run(
     expected_m: int | None = None,
     hidden_states_scale: torch.Tensor | None = None,
     apply_routed_scaling_factor: bool = True,
+    output_add: torch.Tensor | None = None,
 ) -> torch.Tensor:
     runner = HummingRunnerCore.runner_cores[moe_runner_id]
     if gemm_type == "indexed":
@@ -119,8 +138,13 @@ def humming_moe_runner_core_run(
             topk_weights=topk_weights,
             hidden_states_scale=hidden_states_scale,
             apply_routed_scaling_factor=apply_routed_scaling_factor,
+            output_add=output_add,
         )
-    elif gemm_type == "grouped_contiguous":
+    # Only the indexed gemm finalizes through moe_fused_mul_sum, which is the
+    # kernel that folds output_add in; supports_fused_output_add gates on that,
+    # so a non-indexed gemm here means the gate and the runner disagree.
+    assert output_add is None, f"{gemm_type} gemm cannot fuse output_add"
+    if gemm_type == "grouped_contiguous":
         return runner._run_grouped_contiguous_gemm(
             hidden_states=hidden_states,
             topk_ids=topk_ids,
@@ -183,6 +207,15 @@ class HummingRunnerCore(MoeRunnerCore):
     @property
     def runner_backend(self) -> MoeRunnerBackend:
         return MoeRunnerBackend.HUMMING
+
+    @property
+    def supports_fused_output_add(self) -> bool:
+        # Only the indexed gemm finalizes through moe_fused_mul_sum; the grouped
+        # gemms go through moe_unpermute / the a2a combine instead.
+        return (
+            _humming_available
+            and get_standard_humming_moe_gemm_type() == HummingGemmType.INDEXED
+        )
 
     def get_humming_gemm_configs(self, humming_gemm_type: HummingGemmType):
         if humming_gemm_type.value in self.humming_gemm_configs:
@@ -555,6 +588,7 @@ class HummingRunnerCore(MoeRunnerCore):
             expert_num_tokens=runner_input.expert_num_tokens,
             hidden_states_scale=runner_input.hidden_states_scale,
             apply_routed_scaling_factor=runner_input.apply_routed_scaling_factor,
+            output_add=runner_input.output_add,
         )
 
         return HummingRunnerOutput(hidden_states=output)
@@ -607,6 +641,7 @@ class HummingRunnerCore(MoeRunnerCore):
         topk_ids: torch.Tensor,
         hidden_states_scale: torch.Tensor | None = None,
         apply_routed_scaling_factor: bool = True,
+        output_add: torch.Tensor | None = None,
     ):
         hidden_states = hidden_states.view(-1, hidden_states.size(-1))
         if hidden_states_scale is not None:
@@ -675,6 +710,7 @@ class HummingRunnerCore(MoeRunnerCore):
             is_ep=self.num_experts != self.global_num_experts,
             routed_scaling_factor=routed_scaling_factor,
             outputs=buffers["output"],
+            output_add=output_add,
         )
 
         return buffers["output"]
@@ -1015,6 +1051,7 @@ def pre_permute_standard_to_humming(
         topk_weights=topk_weights,
         topk_ids=topk_ids.int(),
         gemm_type=get_standard_humming_moe_gemm_type(),
+        output_add=dispatch_output.output_add,
     )
 
 

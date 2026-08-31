@@ -8,6 +8,7 @@ from torch.nn import Module
 
 from sglang.srt.layers.moe.moe_runner.marlin import MarlinMoeQuantInfo
 from sglang.srt.layers.moe.utils import MoeRunnerBackend
+from sglang.srt.layers.quantization.base_config import FusedMoEMethodBase
 from sglang.srt.runtime_context import get_platform
 from sglang.srt.utils import log_info_on_rank0, round_up, set_weight_attrs
 
@@ -42,7 +43,7 @@ def build_marlin_moe_quant_info(layer: Module) -> MarlinMoeQuantInfo:
     )
 
 
-class Mxfp4MarlinMoEMethod:
+class Mxfp4MarlinMoEMethod(FusedMoEMethodBase):
     """MXFP4 (E8M0 scales) MoE quantization method using the Marlin backend."""
 
     fuse_routed_scaling_factor_in_topk = True

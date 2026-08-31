@@ -192,6 +192,16 @@ class MoeRunner:
             )
             self.fused_func = None
 
+    @property
+    def supports_fused_output_add(self) -> bool:
+        """Whether ``DispatchOutput.output_add`` reaches a finalize epilogue that
+        folds it in, rather than needing a separate elementwise add."""
+        if self.runner_core is None or (
+            self.fused_func is not None and not self.lora_enabled
+        ):
+            return False
+        return self.runner_core.supports_fused_output_add
+
     def run(
         self, dispatch_output: DispatchOutput, quant_info: MoeQuantInfo, lora_info=None
     ) -> CombineInput:
