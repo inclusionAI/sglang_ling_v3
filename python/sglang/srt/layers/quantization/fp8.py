@@ -13,6 +13,7 @@ from torch.nn import Module
 from torch.nn.parameter import Parameter
 
 from sglang.kernels.ops.quantization.fp8_kernel import (
+    block_quant_fp8,
     fp8_dtype,
     is_fp8_fnuz,
     per_token_group_quant_fp8,
@@ -89,6 +90,7 @@ from sglang.srt.layers.quantization.utils import (
 )
 from sglang.srt.layers.utils import copy_or_rebind_param
 from sglang.srt.runtime_context import (
+    get_exec,
     get_parallel,
     get_platform,
 )
@@ -126,6 +128,7 @@ _is_cpu_amx_available = cpu_has_amx_support()
 _is_cpu = is_cpu()
 _is_fp8_fnuz = is_fp8_fnuz()
 _is_gfx95_supported = is_gfx95_supported()
+MXFP4_GROUP_SIZE = 32
 # gfx942 (MI300) has no MX matmul HW; MXFP8 checkpoints are converted to
 # block-fp8 [128,128] at load and run through the native block-fp8 kernels.
 # SGLANG_FORCE_MXFP8_BLOCK_CONVERT=1 opts into that same block-fp8 path on
@@ -261,6 +264,7 @@ class Fp8Config(QuantizationConfig):
         is_fp4_experts: bool = False,
         kv_cache_quant_algo: Optional[str] = None,
         scale_fmt: Optional[str] = None,
+        is_online_block_quant: bool = False,
     ) -> None:
         super().__init__()
         # DSV4 mxfp4-packed (True) vs converted FP8 (False); injected by
@@ -269,6 +273,7 @@ class Fp8Config(QuantizationConfig):
         self.dequant_fp4_to_fp8 = False
         self.is_dsv4_fp4_experts = False
         self.is_checkpoint_fp8_serialized = is_checkpoint_fp8_serialized
+        self.is_online_block_quant = is_online_block_quant
         if is_checkpoint_fp8_serialized:
             log_info_on_rank0(logger, "Detected fp8 checkpoint.")
         if activation_scheme not in ACTIVATION_SCHEMES:
@@ -288,8 +293,19 @@ class Fp8Config(QuantizationConfig):
         self.kv_cache_quant_algo = kv_cache_quant_algo
         # "ue8m0" checkpoints quantize activations with power-of-two scales.
         self.scale_fmt = scale_fmt
+        if self.is_online_block_quant:
+            if self.is_checkpoint_fp8_serialized:
+                raise ValueError(
+                    "Online blockwise FP8 cannot use a serialized FP8 checkpoint."
+                )
+            if self.use_mxfp8:
+                raise ValueError("Online blockwise FP8 does not support MXFP8.")
+            if weight_block_size != [128, 128]:
+                raise ValueError(
+                    "Online blockwise FP8 currently requires weight_block_size=[128, 128]."
+                )
         if weight_block_size is not None:
-            if not is_checkpoint_fp8_serialized:
+            if not is_checkpoint_fp8_serialized and not is_online_block_quant:
                 raise ValueError(
                     "The block-wise quantization only supports fp8-serialized checkpoint for now."
                 )
@@ -335,7 +351,14 @@ class Fp8Config(QuantizationConfig):
     def from_config(cls, config: Dict[str, Any]) -> Fp8Config:
         quant_method = cls.get_from_keys(config, ["quant_method"])
         use_mxfp8 = "mxfp8" in quant_method
-        is_checkpoint_fp8_serialized = ("fp8" in quant_method) or use_mxfp8
+        is_checkpoint_fp8_serialized = cls.get_from_keys_or(
+            config, ["is_checkpoint_fp8_serialized"], None
+        )
+        if is_checkpoint_fp8_serialized is None:
+            is_checkpoint_fp8_serialized = ("fp8" in quant_method) or use_mxfp8
+        is_online_block_quant = cls.get_from_keys_or(
+            config, ["is_online_block_quant"], False
+        )
         activation_scheme = cls.get_from_keys(config, ["activation_scheme"])
         packed_modules_mapping = (
             cls.get_from_keys_or(config, ["packed_modules_mapping"], {}) or {}
@@ -373,6 +396,7 @@ class Fp8Config(QuantizationConfig):
             use_mxfp8=use_mxfp8,
             kv_cache_quant_algo=kv_cache_quant_algo,
             scale_fmt=scale_fmt,
+            is_online_block_quant=is_online_block_quant,
         )
 
     def get_quant_method(
@@ -496,6 +520,13 @@ class Fp8LinearMethod(LinearMethodBase):
 
     def __init__(self, quant_config: Union[Fp8Config, W4AFp8Config]):
         self.quant_config = quant_config
+        self.is_online_block_quant = getattr(
+            quant_config, "is_online_block_quant", False
+        )
+        if self.is_online_block_quant and not (_is_cuda and not _is_hip):
+            raise NotImplementedError(
+                "Online blockwise FP8 currently requires an NVIDIA CUDA platform."
+            )
         self.cutlass_fp8_supported = cutlass_fp8_supported()
 
         # For GPUs that lack FP8 hardware support, we can leverage the Marlin
@@ -505,6 +536,11 @@ class Fp8LinearMethod(LinearMethodBase):
             force_marlin = get_bool_env_var("SGLANG_FORCE_FP8_MARLIN")
             auto_enable = can_auto_enable_marlin_fp8()
             self.use_marlin = force_marlin or auto_enable
+        if self.is_online_block_quant and self.use_marlin:
+            raise NotImplementedError(
+                "Online blockwise FP8 requires a native W8A8 block-FP8 backend; "
+                "FP8 Marlin is not supported."
+            )
 
         self.use_mxfp8 = getattr(self.quant_config, "use_mxfp8", False)
         self.block_quant = (
@@ -714,7 +750,9 @@ class Fp8LinearMethod(LinearMethodBase):
             input_size_per_partition=input_size_per_partition,
             output_partition_sizes=output_partition_sizes,
             weight_loader=extra_weight_attrs.get("weight_loader"),
-            skip_block_quant_check=skip_block_quant_check,
+            skip_block_quant_check=(
+                skip_block_quant_check or self.is_online_block_quant
+            ),
             input_size=input_size,
             output_size=output_size,
             is_checkpoint_fp8_serialized=self.is_checkpoint_fp8_serialized,
@@ -1010,8 +1048,40 @@ class Fp8LinearMethod(LinearMethodBase):
         self._process_mxfp8_linear_weight_scale(layer)
         layer.input_scale = None
 
+    def _quantize_blockwise_weights(self, layer: Module) -> None:
+        if getattr(layer, "_online_blockwise_fp8_quantized", False):
+            raise RuntimeError(
+                "Online blockwise FP8 weights cannot be post-processed twice; "
+                "in-place weight reload is not supported."
+            )
+        block_shape = tuple(self.quant_config.weight_block_size)
+        input_padding = (-layer.weight.shape[1]) % block_shape[1]
+        weight = layer.weight.data
+        if input_padding:
+            weight = F.pad(weight, (0, input_padding))
+        qweight, weight_scale = block_quant_fp8(
+            weight,
+            block_shape,
+        )
+        # Preserve the existing weight Parameter and its loader attributes.
+        layer.weight.data = qweight
+        layer.weight.requires_grad_(False)
+        if hasattr(layer, "weight_scale_inv") and layer.weight_scale_inv is not None:
+            layer.weight_scale_inv.data = weight_scale
+            layer.weight_scale_inv.requires_grad_(False)
+        else:
+            layer.register_parameter(
+                "weight_scale_inv", Parameter(weight_scale, requires_grad=False)
+            )
+        layer.weight_scale_inv.format_ue8m0 = False
+        layer.input_scale = None
+        layer._online_blockwise_fp8_input_padding = input_padding
+        layer._online_blockwise_fp8_quantized = True
+
     def process_weights_after_loading(self, layer: Module) -> None:
         if self.block_quant:
+            if self.is_online_block_quant:
+                self._quantize_blockwise_weights(layer)
             self.process_weights_after_loading_block_quant(layer)
         else:
             layer.weight = Parameter(layer.weight.data, requires_grad=False)
@@ -1222,6 +1292,14 @@ class Fp8LinearMethod(LinearMethodBase):
             return out
 
         if self.block_quant:
+            input_padding = getattr(layer, "_online_blockwise_fp8_input_padding", 0)
+            if input_padding:
+                if isinstance(x, tuple):
+                    raise NotImplementedError(
+                        "Online blockwise FP8 K-tail padding does not support "
+                        "pre-quantized dense activations."
+                    )
+                x = F.pad(x, (0, input_padding))
             if use_intel_amx_backend(layer):
                 return torch.ops.sgl_kernel.fp8_scaled_mm_cpu(
                     x,
@@ -1307,6 +1385,13 @@ class Fp8MoEMethod(FusedMoEMethodBase):
 
     def __init__(self, quant_config: Fp8Config):
         self.quant_config = quant_config
+        self.is_online_block_quant = getattr(
+            quant_config, "is_online_block_quant", False
+        )
+        if self.is_online_block_quant and not (_is_cuda and not _is_hip):
+            raise NotImplementedError(
+                "Online blockwise FP8 currently requires an NVIDIA CUDA platform."
+            )
         self.use_mxfp8 = getattr(self.quant_config, "use_mxfp8", False)
         self.block_quant = (
             self.use_mxfp8 or self.quant_config.weight_block_size is not None
@@ -1355,6 +1440,42 @@ class Fp8MoEMethod(FusedMoEMethodBase):
             return deep_gemm_wrapper.ENABLE_JIT_DEEPGEMM
         return False
 
+    def _supports_blockwise_fp8_tail(self, layer: Module) -> bool:
+        """Whether this layer can retain partial blocks in native Triton MoE."""
+        if not (_is_cuda and not _is_hip):
+            return False
+        if not getattr(layer, "allow_fp8_blockwise_tail", False):
+            return False
+        if self.use_mxfp8 or not (
+            self.quant_config.is_checkpoint_fp8_serialized or self.is_online_block_quant
+        ):
+            return False
+        block_shape = self.quant_config.weight_block_size
+        if block_shape is None or block_shape[0] != block_shape[1]:
+            return False
+
+        parallel = get_parallel()
+        runtime = get_exec()
+        if not (
+            layer.moe_ep_size == 1
+            and parallel.moe_dp_size == 1
+            and layer.moe_tp_size == parallel.tp_size
+            and layer.moe_tp_rank == parallel.tp_rank
+            and get_moe_a2a_backend().is_none()
+            and not runtime.moe.enable_eplb
+            and runtime.moe.ep_num_redundant_experts == 0
+            and runtime.moe.init_expert_location == "trivial"
+            and runtime.offload.cpu_offload_gb == 0
+            and runtime.offload.offload_group_size <= 0
+        ):
+            return False
+
+        moe_runner_backend = get_moe_runner_backend()
+        return moe_runner_backend.is_triton() or (
+            moe_runner_backend.is_auto()
+            and not self.is_deepgemm_moe_runner_backend_enabled()
+        )
+
     @staticmethod
     def create_fp8_moe_weight_(
         layer: Module,
@@ -1369,6 +1490,7 @@ class Fp8MoEMethod(FusedMoEMethodBase):
         params_dtype: torch.dtype,
         with_bias: bool = False,
         fp4_scale_dtype: Optional[torch.dtype] = None,
+        allow_fp8_blockwise_tail: bool = False,
         **extra_weight_attrs,
     ):
         """
@@ -1396,7 +1518,33 @@ class Fp8MoEMethod(FusedMoEMethodBase):
             )
 
             padding_size = get_moe_padding_size(_use_aiter)
-            if not (_use_aiter and padding_size == block_n == block_k):
+            if is_fp4_expert:
+                # The experts are MXFP4, not FP8: both the weight and the scale
+                # allocation below branch on `is_fp4_expert` and never read
+                # `weight_block_size` -- they pack two E2M1 values per byte and
+                # size the scales by MXFP4_GROUP_SIZE. `block_quant` is still
+                # true here because the *dense* weights of the same checkpoint
+                # are FP8 block-quantized, so applying that alignment to the
+                # experts rejects shapes the MXFP4 layout handles fine.
+                # Ling-3.0-plus is the case that makes it observable:
+                # moe_intermediate_size 1280 gives 160 at TP8 and 320 at TP4,
+                # both multiples of 32 and neither a multiple of 128.
+                for _name, _size in (
+                    ("hidden_size", hidden_size),
+                    (
+                        "intermediate_size_per_partition",
+                        intermediate_size_per_partition,
+                    ),
+                ):
+                    if _size % MXFP4_GROUP_SIZE != 0:
+                        raise ValueError(
+                            f"MXFP4 experts require {_name} = {_size} to be "
+                            f"divisible by the group size {MXFP4_GROUP_SIZE}."
+                        )
+            elif not (
+                (_use_aiter and padding_size == block_n == block_k)
+                or allow_fp8_blockwise_tail
+            ):
                 # NOTE(HandH1998): To ensure proper alignment of the block-wise quantization scales, the output_size of the weights for both the gate and up layers must be divisible by block_n.
                 # Required by column parallel or enabling merged weights
                 if intermediate_size_per_partition % block_n != 0:
@@ -1659,6 +1807,7 @@ class Fp8MoEMethod(FusedMoEMethodBase):
             is_fp4_expert=self.is_fp4_expert,
             params_dtype=params_dtype,
             with_bias=with_bias,
+            allow_fp8_blockwise_tail=self._supports_blockwise_fp8_tail(layer),
             **extra_weight_attrs,
         )
 
@@ -2416,12 +2565,55 @@ class Fp8MoEMethod(FusedMoEMethodBase):
             layer.w13_weight.is_shuffled = True
             layer.w2_weight.is_shuffled = True
 
+    def _quantize_blockwise_moe_weights(self, layer: Module) -> None:
+        """Quantize already TP-sharded BF16 expert weights into local blocks."""
+        if getattr(layer, "_online_blockwise_fp8_quantized", False):
+            raise RuntimeError(
+                "Online blockwise FP8 MoE weights cannot be post-processed twice; "
+                "in-place weight reload is not supported."
+            )
+        block_shape = tuple(self.quant_config.weight_block_size)
+        w13_weight = torch.empty_like(layer.w13_weight.data, dtype=fp8_dtype)
+        w2_weight = torch.empty_like(layer.w2_weight.data, dtype=fp8_dtype)
+        w13_scales = []
+        w2_scales = []
+
+        for expert_id in range(layer.num_local_experts):
+            qweight, scale = block_quant_fp8(
+                layer.w13_weight.data[expert_id], block_shape
+            )
+            w13_weight[expert_id].copy_(qweight)
+            w13_scales.append(scale)
+
+            qweight, scale = block_quant_fp8(
+                layer.w2_weight.data[expert_id], block_shape
+            )
+            w2_weight[expert_id].copy_(qweight)
+            w2_scales.append(scale)
+
+        # Keep Parameter objects and loader metadata while allowing the scale
+        # shape to change from shard-wise allocation to the merged w13 layout.
+        layer.w13_weight.data = w13_weight
+        layer.w2_weight.data = w2_weight
+        layer.w13_weight_scale_inv.data = torch.stack(w13_scales)
+        layer.w2_weight_scale_inv.data = torch.stack(w2_scales)
+        layer.w13_weight.requires_grad_(False)
+        layer.w2_weight.requires_grad_(False)
+        layer.w13_weight_scale_inv.requires_grad_(False)
+        layer.w2_weight_scale_inv.requires_grad_(False)
+        layer.w13_weight_scale_inv.format_ue8m0 = False
+        layer.w2_weight_scale_inv.format_ue8m0 = False
+        layer.w13_input_scale = None
+        layer.w2_input_scale = None
+        layer._online_blockwise_fp8_quantized = True
+
     def process_weights_after_loading(self, layer: Module) -> None:
         if _is_hip and _use_hip_int4:
             self.process_weights_hip_int4(layer)
 
         elif self.block_quant:
-            # Block quant doesn't need to process weights after loading
+            if self.is_online_block_quant:
+                self._quantize_blockwise_moe_weights(layer)
             self.process_weights_after_loading_block_quant(layer)
 
         # If checkpoint is fp16 or bfloat16, quantize in place.

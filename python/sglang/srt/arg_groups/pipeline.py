@@ -54,6 +54,7 @@ def run_resolution_pipeline(server_args: Any) -> None:
         handle_multimodal,
         handle_other_validations,
         handle_prefill_delayer_env_compat,
+        handle_quantization_alias,
         handle_return_hidden_states_mode,
         handle_ssl_validation,
         handle_tokenizer_batching,
@@ -112,6 +113,7 @@ def run_resolution_pipeline(server_args: Any) -> None:
 
     run_hook(handle_prefill_delayer_env_compat, server_args)
 
+    run_hook(handle_quantization_alias, server_args)
     run_hook(handle_missing_default_values, server_args)
 
     # expert_pack may replace a raw GGUF input with its generated local

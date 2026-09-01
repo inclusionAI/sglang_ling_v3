@@ -62,6 +62,7 @@ QUANTIZATION_CHOICES = [
     "mlx_q4",  # 4 bits, group_size=64 (mlx-community default)
     "mlx_q8",  # 8 bits, group_size=64
     "unquant",
+    "blockwise_fp8",
     "humming",
 ]
 

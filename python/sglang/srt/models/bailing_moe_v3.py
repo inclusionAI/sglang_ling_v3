@@ -15,6 +15,7 @@ from sglang.kernels.ops.moe.router import (
     router_gate_matvec,
 )
 from sglang.kernels.ops.quantization.fp8_kernel import (
+    block_quant_fp8,
     is_fp8_fnuz,
 )
 from sglang.srt.configs import KimiLinearConfig
@@ -58,6 +59,7 @@ from sglang.srt.layers.multi_gate import (
     multi_gate_triton_kernel,
 )
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
+from sglang.srt.layers.quantization.fp8 import Fp8Config, Fp8MoEMethod
 from sglang.srt.layers.quantization.fp8_utils import (
     block_quant_dequant,
     block_quant_to_tensor_quant,
@@ -88,6 +90,7 @@ from sglang.srt.models.deepseek_common.utils import (
 from sglang.srt.models.deepseek_v2 import DeepseekV2AttentionMLA
 from sglang.srt.models.kimi_linear import KimiDeltaAttention
 from sglang.srt.runtime_context import (
+    get_exec,
     get_parallel,
     get_platform,
     get_stream,
@@ -463,6 +466,7 @@ class BailingMoE(nn.Module):
 
         self.layer_id = layer_id
         self.alt_stream = alt_stream
+        self.quant_config = quant_config
 
         self.tp_size = get_parallel().tp_size
         self.tp_rank = get_parallel().tp_rank
@@ -592,6 +596,7 @@ class BailingMoE(nn.Module):
             routed_scaling_factor=self.routed_scaling_factor,
             prefix=f"{prefix}.experts",
             gemm1_clamp_limit=self.expert_swiglu_limit,
+            allow_fp8_blockwise_tail=True,
         )
         self.topk = TopK(
             top_k=self.top_k + self.num_fused_shared_experts,
@@ -657,6 +662,292 @@ class BailingMoE(nn.Module):
             )
         else:
             self.shared_experts = None
+
+    def _requires_serialized_fp8_tp_requant(self) -> bool:
+        """Whether this Bailing MoE needs model-specific TP requantization."""
+        if not isinstance(self.quant_config, Fp8Config):
+            return False
+        if not self.quant_config.is_checkpoint_fp8_serialized:
+            return False
+        if getattr(self.quant_config, "use_mxfp8", False):
+            return False
+
+        block_size = self.quant_config.weight_block_size
+        if block_size is None or len(block_size) != 2:
+            return False
+
+        # Serialized scales use checkpoint-global tensor coordinates. If a TP
+        # boundary cuts through a block, slicing those scales cannot describe
+        # the local shard.
+        local_intermediate_size = self.intermediate_size // self.moe_tp_size
+        requires_requant = self.moe_tp_size > 1 and (
+            local_intermediate_size % block_size[0] != 0
+            or local_intermediate_size % block_size[1] != 0
+        )
+        if not requires_requant:
+            return False
+
+        self._validate_serialized_fp8_tp_requant_support()
+        return True
+
+    def _validate_serialized_fp8_tp_requant_support(self) -> None:
+        """Reject configurations for which TP-local requantization is unsafe."""
+        parallel = get_parallel()
+        runtime = get_exec()
+        unsupported = []
+
+        if not (
+            self.moe_ep_size == 1
+            and parallel.moe_dp_size == 1
+            and self.moe_tp_size == self.tp_size
+            and self.moe_tp_rank == self.tp_rank
+            and not self._enable_a2a_moe
+        ):
+            unsupported.append("non-pure-TP MoE topology")
+
+        if (
+            runtime.moe.enable_eplb
+            or runtime.moe.ep_num_redundant_experts != 0
+            or runtime.moe.init_expert_location != "trivial"
+        ):
+            unsupported.append("EPLB or non-trivial expert placement")
+
+        if runtime.offload.cpu_offload_gb > 0 or runtime.offload.offload_group_size > 0:
+            unsupported.append("weight offloading")
+
+        quant_method = getattr(self.experts, "quant_method", None)
+        if not isinstance(
+            quant_method, Fp8MoEMethod
+        ) or not quant_method._supports_blockwise_fp8_tail(self.experts):
+            unsupported.append("non-Triton MoE runner")
+
+        scales_are_ue8m0 = any(
+            getattr(getattr(self.experts, name, None), "format_ue8m0", False)
+            for name in ("w13_weight_scale_inv", "w2_weight_scale_inv")
+        )
+        will_use_ue8m0 = (
+            deep_gemm_wrapper.DEEPGEMM_SCALE_UE8M0
+            and Fp8MoEMethod.is_deepgemm_moe_runner_backend_enabled()
+        )
+        if scales_are_ue8m0 or will_use_ue8m0:
+            unsupported.append("UE8M0 scales")
+
+        if unsupported:
+            raise NotImplementedError(
+                "Bailing serialized blockwise FP8 TP requantization does not "
+                f"support layer {self.layer_id} with: {', '.join(unsupported)}."
+            )
+
+    def cache_serialized_fp8_scale_for_tp_requant(
+        self,
+        loaded_scale: torch.Tensor,
+        shard_id: str,
+        global_expert_id: int,
+    ) -> bool:
+        """Cache a global checkpoint scale instead of TP-slicing it directly."""
+        if not self._requires_serialized_fp8_tp_requant():
+            return False
+        if shard_id not in {"w1", "w2", "w3"}:
+            return False
+        if loaded_scale.ndim != 2:
+            raise ValueError(
+                "Bailing serialized blockwise FP8 expert scales must be 2D, "
+                f"but got shape {tuple(loaded_scale.shape)} for {shard_id}."
+            )
+
+        local_expert_id = self.experts._map_global_expert_id_to_local_expert_id(
+            global_expert_id
+        )
+        if local_expert_id == -1:
+            return True
+
+        if not hasattr(self, "_serialized_fp8_tp_scale_cache"):
+            self._serialized_fp8_tp_scale_cache: Dict[str, torch.Tensor] = {}
+            self._serialized_fp8_tp_scale_loaded: Dict[str, Set[int]] = {
+                "w1": set(),
+                "w2": set(),
+                "w3": set(),
+            }
+
+        scale_cache = self._serialized_fp8_tp_scale_cache.get(shard_id)
+        expected_shape = (self.experts.num_local_experts, *loaded_scale.shape)
+        if scale_cache is None:
+            scale_cache = torch.empty(
+                expected_shape,
+                dtype=loaded_scale.dtype,
+                device=self.experts.w13_weight.device,
+            )
+            self._serialized_fp8_tp_scale_cache[shard_id] = scale_cache
+        elif tuple(scale_cache.shape) != expected_shape:
+            raise ValueError(
+                "Inconsistent Bailing serialized blockwise FP8 scale shapes for "
+                f"{shard_id}: expected {tuple(scale_cache.shape[1:])}, got "
+                f"{tuple(loaded_scale.shape)}."
+            )
+
+        scale_cache[local_expert_id].copy_(
+            loaded_scale.to(device=scale_cache.device, dtype=scale_cache.dtype)
+        )
+        self._serialized_fp8_tp_scale_loaded[shard_id].add(local_expert_id)
+        return True
+
+    @staticmethod
+    def _dequantize_serialized_fp8_tp_shard(
+        quantized_weight: torch.Tensor,
+        checkpoint_scale: torch.Tensor,
+        block_size: Tuple[int, int],
+        row_offset: int = 0,
+        column_offset: int = 0,
+    ) -> torch.Tensor:
+        """Dequantize a local TP shard using checkpoint-global block indices."""
+        block_n, block_k = block_size
+        rows, columns = quantized_weight.shape
+        last_scale_row = (row_offset + rows - 1) // block_n
+        last_scale_column = (column_offset + columns - 1) // block_k
+        if (
+            last_scale_row >= checkpoint_scale.shape[0]
+            or last_scale_column >= checkpoint_scale.shape[1]
+        ):
+            raise ValueError(
+                "Bailing serialized blockwise FP8 TP shard exceeds its checkpoint "
+                f"scale: weight={tuple(quantized_weight.shape)}, "
+                f"scale={tuple(checkpoint_scale.shape)}, offsets="
+                f"({row_offset}, {column_offset}), block_size={block_size}."
+            )
+
+        scale_rows = (
+            torch.arange(rows, device=quantized_weight.device) + row_offset
+        ) // block_n
+        scale_columns = (
+            torch.arange(columns, device=quantized_weight.device) + column_offset
+        ) // block_k
+        element_scale = checkpoint_scale.index_select(0, scale_rows).index_select(
+            1, scale_columns
+        )
+        return (quantized_weight.float() * element_scale).to(torch.bfloat16)
+
+    def requantize_serialized_fp8_tp_weights(self) -> bool:
+        """Convert serialized global blocks into blocks local to this TP rank."""
+        if not self._requires_serialized_fp8_tp_requant() or not hasattr(
+            self, "_serialized_fp8_tp_scale_cache"
+        ):
+            return False
+
+        expected_experts = set(range(self.experts.num_local_experts))
+        missing = {
+            shard_id: sorted(
+                expected_experts
+                - self._serialized_fp8_tp_scale_loaded.get(shard_id, set())
+            )
+            for shard_id in ("w1", "w2", "w3")
+        }
+        missing = {key: value for key, value in missing.items() if value}
+        if missing:
+            raise ValueError(
+                "Missing serialized blockwise FP8 scales required for Bailing TP "
+                f"requantization in layer {self.layer_id}: {missing}."
+            )
+
+        block_n, block_k = self.quant_config.weight_block_size
+        if block_n != block_k:
+            raise ValueError(
+                "Bailing serialized FP8 TP requantization currently requires square "
+                f"blocks, but got {self.quant_config.weight_block_size}."
+            )
+
+        local_intermediate_size = self.intermediate_size // self.moe_tp_size
+        if self.experts.intermediate_size_per_partition != local_intermediate_size:
+            raise ValueError(
+                "Bailing serialized FP8 TP requantization does not support a padded "
+                "MoE intermediate dimension: "
+                f"expected {local_intermediate_size}, got "
+                f"{self.experts.intermediate_size_per_partition}."
+            )
+
+        w13_weight = self.experts.w13_weight.data
+        w2_weight = self.experts.w2_weight.data
+        expected_w13_shape = (
+            self.experts.num_local_experts,
+            2 * local_intermediate_size,
+            self.hidden_size,
+        )
+        expected_w2_shape = (
+            self.experts.num_local_experts,
+            self.hidden_size,
+            local_intermediate_size,
+        )
+        if (
+            tuple(w13_weight.shape) != expected_w13_shape
+            or tuple(w2_weight.shape) != expected_w2_shape
+        ):
+            raise ValueError(
+                "Unexpected Bailing MoE weight layout for serialized FP8 TP "
+                f"requantization: w13={tuple(w13_weight.shape)}, "
+                f"w2={tuple(w2_weight.shape)}, expected w13={expected_w13_shape}, "
+                f"w2={expected_w2_shape}."
+            )
+
+        new_w13_scale = torch.empty(
+            self.experts.num_local_experts,
+            (2 * local_intermediate_size + block_n - 1) // block_n,
+            (self.hidden_size + block_k - 1) // block_k,
+            dtype=torch.float32,
+            device=w13_weight.device,
+        )
+        new_w2_scale = torch.empty(
+            self.experts.num_local_experts,
+            (self.hidden_size + block_n - 1) // block_n,
+            (local_intermediate_size + block_k - 1) // block_k,
+            dtype=torch.float32,
+            device=w2_weight.device,
+        )
+
+        tp_offset = self.moe_tp_rank * local_intermediate_size
+        switch_w13 = getattr(
+            self.experts.quant_method, "load_up_proj_weight_first", False
+        )
+        first_shard, second_shard = ("w3", "w1") if switch_w13 else ("w1", "w3")
+        scale_cache = self._serialized_fp8_tp_scale_cache
+
+        for expert_id in range(self.experts.num_local_experts):
+            first_weight = self._dequantize_serialized_fp8_tp_shard(
+                w13_weight[expert_id, :local_intermediate_size],
+                scale_cache[first_shard][expert_id],
+                (block_n, block_k),
+                row_offset=tp_offset,
+            )
+            second_weight = self._dequantize_serialized_fp8_tp_shard(
+                w13_weight[expert_id, local_intermediate_size:],
+                scale_cache[second_shard][expert_id],
+                (block_n, block_k),
+                row_offset=tp_offset,
+            )
+            requant_w13, requant_w13_scale = block_quant_fp8(
+                torch.cat((first_weight, second_weight), dim=0),
+                (block_n, block_k),
+            )
+
+            local_w2 = self._dequantize_serialized_fp8_tp_shard(
+                w2_weight[expert_id],
+                scale_cache["w2"][expert_id],
+                (block_n, block_k),
+                column_offset=tp_offset,
+            )
+            requant_w2, requant_w2_scale = block_quant_fp8(local_w2, (block_n, block_k))
+
+            w13_weight[expert_id].copy_(requant_w13)
+            w2_weight[expert_id].copy_(requant_w2)
+            new_w13_scale[expert_id].copy_(requant_w13_scale)
+            new_w2_scale[expert_id].copy_(requant_w2_scale)
+
+        # Preserve the original Parameter objects and their weight-loader attrs.
+        self.experts.w13_weight_scale_inv.data = new_w13_scale
+        self.experts.w2_weight_scale_inv.data = new_w2_scale
+        self.experts.w13_weight_scale_inv.format_ue8m0 = False
+        self.experts.w2_weight_scale_inv.format_ue8m0 = False
+        del self._serialized_fp8_tp_scale_cache
+        del self._serialized_fp8_tp_scale_loaded
+        return True
 
     def _compute_padded_intermediate_size(
         self,
@@ -1986,6 +2277,17 @@ class BailingMoeV3ForCausalLM(nn.Module):
                         continue
                     if is_pp_missing_parameter(name, self):
                         continue
+                    if name.endswith("weight_scale_inv"):
+                        moe_module_name = name.rsplit(".experts.", 1)[0]
+                        moe_module = self.get_submodule(moe_module_name)
+                        if isinstance(
+                            moe_module, BailingMoE
+                        ) and moe_module.cache_serialized_fp8_scale_for_tp_requant(
+                            loaded_weight,
+                            shard_id,
+                            expert_id,
+                        ):
+                            break
                     param = params_dict[name]
                     weight_loader = param.weight_loader
                     weight_loader(
@@ -2073,6 +2375,22 @@ class BailingMoeV3ForCausalLM(nn.Module):
                         )
                         weight_loader(param, loaded_weight)
             loaded_params.add(name)
+
+        # DefaultModelLoader invokes each quant method immediately after this
+        # method returns, so rebuild TP-local blocks before generic post-load
+        # quantization can transform the scale layout.
+        requantized_layers = sum(
+            module.requantize_serialized_fp8_tp_weights()
+            for module in self.modules()
+            if isinstance(module, BailingMoE)
+        )
+        if requantized_layers:
+            log_info_on_rank0(
+                logger,
+                "Requantized serialized blockwise FP8 MoE weights in "
+                f"{requantized_layers} Bailing layer(s).",
+            )
+
         self.post_load_weights(is_nextn=is_nextn, weight_names=weight_names)
 
         return loaded_params

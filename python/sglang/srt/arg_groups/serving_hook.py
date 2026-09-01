@@ -572,6 +572,59 @@ def handle_other_validations(server_args: Any):
             test_params.normalize(None)
 
 
+def handle_quantization_alias(server_args: Any):
+    """Translate online blockwise FP8 into the standard FP8 config path."""
+    cfg = resolving_view(server_args)
+    if cfg.speculative_draft_model_quantization == "blockwise_fp8":
+        raise ValueError(
+            "blockwise_fp8 can only be selected with --quantization; a "
+            "draft-only online quantization config cannot be represented by "
+            "the shared model override arguments."
+        )
+    if cfg.quantization != "blockwise_fp8":
+        return
+    if cfg.speculative_draft_model_quantization is not None:
+        raise ValueError(
+            "--quantization blockwise_fp8 cannot be combined with an explicit "
+            "--speculative-draft-model-quantization; omit the draft setting "
+            "to inherit online blockwise FP8."
+        )
+
+    model_override_args = json.loads(cfg.json_model_override_args or "{}")
+    if not isinstance(model_override_args, dict):
+        raise ValueError("--json-model-override-args must decode to an object.")
+
+    model_override_args["quantization_config"] = {
+        "is_checkpoint_fp8_serialized": False,
+        "is_online_block_quant": True,
+        "tp_size": cfg.tp_size,
+        "ep_size": cfg.ep_size,
+        "activation_scheme": "dynamic",
+        "fmt": "e4m3",
+        "quant_method": "fp8",
+        "scale_fmt": "float32",
+        "weight_block_size": [128, 128],
+        "modules_to_not_convert": [
+            "q_a_proj",
+            "q_b_proj",
+            "fused_qkv_a_proj_with_mqa",
+            "kv_a_proj_with_mqa",
+            "kv_b_proj",
+            "lm_head",
+            "word_embeddings",
+            "b_proj",
+            "g_proj",
+            "gate",
+        ],
+    }
+    declare_resolution(
+        server_args,
+        "handle_quantization_alias",
+        quantization="fp8",
+        json_model_override_args=json.dumps(model_override_args),
+    )
+
+
 def handle_missing_default_values(server_args: Any):
     from sglang.srt.arg_groups.model_path_hook import handle_modelscope_paths
 
