@@ -681,6 +681,12 @@ class ForwardFlags:
         "lora_batch_layout": LoRABatchLayout.DP_LOCAL,
         # LayerNorm sequence parallelism region; see layers/layernorm_sp.py.
         "sp_active": False,
+        # Hand-off from a MoE runner that already performed the post-experts
+        # TP all-reduce inside its finalize (chunked finalize+AR overlap):
+        # the runner writes it on every engaged call, the model-level
+        # should_skip_post_experts_all_reduce read consumes it in the same
+        # forward, same thread, with no yield point in between.
+        "moe_post_experts_allreduce_done": False,
     }
 
     # Read/written inside compiled graphs (vocab embedding, layer boundaries,

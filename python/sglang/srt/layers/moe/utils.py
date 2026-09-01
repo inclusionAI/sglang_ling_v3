@@ -744,8 +744,11 @@ def post_experts_output_is_complete(*, is_tp_path: bool) -> bool:
     rank computed its own tokens in full.
 
     This is a property of the MoE configuration. Whether the MoE block or a later
-    step runs a sum that is still owed is decided separately.
+    step runs a sum that is still owed is decided separately. A TP runner that
+    already reduced its finalized output also marks that sum complete.
     """
+    if is_tp_path and get_forward().moe_post_experts_allreduce_done:
+        return True
     if get_parallel().dwdp_size > 1:
         return True
     if is_tp_path and should_use_flashinfer_cutlass_moe_fp4_allgather():

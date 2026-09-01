@@ -26,7 +26,11 @@ from sglang.srt.layers.moe.moe_runner.base import (
     register_post_permute,
     register_pre_permute,
 )
-from sglang.srt.layers.moe.utils import MoeRunnerBackend
+from sglang.srt.layers.moe.utils import (
+    MoeRunnerBackend,
+    should_skip_post_experts_all_reduce,
+)
+from sglang.srt.runtime_context import get_forward, get_parallel, get_stream
 from sglang.srt.utils.custom_op import register_custom_op
 
 if TYPE_CHECKING:
@@ -131,6 +135,10 @@ def humming_moe_runner_core_run(
     output_add: torch.Tensor | None = None,
 ) -> torch.Tensor:
     runner = HummingRunnerCore.runner_cores[moe_runner_id]
+    if envs.SGLANG_OPT_MOE_FINALIZE_AR_OVERLAP.get():
+        # Rewrite on every call so a previous layer's finalize+AR overlap
+        # cannot leak a stale True into this layer's skip decision.
+        get_forward().set("moe_post_experts_allreduce_done", False)
     if gemm_type == "indexed":
         return runner._run_indexed_gemm(
             hidden_states=hidden_states,
@@ -703,17 +711,120 @@ class HummingRunnerCore(MoeRunnerCore):
         routed_scaling_factor = (
             self.config.routed_scaling_factor if apply_routed_scaling_factor else None
         )
-        moe_fused_mul_sum(
-            inputs=buffers["down_output"].view(*topk_ids.shape, -1),
-            topk_weights=topk_weights,
-            topk_ids=topk_ids,
-            is_ep=self.num_experts != self.global_num_experts,
-            routed_scaling_factor=routed_scaling_factor,
-            outputs=buffers["output"],
-            output_add=output_add,
-        )
+        finalize_inputs = buffers["down_output"].view(*topk_ids.shape, -1)
+        if self._use_finalize_ar_overlap(topk_ids.shape[0], output_add):
+            self._finalize_with_ar_overlap(
+                inputs=finalize_inputs,
+                topk_weights=topk_weights,
+                topk_ids=topk_ids,
+                routed_scaling_factor=routed_scaling_factor,
+                outputs=buffers["output"],
+                output_add=output_add,
+            )
+            get_forward().set("moe_post_experts_allreduce_done", True)
+        else:
+            moe_fused_mul_sum(
+                inputs=finalize_inputs,
+                topk_weights=topk_weights,
+                topk_ids=topk_ids,
+                is_ep=self.num_experts != self.global_num_experts,
+                routed_scaling_factor=routed_scaling_factor,
+                outputs=buffers["output"],
+                output_add=output_add,
+            )
 
         return buffers["output"]
+
+    # -- finalize + all-reduce overlap (SGLANG_OPT_MOE_FINALIZE_AR_OVERLAP) --
+
+    _FINALIZE_AR_OVERLAP_MIN_TOKENS = 4096
+    _FINALIZE_AR_OVERLAP_NUM_CHUNKS = 4
+
+    def _use_finalize_ar_overlap(
+        self, num_tokens: int, output_add: torch.Tensor | None
+    ) -> bool:
+        """Whether to run finalize in token chunks with each chunk's TP
+        all-reduce on a side stream (hides the finalize under the reduce).
+
+        Restricted to the one configuration where the model-level TP
+        all-reduce is the only reducer left, so taking it over is safe: no
+        EP, moe_tp > 1, the layer's own reduce_results off (the model-level
+        reduce site is the skip-predicate-gated one), and nothing else
+        absorbing the reduce. Small batches keep the plain path -- the
+        finalize is then too cheap to be worth the event round-trips, and the
+        threshold also keeps captured decode/verify graphs out.
+        """
+        if not envs.SGLANG_OPT_MOE_FINALIZE_AR_OVERLAP.get():
+            return False
+        if num_tokens < self._FINALIZE_AR_OVERLAP_MIN_TOKENS:
+            return False
+        if self.num_experts != self.global_num_experts:
+            return False
+        if self.layer is None or getattr(self.layer, "reduce_results", True):
+            return False
+        # An external shared-expert output must be included before the TP sum.
+        # When FusedMoE cannot fold output_add into this runner, it passes None
+        # and adds that output after the runner returns. In that case leave the
+        # reduction at the model level. Fused shared experts are already in the
+        # runner's finalize inputs.
+        if output_add is None and self.layer.num_fused_shared_experts == 0:
+            return False
+        if torch.compiler.is_compiling() or torch.cuda.is_current_stream_capturing():
+            return False
+        if get_parallel().moe_tp_size <= 1:
+            return False
+        if should_skip_post_experts_all_reduce(is_tp_path=True):
+            return False
+        return True
+
+    def _finalize_with_ar_overlap(
+        self,
+        inputs: torch.Tensor,
+        topk_weights: torch.Tensor,
+        topk_ids: torch.Tensor,
+        routed_scaling_factor: float | None,
+        outputs: torch.Tensor,
+        output_add: torch.Tensor | None,
+    ) -> None:
+        """Chunked finalize with the per-chunk TP all-reduce on a side stream.
+
+        Chunk i reduces while chunk i+1 finalizes; the reduce total is
+        unchanged, so what gets hidden is the finalize itself (~0.4 ms/layer
+        at 25k tokens). Bitwise identical to finalize-then-reduce: chunking
+        only splits rows, and each row is finalized and reduced exactly once.
+        """
+        from sglang.srt.distributed.communication_op import (
+            moe_tensor_model_parallel_all_reduce,
+        )
+
+        comm_stream = get_stream("moe_finalize_ar")
+        main_stream = torch.cuda.current_stream()
+        num_tokens = topk_ids.shape[0]
+        chunk = -(-num_tokens // self._FINALIZE_AR_OVERLAP_NUM_CHUNKS)
+        for start in range(0, num_tokens, chunk):
+            end = min(start + chunk, num_tokens)
+            moe_fused_mul_sum(
+                inputs=inputs[start:end],
+                topk_weights=topk_weights[start:end],
+                topk_ids=topk_ids[start:end],
+                is_ep=False,
+                routed_scaling_factor=routed_scaling_factor,
+                outputs=outputs[start:end],
+                output_add=None if output_add is None else output_add[start:end],
+            )
+            ready = torch.cuda.Event()
+            ready.record(main_stream)
+            with torch.cuda.stream(comm_stream):
+                comm_stream.wait_event(ready)
+                shard = outputs[start:end]
+                reduced = moe_tensor_model_parallel_all_reduce(shard)
+                if reduced.data_ptr() != shard.data_ptr():
+                    # Out-of-place reduce path (not expected at these sizes):
+                    # fold the result back into the caller-visible view.
+                    shard.copy_(reduced)
+        done = torch.cuda.Event()
+        done.record(comm_stream)
+        main_stream.wait_event(done)
 
     def _run_grouped_contiguous_gemm(
         self,

@@ -1290,6 +1290,14 @@ class Envs:
     # supports_fused_output_add (humming indexed gemm today).
     SGLANG_OPT_MOE_FUSED_OUTPUT_ADD = EnvBool(True)
 
+    # Overlap the MoE finalize epilogue with the post-experts TP all-reduce:
+    # finalize (moe_fused_mul_sum) runs in token chunks, and each finished
+    # chunk's all-reduce is issued on a side stream while the next chunk
+    # computes. Engages only on the humming indexed-gemm prefill path (no EP,
+    # moe_tp > 1, large batches, outside CUDA graph capture); the runner then
+    # reports the reduce as done so the model-level all-reduce is skipped.
+    SGLANG_OPT_MOE_FINALIZE_AR_OVERLAP = EnvBool(False)
+
     # ===================================================================
     # DeepGEMM Mega MoE
     # ===================================================================
