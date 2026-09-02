@@ -142,6 +142,29 @@ def humming_moe_runner_core_run(
         raise ValueError(f"Unknown gemm type: {gemm_type}")
 
 
+def pad_input_scale_to_padded_k(
+    input_scale: torch.Tensor | None, padded_k: int, group_size: int
+) -> torch.Tensor | None:
+    """Append zero scale groups when humming padded the weight's K.
+
+    humming pads a sublayer's weight along K to its input alignment (Ling-3.0-plus
+    at TP8: the w2 intermediate 160 -> 192 for FP8 activations). The activation
+    keeps its logical K, but the launcher validates the per-row group scales at
+    the padded width (`as.size(1) 5 != 6`), so the quantized scales need one
+    zero group per padded block; those groups only ever meet zero weight
+    columns. bf16 activations (no scale), ungrouped scales and already-aligned
+    K pass through untouched.
+    """
+    if input_scale is None or group_size <= 0 or input_scale.dim() != 2:
+        return input_scale
+    expected_groups = padded_k // group_size
+    if input_scale.size(1) >= expected_groups:
+        return input_scale
+    return torch.nn.functional.pad(
+        input_scale, (0, expected_groups - input_scale.size(1))
+    )
+
+
 class HummingRunnerCore(MoeRunnerCore):
     runner_cores: WeakValueDictionary = WeakValueDictionary()
 
@@ -625,6 +648,12 @@ class HummingRunnerCore(MoeRunnerCore):
             inputs=buffers["activation_output"],
             quanted_input=buffers.get("quanted_down_input", None),
             sublayer_name="w2",
+        )
+        w2_meta = self.layer.humming_metas["w2"]
+        input_scale = pad_input_scale_to_padded_k(
+            input_scale,
+            padded_k=getattr(w2_meta, "shape_k", inputs.size(1)),
+            group_size=getattr(w2_meta, "input_scale_group_size", 0) or 0,
         )
 
         HummingMethod.forward_layer(
