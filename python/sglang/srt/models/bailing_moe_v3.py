@@ -53,17 +53,26 @@ from sglang.srt.layers.moe import (
 from sglang.srt.layers.moe.ep_moe.layer import get_moe_impl_class
 from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
 from sglang.srt.layers.moe.topk import TopK
-from sglang.srt.layers.moe.utils import is_shared_experts_fusion_disabled
+from sglang.srt.layers.moe.utils import (
+    get_moe_runner_backend,
+    is_shared_experts_fusion_disabled,
+)
 from sglang.srt.layers.multi_gate import (
     create_multi_gate_mm_indices,
     multi_gate_triton_kernel,
 )
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
-from sglang.srt.layers.quantization.fp8 import Fp8Config, Fp8MoEMethod
+from sglang.srt.layers.quantization.fp8 import (
+    Fp8Config,
+    Fp8LinearMethod,
+    Fp8MoEMethod,
+)
 from sglang.srt.layers.quantization.fp8_utils import (
     block_quant_dequant,
     block_quant_to_tensor_quant,
     channel_quant_to_tensor_quant,
+    deepgemm_w8a8_block_fp8_linear_with_fallback,
+    dispatch_w8a8_block_fp8_linear,
     normalize_e4m3fn_to_e4m3fnuz,
 )
 from sglang.srt.layers.quantization.int8_utils import (
@@ -302,6 +311,121 @@ def is_pp_missing_parameter(
 
 
 class BailingMLP(nn.Module):
+    @classmethod
+    def requires_standalone_fp8_tail(
+        cls,
+        *,
+        intermediate_size: int,
+        quant_config: Optional[QuantizationConfig],
+        tp_size: int,
+    ) -> bool:
+        """Whether TP cuts a standalone block-FP8 MLP through a block."""
+        if (
+            quant_config is None
+            or quant_config.get_name() != "fp8"
+            or getattr(quant_config, "use_mxfp8", False)
+            or intermediate_size % tp_size != 0
+        ):
+            return False
+        block_size = getattr(quant_config, "weight_block_size", None)
+        if block_size is None or len(block_size) != 2:
+            return False
+        local_intermediate_size = intermediate_size // tp_size
+        return any(local_intermediate_size % block != 0 for block in block_size)
+
+    @classmethod
+    def supports_standalone_fp8_tail(
+        cls,
+        *,
+        hidden_size: int,
+        intermediate_size: int,
+        quant_config: Optional[QuantizationConfig],
+        tp_size: int,
+    ) -> bool:
+        """Whether a standalone shared MLP can keep its logical TP K tail."""
+        if not cls.requires_standalone_fp8_tail(
+            intermediate_size=intermediate_size,
+            quant_config=quant_config,
+            tp_size=tp_size,
+        ) or getattr(quant_config, "weight_block_size", None) != [128, 128]:
+            return False
+
+        local_intermediate_size = intermediate_size // tp_size
+
+        is_online_block_quant = getattr(quant_config, "is_online_block_quant", False)
+        is_serialized_block_fp8 = getattr(
+            quant_config, "is_checkpoint_fp8_serialized", False
+        )
+        if not (is_online_block_quant or is_serialized_block_fp8):
+            return False
+
+        if not (
+            _is_cuda
+            and not _is_hip
+            and deep_gemm_wrapper.ENABLE_JIT_DEEPGEMM
+            and not deep_gemm_wrapper.DEEPGEMM_SCALE_UE8M0
+            # gate_up uses hidden_size as K (DeepGEMM requires K % 128),
+            # while down_proj uses it as N (requiring N % 64).
+            and hidden_size % 128 == 0
+            and (2 * local_intermediate_size) % 64 == 0
+        ):
+            return False
+
+        parallel = get_parallel()
+        runtime = get_exec()
+        if not (
+            tp_size == parallel.tp_size
+            and parallel.moe_ep_size == 1
+            and parallel.moe_dp_size == 1
+            and parallel.moe_tp_size == parallel.tp_size
+            and parallel.moe_tp_rank == parallel.tp_rank
+            and get_moe_a2a_backend().is_none()
+            and not runtime.moe.enable_eplb
+            and runtime.moe.ep_num_redundant_experts == 0
+            and runtime.moe.init_expert_location == "trivial"
+            and runtime.offload.cpu_offload_gb == 0
+            and runtime.offload.offload_group_size <= 0
+        ):
+            return False
+
+        try:
+            return (
+                dispatch_w8a8_block_fp8_linear()
+                is deepgemm_w8a8_block_fp8_linear_with_fallback
+            )
+        except RuntimeError:
+            return False
+
+    @classmethod
+    def validate_standalone_fp8_tail(
+        cls,
+        *,
+        hidden_size: int,
+        intermediate_size: int,
+        quant_config: Optional[QuantizationConfig],
+        tp_size: int,
+    ) -> bool:
+        requires_tail = cls.requires_standalone_fp8_tail(
+            intermediate_size=intermediate_size,
+            quant_config=quant_config,
+            tp_size=tp_size,
+        )
+        if not requires_tail:
+            return False
+        supports_tail = cls.supports_standalone_fp8_tail(
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            quant_config=quant_config,
+            tp_size=tp_size,
+        )
+        if requires_tail and not supports_tail:
+            raise NotImplementedError(
+                "Bailing standalone shared experts with blockwise-FP8 TP tails "
+                "require BF16 and the native Hopper DeepGEMM path; model-level "
+                "intermediate-size padding or a backend fallback is not allowed."
+            )
+        return supports_tail
+
     def __init__(
         self,
         hidden_size: int,
@@ -311,9 +435,9 @@ class BailingMLP(nn.Module):
         quant_config: Optional[QuantizationConfig] = None,
         prefix: str = "",
         swiglu_limit: Optional[float] = None,
-        padded_intermediate_size: Optional[int] = None,
         tp_rank: Optional[int] = None,
         tp_size: Optional[int] = None,
+        allow_fp8_blockwise_tail: bool = False,
     ) -> None:
         super().__init__()
 
@@ -321,21 +445,24 @@ class BailingMLP(nn.Module):
         self.swiglu_limit = swiglu_limit
         self.tp_size = tp_size if tp_size is not None else get_parallel().tp_size
         self.tp_rank = tp_rank if tp_rank is not None else get_parallel().tp_rank
+        self.quant_config = quant_config
+        self.allow_fp8_blockwise_tail = allow_fp8_blockwise_tail
 
+        self.hidden_size = hidden_size
         self.intermediate_size = intermediate_size
-        self.padded_intermediate_size = padded_intermediate_size or intermediate_size
 
         self.gate_up_proj = MergedColumnParallelLinear(
             hidden_size,
-            [self.padded_intermediate_size] * 2,
+            [self.intermediate_size] * 2,
             bias=False,
             quant_config=quant_config,
             prefix=f"{prefix}.gate_up_proj",
             tp_rank=tp_rank,
             tp_size=tp_size,
+            skip_block_quant_check=allow_fp8_blockwise_tail,
         )
         self.down_proj = RowParallelLinear(
-            self.padded_intermediate_size,
+            self.intermediate_size,
             hidden_size,
             bias=False,
             quant_config=quant_config,
@@ -343,22 +470,180 @@ class BailingMLP(nn.Module):
             prefix=f"{prefix}.down_proj",
             tp_rank=tp_rank,
             tp_size=tp_size,
+            skip_block_quant_check=allow_fp8_blockwise_tail,
+        )
+        # Online block quant normally pads a dense linear's local K. This
+        # model-specific DeepGEMM path keeps logical K and provides matching
+        # ceil(K / block_k) activation scales in forward().
+        self.down_proj._preserve_blockwise_fp8_k_tail = allow_fp8_blockwise_tail
+
+        down_quant_method = self.down_proj.quant_method
+        local_intermediate_size = self.intermediate_size // self.tp_size
+        if allow_fp8_blockwise_tail and self.down_proj.orig_dtype != torch.bfloat16:
+            raise NotImplementedError(
+                "Bailing standalone blockwise-FP8 TP tails currently require "
+                f"BF16 activations, but got {self.down_proj.orig_dtype}."
+            )
+        self.use_prequantized_fp8_tail = (
+            allow_fp8_blockwise_tail
+            and isinstance(down_quant_method, Fp8LinearMethod)
+            and down_quant_method.w8a8_block_fp8_linear
+            is deepgemm_w8a8_block_fp8_linear_with_fallback
+            and local_intermediate_size
+            % down_quant_method.quant_config.weight_block_size[1]
+            != 0
         )
 
-        if self.padded_intermediate_size > self.intermediate_size:
-            self.padded_size_per_partition = (
-                self.padded_intermediate_size // self.tp_size
-            )
-            self.effective_size_per_partition = self.intermediate_size // self.tp_size
-            self.pad_size_per_partition = (
-                self.padded_size_per_partition - self.effective_size_per_partition
-            )
-        else:
-            self.padded_size_per_partition = None
-            self.effective_size_per_partition = None
-            self.pad_size_per_partition = None
-
         self.act_fn = SiluAndMul()
+
+    def _requires_serialized_fp8_tp_requant(self) -> bool:
+        if not self.allow_fp8_blockwise_tail or not isinstance(
+            self.quant_config, Fp8Config
+        ):
+            return False
+        if (
+            not self.quant_config.is_checkpoint_fp8_serialized
+            or getattr(self.quant_config, "use_mxfp8", False)
+            or self.quant_config.weight_block_size is None
+            or self.tp_size <= 1
+        ):
+            return False
+        local_intermediate_size = self.intermediate_size // self.tp_size
+        block_n, block_k = self.quant_config.weight_block_size
+        return (
+            local_intermediate_size % block_n != 0
+            or local_intermediate_size % block_k != 0
+        )
+
+    def cache_serialized_fp8_scale_for_tp_requant(
+        self, loaded_scale: torch.Tensor, projection: str
+    ) -> bool:
+        if not self._requires_serialized_fp8_tp_requant():
+            return False
+        if projection not in {"gate_proj", "up_proj", "down_proj"}:
+            return False
+        if loaded_scale.ndim != 2:
+            raise ValueError(
+                "Bailing serialized blockwise FP8 shared-expert scales must be "
+                f"2D, but got {tuple(loaded_scale.shape)} for {projection}."
+            )
+        if not hasattr(self, "_serialized_fp8_tp_scale_cache"):
+            self._serialized_fp8_tp_scale_cache: Dict[str, torch.Tensor] = {}
+        self._serialized_fp8_tp_scale_cache[projection] = loaded_scale.to(
+            device=self.gate_up_proj.weight.device, dtype=loaded_scale.dtype
+        ).clone()
+        return True
+
+    @staticmethod
+    def _dequantize_serialized_fp8_tp_shard(
+        quantized_weight: torch.Tensor,
+        checkpoint_scale: torch.Tensor,
+        block_size: Tuple[int, int],
+        *,
+        row_offset: int = 0,
+        column_offset: int = 0,
+    ) -> torch.Tensor:
+        block_n, block_k = block_size
+        rows, columns = quantized_weight.shape
+        if rows == 0 or columns == 0:
+            raise ValueError(
+                "Bailing shared-expert TP requantization does not support empty "
+                f"weight shards, but got {tuple(quantized_weight.shape)}."
+            )
+        required_scale_rows = (row_offset + rows - 1) // block_n + 1
+        required_scale_columns = (column_offset + columns - 1) // block_k + 1
+        if (
+            required_scale_rows > checkpoint_scale.shape[0]
+            or required_scale_columns > checkpoint_scale.shape[1]
+        ):
+            raise ValueError(
+                "Bailing shared-expert TP shard exceeds its serialized FP8 scale: "
+                f"weight={tuple(quantized_weight.shape)}, "
+                f"scale={tuple(checkpoint_scale.shape)}, offsets="
+                f"({row_offset}, {column_offset}), block_size={block_size}."
+            )
+        scale_rows = (
+            torch.arange(rows, device=quantized_weight.device) + row_offset
+        ) // block_n
+        scale_columns = (
+            torch.arange(columns, device=quantized_weight.device) + column_offset
+        ) // block_k
+        element_scale = checkpoint_scale.index_select(0, scale_rows).index_select(
+            1, scale_columns
+        )
+        return (quantized_weight.float() * element_scale).to(torch.bfloat16)
+
+    def requantize_serialized_fp8_tp_weights(self) -> bool:
+        if not self._requires_serialized_fp8_tp_requant() or not hasattr(
+            self, "_serialized_fp8_tp_scale_cache"
+        ):
+            return False
+
+        cache = self._serialized_fp8_tp_scale_cache
+        missing = {"gate_proj", "up_proj", "down_proj"} - cache.keys()
+        if missing:
+            raise ValueError(
+                "Missing serialized blockwise FP8 scales required for Bailing "
+                f"shared-expert TP requantization: {sorted(missing)}."
+            )
+
+        block_n, block_k = self.quant_config.weight_block_size
+        if block_n != block_k:
+            raise ValueError(
+                "Bailing shared-expert TP requantization requires square FP8 "
+                f"blocks, but got {self.quant_config.weight_block_size}."
+            )
+        block_size = (block_n, block_k)
+        local_intermediate_size = self.intermediate_size // self.tp_size
+        tp_offset = self.tp_rank * local_intermediate_size
+
+        gate_up_weight = self.gate_up_proj.weight.data
+        down_weight = self.down_proj.weight.data
+        expected_gate_up_shape = (2 * local_intermediate_size, self.hidden_size)
+        expected_down_shape = (self.hidden_size, local_intermediate_size)
+        if (
+            tuple(gate_up_weight.shape) != expected_gate_up_shape
+            or tuple(down_weight.shape) != expected_down_shape
+        ):
+            raise ValueError(
+                "Unexpected Bailing shared-expert TP weight layout: "
+                f"gate_up={tuple(gate_up_weight.shape)}, "
+                f"down={tuple(down_weight.shape)}, expected "
+                f"gate_up={expected_gate_up_shape}, down={expected_down_shape}."
+            )
+
+        gate = self._dequantize_serialized_fp8_tp_shard(
+            gate_up_weight[:local_intermediate_size],
+            cache["gate_proj"],
+            block_size,
+            row_offset=tp_offset,
+        )
+        up = self._dequantize_serialized_fp8_tp_shard(
+            gate_up_weight[local_intermediate_size:],
+            cache["up_proj"],
+            block_size,
+            row_offset=tp_offset,
+        )
+        requant_gate_up, requant_gate_up_scale = block_quant_fp8(
+            torch.cat((gate, up), dim=0), block_size
+        )
+
+        down = self._dequantize_serialized_fp8_tp_shard(
+            down_weight,
+            cache["down_proj"],
+            block_size,
+            column_offset=tp_offset,
+        )
+        requant_down, requant_down_scale = block_quant_fp8(down, block_size)
+
+        gate_up_weight.copy_(requant_gate_up)
+        down_weight.copy_(requant_down)
+        self.gate_up_proj.weight_scale_inv.data = requant_gate_up_scale
+        self.down_proj.weight_scale_inv.data = requant_down_scale
+        self.gate_up_proj.weight_scale_inv.format_ue8m0 = False
+        self.down_proj.weight_scale_inv.format_ue8m0 = False
+        del self._serialized_fp8_tp_scale_cache
+        return True
 
     def forward(
         self,
@@ -367,29 +652,22 @@ class BailingMLP(nn.Module):
     ):
         x, _ = self.gate_up_proj(x)
 
-        if self.padded_size_per_partition is not None:
-            gate_padded = x[..., : self.padded_size_per_partition]
-            up_padded = x[..., self.padded_size_per_partition :]
-
-            gate_effective = gate_padded[..., : self.effective_size_per_partition]
-            up_effective = up_padded[..., : self.effective_size_per_partition]
-
-            if self.swiglu_limit is not None:
-                x = F.silu(gate_effective).clamp(
-                    max=self.swiglu_limit
-                ) * up_effective.clamp(min=-self.swiglu_limit, max=self.swiglu_limit)
-            else:
-                x = F.silu(gate_effective) * up_effective
-
-            x = F.pad(x, (0, self.pad_size_per_partition))
+        if self.swiglu_limit is not None:
+            d = x.shape[-1] // 2
+            gate = F.silu(x[..., :d]).clamp(max=self.swiglu_limit)
+            up = x[..., d:].clamp(min=-self.swiglu_limit, max=self.swiglu_limit)
+            x = gate * up
         else:
-            if self.swiglu_limit is not None:
-                d = x.shape[-1] // 2
-                gate = F.silu(x[..., :d]).clamp(max=self.swiglu_limit)
-                up = x[..., d:].clamp(min=-self.swiglu_limit, max=self.swiglu_limit)
-                x = gate * up
-            else:
-                x = self.act_fn(x)
+            x = self.act_fn(x)
+
+        if self.use_prequantized_fp8_tail:
+            if x.numel() == 0:
+                return x.new_empty(*x.shape[:-1], self.hidden_size)
+            block_k = self.quant_config.weight_block_size[1]
+            logical_shape = x.shape
+            x, x_scale = block_quant_fp8(x.reshape(-1, logical_shape[-1]), (1, block_k))
+            x_scale = deep_gemm_wrapper.get_mn_major_tma_aligned_tensor(x_scale)
+            x = (x.view(logical_shape), x_scale)
 
         x, _ = self.down_proj(x)
         return x
@@ -453,6 +731,34 @@ class BailingMoE(nn.Module):
             return None
         return limit_list[layer_num] or None
 
+    @classmethod
+    def _swiglu_limits_match_at_layer(
+        cls, config: PretrainedConfig, layer_id: int
+    ) -> bool:
+        expert_limits = getattr(config, "expert_swiglu_limit_list", None)
+        shared_limits = getattr(config, "share_expert_swiglu_limit_list", None)
+        return cls._get_swiglu_limit(expert_limits, layer_id) == cls._get_swiglu_limit(
+            shared_limits, layer_id
+        )
+
+    @classmethod
+    def _resolve_num_fused_shared_experts(
+        cls,
+        config: PretrainedConfig,
+        layer_id: int,
+        requested_num_fused_shared_experts: int,
+    ) -> int:
+        if requested_num_fused_shared_experts <= 0:
+            return 0
+        # FIXME(linghe): The kernel that supports distinct GEMM1 limits for
+        # routed and shared experts has not been migrated yet. Keep layers
+        # with mismatched limits unfused until that kernel is available.
+        return (
+            requested_num_fused_shared_experts
+            if cls._swiglu_limits_match_at_layer(config, layer_id)
+            else 0
+        )
+
     def __init__(
         self,
         config: PretrainedConfig,
@@ -461,10 +767,14 @@ class BailingMoE(nn.Module):
         prefix: str = "moe",
         num_fused_shared_experts: int = 0,
         alt_stream: Optional[torch.cuda.Stream] = None,
+        swiglu_limit_layer_id: Optional[int] = None,
     ):
         super().__init__()
 
         self.layer_id = layer_id
+        swiglu_limit_layer_id = (
+            layer_id if swiglu_limit_layer_id is None else swiglu_limit_layer_id
+        )
         self.alt_stream = alt_stream
         self.quant_config = quant_config
 
@@ -483,18 +793,27 @@ class BailingMoE(nn.Module):
         self.score_function = getattr(config, "score_function", None)
         self.multi_gate = is_bailing_multi_gate_enabled(config)
 
-        self.num_fused_shared_experts = num_fused_shared_experts
-
         expert_swiglu_limit_list = getattr(config, "expert_swiglu_limit_list", None)
         share_expert_swiglu_limit_list = getattr(
             config, "share_expert_swiglu_limit_list", None
         )
         self.expert_swiglu_limit = self._get_swiglu_limit(
-            expert_swiglu_limit_list, layer_id
+            expert_swiglu_limit_list, swiglu_limit_layer_id
         )
         self.share_expert_swiglu_limit = self._get_swiglu_limit(
-            share_expert_swiglu_limit_list, layer_id
+            share_expert_swiglu_limit_list, swiglu_limit_layer_id
         )
+        self.num_fused_shared_experts = self._resolve_num_fused_shared_experts(
+            config, swiglu_limit_layer_id, num_fused_shared_experts
+        )
+        if num_fused_shared_experts > 0 and self.num_fused_shared_experts == 0:
+            log_info_on_rank0(
+                logger,
+                "Bailing shared-expert fusion is disabled for layer "
+                f"{layer_id}: routed/shared SwiGLU clamp limits differ "
+                f"({self.expert_swiglu_limit} vs "
+                f"{self.share_expert_swiglu_limit}).",
+            )
 
         # Run the MoE gate in bf16. ling-v3's config sets router_dtype="fp32",
         # but on Hopper that fp32 gate GEMM falls back to a slow sm80 (Ampere)
@@ -646,8 +965,11 @@ class BailingMoE(nn.Module):
             if self._enable_a2a_moe:
                 shared_tp_kwargs = dict(tp_rank=0, tp_size=1)
                 shared_tp_size = 1
-            padded_intermediate_size = self._compute_padded_intermediate_size(
-                intermediate_size, quant_config, shared_tp_size
+            allow_fp8_blockwise_tail = BailingMLP.validate_standalone_fp8_tail(
+                hidden_size=self.hidden_size,
+                intermediate_size=intermediate_size,
+                quant_config=quant_config,
+                tp_size=shared_tp_size,
             )
             self.shared_experts = BailingMLP(
                 hidden_size=self.hidden_size,
@@ -657,7 +979,7 @@ class BailingMoE(nn.Module):
                 quant_config=quant_config,
                 prefix=f"{prefix}.shared_experts",
                 swiglu_limit=self.share_expert_swiglu_limit,
-                padded_intermediate_size=padded_intermediate_size,
+                allow_fp8_blockwise_tail=allow_fp8_blockwise_tail,
                 **shared_tp_kwargs,
             )
         else:
@@ -948,64 +1270,6 @@ class BailingMoE(nn.Module):
         del self._serialized_fp8_tp_scale_cache
         del self._serialized_fp8_tp_scale_loaded
         return True
-
-    def _compute_padded_intermediate_size(
-        self,
-        intermediate_size: int,
-        quant_config: Optional[QuantizationConfig],
-        tp_size: int,
-    ) -> Optional[int]:
-        """Compute padded intermediate size to satisfy FP8 blockwise quantization alignment.
-
-        FP8 blockwise quantization requires:
-        - output_partition_size % block_n == 0 (for column parallel)
-        - input_size_per_partition % block_k == 0 (for row parallel)
-
-        When TP size is large, intermediate_size / tp_size may not satisfy these constraints.
-        We pad the intermediate_size to make it divisible by block_size * tp_size.
-
-        Args:
-            intermediate_size: Original intermediate size
-            quant_config: Quantization configuration
-            tp_size: TP degree used by the MLP being padded
-
-        Returns:
-            Padded intermediate size if padding is needed, None otherwise
-        """
-        if quant_config is None:
-            return None
-
-        if quant_config.get_name() != "fp8":
-            return None
-
-        weight_block_size = getattr(quant_config, "weight_block_size", None)
-        if weight_block_size is None:
-            return None
-
-        block_n = weight_block_size[0]
-        block_k = weight_block_size[1]
-        block_size = max(block_n, block_k)
-
-        intermediate_size_per_partition = intermediate_size // tp_size
-
-        if (
-            intermediate_size_per_partition % block_n == 0
-            and intermediate_size_per_partition % block_k == 0
-        ):
-            return None
-
-        alignment = block_size * tp_size
-        padded_intermediate_size = (
-            (intermediate_size + alignment - 1) // alignment
-        ) * alignment
-
-        log_info_on_rank0(
-            logger,
-            f"Padding shared_experts intermediate_size from {intermediate_size} to {padded_intermediate_size} "
-            f"to satisfy FP8 blockwise quantization alignment (block_size={block_size}, tp_size={tp_size}).",
-        )
-
-        return padded_intermediate_size
 
     def forward(
         self,
@@ -1425,6 +1689,12 @@ class BailingMoELinearDecoderLayer(nn.Module):
                     prefix=prefix,
                     num_fused_shared_experts=num_fused_shared_experts,
                     alt_stream=alt_stream,
+                    # The MTP layer follows the target decoder stack and has no
+                    # entry in either SwiGLU-limit list. Keep its structural
+                    # layer_id at zero, but look up its actual checkpoint index.
+                    swiglu_limit_layer_id=(
+                        config.num_hidden_layers if is_nextn else self.layer_id
+                    ),
                 )
             else:
                 self.mlp = BailingMLP(
@@ -1758,6 +2028,45 @@ class BailingMoeV3ForCausalLM(nn.Module):
         return self.model.end_layer
 
     @classmethod
+    def _supports_fused_fp8_blockwise_tail(cls, quant_config) -> bool:
+        """Strict Bailing-only admission for native Triton MoE K tails."""
+        if (
+            quant_config is None
+            or quant_config.get_name() != "fp8"
+            or getattr(quant_config, "use_mxfp8", False)
+            or tuple(getattr(quant_config, "weight_block_size", ()) or ()) != (128, 128)
+            or not (
+                getattr(quant_config, "is_checkpoint_fp8_serialized", False)
+                or getattr(quant_config, "is_online_block_quant", False)
+            )
+            or not _is_cuda
+            or _is_hip
+        ):
+            return False
+
+        parallel = get_parallel()
+        runtime = get_exec()
+        if not (
+            parallel.moe_ep_size == 1
+            and parallel.moe_dp_size == 1
+            and parallel.moe_tp_size == parallel.tp_size
+            and parallel.moe_tp_rank == parallel.tp_rank
+            and get_moe_a2a_backend().is_none()
+            and not runtime.moe.enable_eplb
+            and runtime.moe.ep_num_redundant_experts == 0
+            and runtime.moe.init_expert_location == "trivial"
+            and runtime.offload.cpu_offload_gb == 0
+            and runtime.offload.offload_group_size <= 0
+        ):
+            return False
+
+        moe_runner_backend = get_moe_runner_backend()
+        return moe_runner_backend.is_triton() or (
+            moe_runner_backend.is_auto()
+            and not Fp8MoEMethod.is_deepgemm_moe_runner_backend_enabled()
+        )
+
+    @classmethod
     def shared_experts_fusion_disable_reason(
         cls,
         hf_config,
@@ -1812,6 +2121,11 @@ class BailingMoeV3ForCausalLM(nn.Module):
                     "Bailing MoE V3 uses different quant methods for routed experts "
                     "and shared experts."
                 )
+
+        supports_fp8_blockwise_tail = cls._supports_fused_fp8_blockwise_tail(
+            quant_config
+        )
+
         shared_expert_intermediate_size = getattr(
             hf_config,
             "moe_shared_expert_intermediate_size",
@@ -1835,14 +2149,15 @@ class BailingMoeV3ForCausalLM(nn.Module):
                 if (
                     intermediate_size_per_partition % block_n != 0
                     or intermediate_size_per_partition % block_k != 0
-                ):
+                ) and not supports_fp8_blockwise_tail:
                     return (
                         "FP8 blockwise quantization requires "
                         f"intermediate_size_per_partition ({intermediate_size_per_partition}) "
                         f"to be divisible by block_n ({block_n}) and block_k ({block_k}). "
                         f"Current config: moe_intermediate_size={hf_config.moe_intermediate_size}, "
                         f"tp_size={tp_size}, moe_tp_size={moe_tp_size}. Consider using "
-                        "--disable-shared-experts-fusion to use padding solution instead."
+                        "--disable-shared-experts-fusion with a supported standalone "
+                        "shared-expert K-tail backend instead."
                     )
         return None
 
@@ -2117,6 +2432,33 @@ class BailingMoeV3ForCausalLM(nn.Module):
         assert param.size() == loaded_weight.size()
         param.data.copy_(loaded_weight)
 
+    def _resolve_shared_expert_weight_layout(
+        self, weight_name: str
+    ) -> Tuple[Optional[str], Optional[BailingMoE]]:
+        """Resolve one checkpoint shared-expert name against its actual layer."""
+        if "mlp.shared_experts" not in weight_name:
+            return weight_name, None
+
+        module_name = weight_name.split(".mlp.", 1)[0] + ".mlp"
+        try:
+            module = self.get_submodule(module_name)
+        except AttributeError:
+            # The checkpoint layer is not owned by this PP rank.
+            return None, None
+        if isinstance(module, PPMissingLayer):
+            return None, None
+        if not isinstance(module, BailingMoE):
+            raise RuntimeError(
+                f"Expected {module_name!r} to resolve to BailingMoE, got "
+                f"{type(module).__name__}."
+            )
+        if module.num_fused_shared_experts > 0:
+            weight_name = weight_name.replace(
+                "mlp.shared_experts",
+                f"mlp.experts.{self.config.num_experts}",
+            )
+        return weight_name, module
+
     @classmethod
     def get_model_config_for_expert_location(cls, config):
         num_groups = getattr(config, "n_group", 0)
@@ -2172,7 +2514,9 @@ class BailingMoeV3ForCausalLM(nn.Module):
             ckpt_gate_proj_name="gate_proj",
             ckpt_down_proj_name="down_proj",
             ckpt_up_proj_name="up_proj",
-            num_experts=self.config.num_experts + self.num_fused_shared_experts,
+            num_experts=(
+                self.config.num_experts + getattr(self.config, "num_shared_experts", 0)
+            ),
         )
 
         if is_nextn:
@@ -2188,7 +2532,22 @@ class BailingMoeV3ForCausalLM(nn.Module):
         cached_a_proj = {} if fuse_qkv_a_proj else None
 
         if self.num_fused_shared_experts > 0:
-            log_info_on_rank0(logger, "Shared experts fusion optimization enabled.")
+            fused_layer_count = sum(
+                module.num_fused_shared_experts > 0
+                for module in self.modules()
+                if isinstance(module, BailingMoE)
+            )
+            standalone_layer_count = sum(
+                module.shared_experts is not None
+                for module in self.modules()
+                if isinstance(module, BailingMoE)
+            )
+            log_info_on_rank0(
+                logger,
+                "Bailing hybrid shared-expert layout: "
+                f"{fused_layer_count} fused layer(s), "
+                f"{standalone_layer_count} standalone layer(s) on this PP rank.",
+            )
 
         for name, loaded_weight in weights:
             if name.startswith("model.mtp"):
@@ -2214,13 +2573,42 @@ class BailingMoeV3ForCausalLM(nn.Module):
                 name = rewritten
                 layer_idx = 0
 
-            if self.num_fused_shared_experts > 0 and "mlp.shared_experts" in name:
-                name = name.replace(
-                    "mlp.shared_experts",
-                    f"mlp.experts.{self.config.num_experts}",
-                )
+            shared_moe = None
+            if "mlp.shared_experts" in name:
+                name, shared_moe = self._resolve_shared_expert_weight_layout(name)
+                if name is None:
+                    continue
+            layer_fuses_shared_expert = bool(
+                shared_moe is not None and shared_moe.num_fused_shared_experts > 0
+            )
 
             weight_names.append(name)
+
+            if (
+                not layer_fuses_shared_expert
+                and "mlp.shared_experts" in name
+                and name.endswith("weight_scale_inv")
+            ):
+                projection = next(
+                    (
+                        projection
+                        for projection in ("gate_proj", "up_proj", "down_proj")
+                        if f".{projection}." in name
+                    ),
+                    None,
+                )
+                shared_mlp = (
+                    shared_moe.shared_experts if shared_moe is not None else None
+                )
+                if (
+                    projection is not None
+                    and isinstance(shared_mlp, BailingMLP)
+                    and shared_mlp.cache_serialized_fp8_scale_for_tp_requant(
+                        loaded_weight, projection
+                    )
+                ):
+                    loaded_params.add(name)
+                    continue
 
             for param_name, weight_name, shard_id in stacked_params_mapping:
                 if weight_name not in name:
@@ -2379,16 +2767,22 @@ class BailingMoeV3ForCausalLM(nn.Module):
         # DefaultModelLoader invokes each quant method immediately after this
         # method returns, so rebuild TP-local blocks before generic post-load
         # quantization can transform the scale layout.
-        requantized_layers = sum(
+        requantized_moe_layers = sum(
             module.requantize_serialized_fp8_tp_weights()
             for module in self.modules()
             if isinstance(module, BailingMoE)
         )
-        if requantized_layers:
+        requantized_shared_mlps = sum(
+            module.requantize_serialized_fp8_tp_weights()
+            for module in self.modules()
+            if isinstance(module, BailingMLP)
+        )
+        if requantized_moe_layers or requantized_shared_mlps:
             log_info_on_rank0(
                 logger,
-                "Requantized serialized blockwise FP8 MoE weights in "
-                f"{requantized_layers} Bailing layer(s).",
+                "Requantized serialized blockwise FP8 TP weights in "
+                f"{requantized_moe_layers} Bailing MoE layer(s) and "
+                f"{requantized_shared_mlps} standalone shared MLP(s).",
             )
 
         self.post_load_weights(is_nextn=is_nextn, weight_names=weight_names)

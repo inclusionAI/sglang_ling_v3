@@ -1055,7 +1055,11 @@ class Fp8LinearMethod(LinearMethodBase):
                 "in-place weight reload is not supported."
             )
         block_shape = tuple(self.quant_config.weight_block_size)
-        input_padding = (-layer.weight.shape[1]) % block_shape[1]
+        input_padding = (
+            0
+            if getattr(layer, "_preserve_blockwise_fp8_k_tail", False)
+            else (-layer.weight.shape[1]) % block_shape[1]
+        )
         weight = layer.weight.data
         if input_padding:
             weight = F.pad(weight, (0, input_padding))

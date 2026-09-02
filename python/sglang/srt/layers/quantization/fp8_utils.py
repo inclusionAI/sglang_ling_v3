@@ -1204,8 +1204,11 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
         # the caller gates on it.
         assert not deep_gemm_wrapper.DEEPGEMM_SCALE_UE8M0
         assert input.dtype == torch.float8_e4m3fn
-        assert weight.shape[0] % 64 == 0 and weight.shape[1] % 128 == 0, (
-            "pre-quantized fp8 input requires DeepGEMM-supported weight shapes "
+        # DeepGEMM supports a partial final K block when both the weight and
+        # the pre-quantized activation carry ceil(K / block_k) scales. Keep
+        # the N alignment requirement, but do not force K % 128 == 0 here.
+        assert weight.shape[0] % 64 == 0, (
+            "pre-quantized fp8 input requires a DeepGEMM-supported N dimension "
             f"(got {tuple(weight.shape)})"
         )
         input_2d = input.view(-1, input.shape[-1])

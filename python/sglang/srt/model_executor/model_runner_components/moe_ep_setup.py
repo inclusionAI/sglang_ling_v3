@@ -145,9 +145,14 @@ def check_quantized_moe_compatibility(
                 deep_gemm_wrapper.ENABLE_JIT_DEEPGEMM
                 and moe_a2a_backend in ("deepep", "mooncake", "nixl")
             )
+            architectures = getattr(model_config.hf_config, "architectures", None) or []
+            is_bailing_v3 = "BailingMoeV3ForCausalLM" in architectures or (
+                "BailingMoeForCausalLMNextN" in architectures
+                and model_config.hf_config.model_type == "bailing_hybrid"
+                and getattr(model_config.hf_config, "use_kda", False)
+            )
             supports_bailing_fp8_tail = (
-                "BailingMoeV3ForCausalLM"
-                in (getattr(model_config.hf_config, "architectures", None) or [])
+                is_bailing_v3
                 and quantization_config.get("quant_method") == "fp8"
                 and not quantization_config.get("use_mxfp8", False)
                 and tuple(weight_block_size) == (128, 128)

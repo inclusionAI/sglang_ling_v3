@@ -583,6 +583,104 @@ class TestBailingMoeV3Gate(_FusionGateCase):
         no_shared.moe_shared_expert_intermediate_size = 0
         self.assertEqual(bailing_moe_v3._get_bailing_num_shared_experts(no_shared), 0)
 
+    def _blockwise_fp8_tail_reason(
+        self,
+        *,
+        runner="triton",
+        a2a="none",
+        moe_ep_size=1,
+        moe_dp_size=1,
+        enable_eplb=False,
+        cpu_offload_gb=0,
+        offload_group_size=-1,
+    ):
+        bailing_moe_v3, _ = _import_bailing_modules()
+        import sglang.srt.layers.quantization.fp8 as fp8_module
+        from sglang.srt.layers.moe import utils as moe_utils
+        from sglang.srt.layers.moe.utils import MoeA2ABackend, MoeRunnerBackend
+
+        parallel = SimpleNamespace(
+            tp_size=8,
+            tp_rank=3,
+            moe_ep_size=moe_ep_size,
+            moe_dp_size=moe_dp_size,
+            moe_tp_size=8 if moe_ep_size == 1 else 4,
+            moe_tp_rank=3,
+        )
+        runtime = SimpleNamespace(
+            moe=SimpleNamespace(
+                enable_eplb=enable_eplb,
+                ep_num_redundant_experts=0,
+                init_expert_location="trivial",
+            ),
+            offload=SimpleNamespace(
+                cpu_offload_gb=cpu_offload_gb,
+                offload_group_size=offload_group_size,
+            ),
+        )
+        runner_backend = MoeRunnerBackend(runner)
+        a2a_backend = MoeA2ABackend(a2a)
+        quant_config = SimpleNamespace(
+            get_name=lambda: "fp8",
+            weight_block_size=[128, 128],
+            is_checkpoint_fp8_serialized=True,
+            is_online_block_quant=False,
+            use_mxfp8=False,
+        )
+        config = self._config()
+        config.moe_intermediate_size = 1280
+        # Model-level admission allows the native fused K-tail implementation;
+        # BailingMoE then makes the clamp-dependent fusion decision per layer.
+        config.first_k_dense_replace = 0
+        config.num_hidden_layers = 2
+        config.expert_swiglu_limit_list = [7.0, 7.0]
+        config.share_expert_swiglu_limit_list = [0.0, 0.0]
+
+        self._seed()
+        with (
+            unittest.mock.patch.object(bailing_moe_v3, "_is_cuda", True),
+            unittest.mock.patch.object(bailing_moe_v3, "_is_hip", False),
+            unittest.mock.patch.object(
+                bailing_moe_v3.torch.cuda,
+                "get_device_capability",
+                return_value=(9, 0),
+            ),
+            unittest.mock.patch.object(
+                bailing_moe_v3, "get_parallel", return_value=parallel
+            ),
+            unittest.mock.patch.object(
+                bailing_moe_v3, "get_exec", return_value=runtime
+            ),
+            unittest.mock.patch.object(
+                bailing_moe_v3, "get_moe_a2a_backend", return_value=a2a_backend
+            ),
+            unittest.mock.patch.object(
+                bailing_moe_v3,
+                "get_moe_runner_backend",
+                return_value=runner_backend,
+            ),
+            unittest.mock.patch.object(fp8_module, "_is_cuda", True),
+            unittest.mock.patch.object(fp8_module, "_is_hip", False),
+            unittest.mock.patch.object(
+                fp8_module, "get_parallel", return_value=parallel
+            ),
+            unittest.mock.patch.object(fp8_module, "get_exec", return_value=runtime),
+            unittest.mock.patch.object(
+                fp8_module, "get_moe_runner_backend", return_value=runner_backend
+            ),
+            unittest.mock.patch.object(
+                fp8_module, "get_moe_a2a_backend", return_value=a2a_backend
+            ),
+            unittest.mock.patch.object(
+                moe_utils, "get_moe_a2a_backend", return_value=a2a_backend
+            ),
+        ):
+            return self._reason(
+                bailing_moe_v3.BailingMoeV3ForCausalLM,
+                config,
+                quant_config,
+            )
+
     def test_compressed_tensors_mixed_expert_layout_cannot_fuse(self):
         reason = self._reason_on_cuda(
             self._compressed_tensors(
@@ -593,6 +691,26 @@ class TestBailingMoeV3Gate(_FusionGateCase):
 
     def test_compressed_tensors_uniform_expert_layout_can_fuse(self):
         self.assertIsNone(self._reason_on_cuda(self._compressed_tensors([])))
+
+    def test_tp8_blockwise_fp8_tail_admits_native_triton_hybrid(self):
+        for runner in ("triton", "auto"):
+            with self.subTest(runner=runner):
+                self.assertIsNone(self._blockwise_fp8_tail_reason(runner=runner))
+
+    def test_tp8_blockwise_fp8_tail_rejects_unsupported_runtime_paths(self):
+        cases = (
+            ("cutlass", {"runner": "cutlass"}),
+            ("deepgemm", {"runner": "deep_gemm"}),
+            ("a2a", {"a2a": "deepep"}),
+            ("expert parallel", {"moe_ep_size": 2}),
+            ("moe data parallel", {"moe_dp_size": 2}),
+            ("eplb", {"enable_eplb": True}),
+            ("weight offload", {"cpu_offload_gb": 1}),
+            ("group offload", {"offload_group_size": 1}),
+        )
+        for name, kwargs in cases:
+            with self.subTest(rejected=name):
+                self.assertTrue(self._blockwise_fp8_tail_reason(**kwargs))
 
     def test_nextn_uses_its_rewritten_architecture(self):
         bailing_moe_v3, bailing_moe_nextn = _import_bailing_modules()

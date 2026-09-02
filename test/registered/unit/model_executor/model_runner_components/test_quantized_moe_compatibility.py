@@ -30,6 +30,8 @@ class TestQuantizedMoeCompatibility(CustomTestCase):
         return SimpleNamespace(
             hf_config=SimpleNamespace(
                 architectures=[architecture],
+                model_type="bailing_hybrid",
+                use_kda=True,
                 quantization_config={
                     "quant_method": quant_method,
                     "weight_block_size": list(weight_block_size),
@@ -98,6 +100,9 @@ class TestQuantizedMoeCompatibility(CustomTestCase):
         for name, overrides in cases:
             with self.subTest(name=name):
                 self._check(model_overrides=overrides)
+
+    def test_allows_bailing_nextn_native_fp8_tail(self):
+        self._check(model_overrides={"architecture": "BailingMoeForCausalLMNextN"})
 
     def test_allows_auto_only_when_it_resolves_to_triton(self):
         self._check(moe_runner_backend="auto")

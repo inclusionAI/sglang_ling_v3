@@ -555,6 +555,7 @@ class MergedColumnParallelLinear(ColumnParallelLinear):
         tp_rank: Optional[int] = None,
         tp_size: Optional[int] = None,
         use_presharded_weights: bool = False,
+        skip_block_quant_check: bool = False,
     ):
         self.with_bias = bias
         self.output_sizes = output_sizes
@@ -577,6 +578,7 @@ class MergedColumnParallelLinear(ColumnParallelLinear):
             tp_rank=tp_rank,
             tp_size=tp_size,
             use_presharded_weights=use_presharded_weights,
+            skip_block_quant_check=skip_block_quant_check,
         )
         self.prefix = prefix
 
@@ -1460,6 +1462,7 @@ class RowParallelLinear(LinearBase):
         tp_size: Optional[int] = None,
         use_presharded_weights: bool = False,
         use_dp_attention_reduce: bool = False,
+        skip_block_quant_check: bool = False,
     ):
         quant_config = None if _disable_hip_linear_quant else quant_config
         super().__init__(
@@ -1490,6 +1493,7 @@ class RowParallelLinear(LinearBase):
             input_size=self.input_size,
             output_size=self.output_size,
             params_dtype=self.params_dtype,
+            skip_block_quant_check=skip_block_quant_check,
             weight_loader=(
                 self.weight_loader_v2
                 if (
