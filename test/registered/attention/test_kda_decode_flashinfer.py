@@ -198,6 +198,84 @@ def test_kda_decode_flashinfer_matches_triton(batch_size):
     )
 
 
+def _make_tp4_fused_views(num_tokens):
+    """No-LoRA TP4 layout: qkv + beta + forget gate + output gate."""
+    local_heads = 8
+    projection = local_heads * K
+    fused = torch.randn(
+        num_tokens,
+        5 * projection + local_heads,
+        device="cuda",
+        dtype=torch.bfloat16,
+    )
+    qkv, beta, forget_gate, _ = fused.split(
+        [3 * projection, local_heads, projection, projection], dim=-1
+    )
+    q, k, v = qkv.split([projection, projection, projection], dim=-1)
+    return {
+        "H": local_heads,
+        # causal_conv1d materializes q/k/v before the recurrent kernel; the
+        # full-rank forget gate remains a view into the fused GEMM output.
+        "q": q.contiguous().reshape(1, num_tokens, local_heads, K),
+        "k": k.contiguous().reshape(1, num_tokens, local_heads, K),
+        "v": v.contiguous().reshape(1, num_tokens, local_heads, V),
+        "a": forget_gate,
+        "b": beta,
+    }
+
+
+@pytest.mark.parametrize("verify", [False, True])
+def test_raw_flashinfer_rejects_tp4_misaligned_gate(verify):
+    batch_size = 1
+    cache_steps = 3 if verify else 1
+    num_tokens = batch_size * cache_steps
+    d = _make_tp4_fused_views(num_tokens)
+    local_heads = d["H"]
+    assert d["a"].data_ptr() % 32 == 16
+    query_start_loc = torch.arange(
+        0,
+        num_tokens + 1,
+        cache_steps,
+        device="cuda",
+        dtype=torch.int32,
+    )
+    state = torch.zeros(
+        batch_size * cache_steps,
+        local_heads,
+        V,
+        K,
+        device="cuda",
+        dtype=torch.bfloat16,
+    )
+    state_indices = torch.arange(
+        batch_size * cache_steps, device="cuda", dtype=torch.int32
+    ).view(batch_size, cache_steps)
+    kernel = FlashInferKDAKernel()
+    call_kwargs = dict(
+        q=d["q"].contiguous(),
+        k=d["k"].contiguous(),
+        v=d["v"].contiguous(),
+        g=d["a"].reshape(1, num_tokens, local_heads, K),
+        beta=torch.sigmoid(d["b"])
+        .to(torch.bfloat16)
+        .reshape(1, num_tokens, local_heads),
+        A_log=torch.zeros(local_heads, device="cuda", dtype=torch.float32),
+        dt_bias=torch.zeros(local_heads * K, device="cuda", dtype=torch.float32),
+        scale=None,
+        initial_state=state,
+        output_final_state=False,
+        use_qk_l2norm_in_kernel=True,
+        use_gate_in_kernel=True,
+        lower_bound=None,
+        cu_seqlens=query_start_loc,
+        ssm_state_indices=state_indices if verify else state_indices[:, 0],
+    )
+    if verify:
+        call_kwargs["num_spec_tokens"] = cache_steps - 1
+    with pytest.raises(ValueError, match="Misaligned Tensor data"):
+        kernel._recurrent_kda(**call_kwargs)
+
+
 @pytest.mark.parametrize("batch_size,num_spec", [(1, 7), (8, 7), (32, 3)])
 def test_kda_target_verify_flashinfer_matches_triton(batch_size, num_spec):
     """FlashInfer MTP / target_verify (topk=1) per-draft-token output matches the

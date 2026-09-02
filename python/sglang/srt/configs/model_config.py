@@ -857,6 +857,20 @@ class ModelConfig:
                 self.hf_text_config.configure_draft_model()
             )
 
+        if is_draft_model and self.speculative_algorithm == "DSPARK":
+            from sglang.srt.speculative.dspark_components.dspark_config import (
+                apply_namespaced_dspark_draft_config,
+            )
+
+            if apply_namespaced_dspark_draft_config(self.hf_config):
+                self.hf_text_config = get_hf_text_config(self.hf_config)
+                logger.info(
+                    "Draft checkpoint uses a namespaced DSpark bundle; loading "
+                    "draft arch %s.",
+                    self.hf_config.architectures[0],
+                )
+                return
+
         if is_draft_model and self.hf_config.architectures[0] in [
             "DeepseekV3ForCausalLM",
             "DeepseekV32ForCausalLM",
@@ -1299,6 +1313,14 @@ class ModelConfig:
             self.qk_rope_head_dim = self.hf_text_config.qk_rope_head_dim
             self.v_head_dim = self.hf_config.v_head_dim
             self._init_mla_scaling(self.hf_config.rope_scaling)
+        elif "LingV3ForCausalLMDSparkMLA" in self.hf_config.architectures:
+            self.qk_nope_head_dim = self.hf_text_config.qk_nope_head_dim
+            self.qk_rope_head_dim = self.hf_text_config.qk_rope_head_dim
+            self.head_dim = self.qk_nope_head_dim + self.qk_rope_head_dim
+            self.v_head_dim = self.hf_text_config.v_head_dim
+            self.kv_lora_rank = self.hf_text_config.kv_lora_rank
+            self.attention_arch = AttentionArch.MLA
+            self.scaling = 1 / math.sqrt(self.head_dim)
         elif (
             "BailingMoeV3ForCausalLM" in self.hf_config.architectures
             or "BailingMoeV3VLForConditionalGeneration" in self.hf_config.architectures

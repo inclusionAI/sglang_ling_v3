@@ -140,6 +140,14 @@ _is_flashinfer_available = is_flashinfer_available()
 _is_sm100_supported = is_cuda() and get_platform().is_sm100
 
 
+def resolve_bailing_mla_rope(config: PretrainedConfig) -> tuple[float, Optional[dict]]:
+    rope_parameters = config.rope_parameters
+    rope_theta = rope_parameters.get("rope_theta", 600000)
+    rope_type = rope_parameters.get("rope_type")
+    rope_scaling = rope_parameters if rope_type != "default" else None
+    return rope_theta, rope_scaling
+
+
 class DsV3MLA(DeepseekV2AttentionMLA):
     def __init__(
         self,
@@ -1639,6 +1647,7 @@ class BailingMoELinearDecoderLayer(nn.Module):
             )
         elif config.attention_type == 1:  # softmax layer
             if self.use_mla:
+                rope_theta, rope_scaling = resolve_bailing_mla_rope(config)
                 self.attention = DsV3MLA(
                     config=config,
                     hidden_size=config.hidden_size,
@@ -2585,6 +2594,8 @@ class BailingMoeV3ForCausalLM(nn.Module):
             )
 
         for name, loaded_weight in weights:
+            if name.startswith("dspark."):
+                continue
             if name.startswith("model.mtp"):
                 continue
             layer_idx = None

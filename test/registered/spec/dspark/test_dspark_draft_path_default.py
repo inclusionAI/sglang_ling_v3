@@ -1,5 +1,6 @@
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import torch
 
@@ -10,6 +11,9 @@ from sglang.srt.arg_groups.speculative_hook import (
 )
 from sglang.srt.environ import envs
 from sglang.srt.server_args import ServerArgs
+from sglang.srt.speculative.dspark_components.dspark_config import (
+    read_dspark_draft_config,
+)
 from sglang.test.ci.ci_register import register_cpu_ci
 from sglang.test.test_utils import CustomTestCase
 
@@ -31,6 +35,18 @@ def _bundled_hf_config() -> SimpleNamespace:
 
 def _plain_hf_config() -> SimpleNamespace:
     return SimpleNamespace(architectures=["DeepseekV4ForCausalLM"])
+
+
+def _namespaced_bundle_hf_config() -> SimpleNamespace:
+    return SimpleNamespace(
+        architectures=["BailingMoeV3ForCausalLM"],
+        dspark_bundle_format="namespaced_safetensors",
+        dspark_bundle_version=1,
+        dspark_config={
+            "architectures": ["LingV3ForCausalLMDSparkMLA"],
+            "block_size": 5,
+        },
+    )
 
 
 def _make_dspark_server_args(
@@ -59,6 +75,20 @@ class TestTargetCheckpointBundlesDsparkDraft(CustomTestCase):
         )
         self.assertFalse(_target_checkpoint_bundles_dspark_draft(server_args))
 
+    def test_namespaced_bundle_config_is_detected(self):
+        server_args = _make_dspark_server_args(
+            model_path="ling-bundle", hf_config=_namespaced_bundle_hf_config()
+        )
+        self.assertTrue(_target_checkpoint_bundles_dspark_draft(server_args))
+
+    def test_unknown_namespaced_bundle_version_is_not_detected(self):
+        config = _namespaced_bundle_hf_config()
+        config.dspark_bundle_version = 2
+        server_args = _make_dspark_server_args(
+            model_path="ling-bundle", hf_config=config
+        )
+        self.assertFalse(_target_checkpoint_bundles_dspark_draft(server_args))
+
 
 class TestDsparkDraftPathDefaulting(CustomTestCase):
     def test_bundled_checkpoint_defaults_draft_path_to_model_path(self):
@@ -80,6 +110,16 @@ class TestDsparkDraftPathDefaulting(CustomTestCase):
         )
         with self.assertRaises(ValueError):
             _handle_dspark(server_args)
+
+    def test_namespaced_bundle_defaults_draft_path_to_model_path(self):
+        server_args = _make_dspark_server_args(
+            model_path="ling-bundle", hf_config=_namespaced_bundle_hf_config()
+        )
+        _handle_dspark(server_args)
+        self.assertEqual(
+            resolution_result(server_args, "speculative_draft_model_path"),
+            "ling-bundle",
+        )
 
     def test_explicit_draft_path_is_not_overwritten(self):
         server_args = _make_dspark_server_args(
@@ -152,6 +192,50 @@ class TestDsparkFoldedSamplingDefault(CustomTestCase):
             DsparkFoldedSampling.FORCE.value
         ):
             self.assertTrue(_resolve_folded_sampling(**args))
+
+
+class TestReadDsparkDraftConfigResolvedPath(CustomTestCase):
+    def test_reads_path_from_spec_bag_not_raw_server_args(self):
+        # The draft worker runs after resolution; the bundled-draft default lives
+        # in the spec bag (declare_resolution), not on raw server_args, so
+        # read_dspark_draft_config reads get_spec(), not server_args. The raw
+        # speculative_draft_model_path on the scheduler subprocess is None.
+        captured = {}
+
+        def fake_get_config(path, **kwargs):
+            captured["path"] = path
+            captured["kwargs"] = kwargs
+            return ("draft_hf_config", path)
+
+        with (
+            patch(
+                "sglang.srt.runtime_context.get_spec",
+                return_value=SimpleNamespace(
+                    speculative_draft_model_path="resolved/draft/path",
+                    speculative_draft_model_revision="rev-7",
+                ),
+            ),
+            patch(
+                "sglang.srt.runtime_context.get_model",
+                return_value=SimpleNamespace(
+                    trust_remote_code=True,
+                    json_model_override_args='{"a": 1}',
+                    model_config_parser="auto",
+                ),
+            ),
+            patch(
+                "sglang.srt.utils.hf_transformers_utils.get_config",
+                side_effect=fake_get_config,
+            ),
+        ):
+            result = read_dspark_draft_config()
+
+        self.assertEqual(captured["path"], "resolved/draft/path")
+        self.assertTrue(captured["kwargs"]["trust_remote_code"])
+        self.assertEqual(captured["kwargs"]["revision"], "rev-7")
+        self.assertEqual(captured["kwargs"]["model_override_args"], {"a": 1})
+        self.assertEqual(captured["kwargs"]["model_config_parser"], "auto")
+        self.assertEqual(result[1], "resolved/draft/path")
 
 
 if __name__ == "__main__":

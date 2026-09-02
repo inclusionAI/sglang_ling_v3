@@ -7,10 +7,6 @@ from typing import TYPE_CHECKING, Any, List, Optional
 import msgspec
 
 from sglang.srt.arg_groups.overrides import resolved_view
-from sglang.srt.runtime_context import (
-    get_model,
-    get_spec,
-)
 from sglang.srt.speculative.dflash_utils import parse_dflash_draft_config
 
 if TYPE_CHECKING:
@@ -20,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DSPARK_GAMMA = 7
 SUPPORTED_DSPARK_MARKOV_HEAD_TYPES = ("vanilla", "gated", "rnn")
+NAMESPACED_DSPARK_BUNDLE_FORMAT = "namespaced_safetensors"
+NAMESPACED_DSPARK_BUNDLE_VERSION = 1
 
 # The dsv4 self-drafting checkpoint runs its draft attention on the dedicated
 # DeepSeek-V4 backend instead of the generic draft-backend fallback.
@@ -31,21 +29,31 @@ def get_dspark_sample_from_anchor(draft_hf_config: Any) -> bool:
     return bool(_cfg_get(draft_hf_config, "sample_from_anchor", True))
 
 
-def draft_is_deepseek_v4() -> bool:
-    from sglang.srt.configs.model_config import is_deepseek_v4
+def read_dspark_draft_config():
+    """Load the draft hf_config from the resolved spec bag (get_spec, not raw
+    server_args: the scheduler subprocess's raw speculative_draft_model_path
+    stays None because the bundled-draft default is declare_resolution'ed)."""
+    from sglang.srt.runtime_context import get_model, get_spec
     from sglang.srt.utils.hf_transformers_utils import get_config
 
     draft_model_path = get_spec().speculative_draft_model_path
-    if not draft_model_path:
-        return False
-    draft_hf_config = get_config(
+    return get_config(
         draft_model_path,
         trust_remote_code=get_model().trust_remote_code,
         revision=get_spec().speculative_draft_model_revision,
         model_override_args=json.loads(get_model().json_model_override_args),
         model_config_parser=get_model().model_config_parser,
     )
-    return draft_hf_config is not None and is_deepseek_v4(draft_hf_config)
+
+
+def dspark_draft_is_moe(hf_config: Any) -> bool:
+    dspark_config = _get_dspark_config(hf_config)
+    if any(name in dspark_config for name in ("num_experts", "n_routed_experts")):
+        hf_config = dspark_config
+    return any(
+        int(_cfg_get(hf_config, name, 0) or 0) > 1
+        for name in ("num_experts", "n_routed_experts")
+    )
 
 
 def dspark_gamma_from_num_draft_tokens(num_draft_tokens: int) -> int:
@@ -162,10 +170,8 @@ def read_draft_checkpoint_gamma(*, server_args: ServerArgs) -> Optional[int]:
 
 
 def checkpoint_bundles_dspark_draft(hf_config: Any) -> bool:
-    """The checkpoint carries a bundled DSpark draft head, marked by the
-    prefixed dspark_* keys on the target hf config. Single source of truth
-    for the bundling convention (draft-path defaulting, draft-arch remap)."""
-    return any(
+    """Return whether the target checkpoint also carries its DSpark draft."""
+    legacy_bundle = any(
         _cfg_get(hf_config, key, None) is not None
         for key in (
             "dspark_block_size",
@@ -174,6 +180,7 @@ def checkpoint_bundles_dspark_draft(hf_config: Any) -> bool:
             "dspark_target_layer_ids",
         )
     )
+    return legacy_bundle or is_namespaced_dspark_bundle(hf_config)
 
 
 def _cfg_get(config: Any, key: str, default: Any = None) -> Any:
@@ -203,6 +210,36 @@ def _get_dspark_config(config: Any) -> dict:
         return dict(cfg)
     except Exception:
         return {}
+
+
+def is_namespaced_dspark_bundle(config: Any) -> bool:
+    return (
+        _cfg_get(config, "dspark_bundle_format", None)
+        == NAMESPACED_DSPARK_BUNDLE_FORMAT
+        and _cfg_get(config, "dspark_bundle_version", None)
+        == NAMESPACED_DSPARK_BUNDLE_VERSION
+        and bool(_get_dspark_config(config))
+    )
+
+
+def apply_namespaced_dspark_draft_config(config: Any) -> bool:
+    """Project a bundled draft sub-config onto a draft ModelConfig copy."""
+    if not is_namespaced_dspark_bundle(config):
+        return False
+
+    dspark_config = _get_dspark_config(config)
+    architectures = dspark_config.get("architectures")
+    if not isinstance(architectures, (list, tuple)) or not architectures:
+        raise ValueError(
+            "A namespaced DSpark bundle requires dspark_config.architectures."
+        )
+    attention_type = dspark_config.get("attention_type")
+    for key, value in dspark_config.items():
+        setattr(config, key, value)
+    if isinstance(attention_type, str):
+        config.full_attention_type = attention_type
+        config.attention_type = 1
+    return True
 
 
 def parse_dspark_draft_config(*, draft_hf_config: Any) -> DSparkDraftConfig:
@@ -286,9 +323,12 @@ def parse_dspark_draft_config(*, draft_hf_config: Any) -> DSparkDraftConfig:
             f"DSpark mask_token_id must be non-negative, got {mask_token_id}."
         )
 
-    gamma = (
-        int(prefixed_block_size) if prefixed_block_size is not None else base.block_size
+    raw_gamma = (
+        prefixed_block_size
+        if prefixed_block_size is not None
+        else dspark_cfg.get("block_size", base.block_size)
     )
+    gamma = int(raw_gamma) if raw_gamma is not None else None
 
     if prefixed_target_layer_ids is not None:
         if not isinstance(prefixed_target_layer_ids, (list, tuple)) or not len(
@@ -302,11 +342,16 @@ def parse_dspark_draft_config(*, draft_hf_config: Any) -> DSparkDraftConfig:
             int(x) for x in prefixed_target_layer_ids
         ]
     else:
-        target_layer_ids = base.target_layer_ids
+        raw_target_layer_ids = dspark_cfg.get("target_layer_ids", base.target_layer_ids)
+        target_layer_ids = (
+            [int(x) for x in raw_target_layer_ids]
+            if raw_target_layer_ids is not None
+            else None
+        )
 
     return DSparkDraftConfig(
-        num_hidden_layers=base.num_hidden_layers,
-        num_target_layers=base.num_target_layers,
+        num_hidden_layers=dspark_cfg.get("num_hidden_layers", base.num_hidden_layers),
+        num_target_layers=dspark_cfg.get("num_target_layers", base.num_target_layers),
         gamma=gamma,
         target_layer_ids=target_layer_ids,
         mask_token=base.mask_token,

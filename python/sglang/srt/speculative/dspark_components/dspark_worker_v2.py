@@ -8,6 +8,7 @@ from sglang.kernels.ops.attention.dsv4.unified_kv_kernels.env_gate import (
     is_unified_kv_triton,
 )
 from sglang.srt.configs.hybrid_arch import mambaish_config
+from sglang.srt.configs.model_config import is_deepseek_v4
 from sglang.srt.environ import envs
 from sglang.srt.layers.logprob_processor import compute_spec_logprobs
 from sglang.srt.lora.layers import unwrap_lora_layer
@@ -43,7 +44,8 @@ from sglang.srt.speculative.draft_worker_common import (
 )
 from sglang.srt.speculative.dspark_components.dspark_config import (
     DSV4_DRAFT_ATTENTION_BACKEND,
-    draft_is_deepseek_v4,
+    dspark_draft_is_moe,
+    read_dspark_draft_config,
     resolve_runtime_config,
 )
 from sglang.srt.speculative.dspark_components.dspark_draft import (
@@ -161,7 +163,8 @@ class DSparkWorkerV2(BaseSpecWorker):
         if not self._hosts_draft:
             return
 
-        self._draft_is_moe = draft_is_deepseek_v4()
+        draft_hf_config = read_dspark_draft_config()
+        self._draft_is_moe = dspark_draft_is_moe(draft_hf_config)
         self._draft_dp_context_enabled = (
             get_parallel().enable_dp_attention and not self._draft_is_moe
         )
@@ -176,7 +179,7 @@ class DSparkWorkerV2(BaseSpecWorker):
             and get_parallel().attn_tp_size > 1
         ):
             raise ValueError(
-                "DSpark + dp attention with a DeepSeek-V4 (MoE) draft requires "
+                "DSpark + dp attention with a MoE draft requires "
                 "attn_tp == 1 (set --dp-size == --tp). attn_tp > 1 corrupts the "
                 "MoE-under-DP all-reduce."
             )
@@ -189,7 +192,9 @@ class DSparkWorkerV2(BaseSpecWorker):
                 target_model_config=target_worker.model_runner.model_config,
                 algo_label="DSPARK",
                 attention_backend_override=(
-                    DSV4_DRAFT_ATTENTION_BACKEND if self._draft_is_moe else None
+                    DSV4_DRAFT_ATTENTION_BACKEND
+                    if is_deepseek_v4(draft_hf_config)
+                    else None
                 ),
                 draft_worker_cls=draft_worker_cls,
                 random_seed=target_worker.random_seed,
@@ -299,8 +304,7 @@ class DSparkWorkerV2(BaseSpecWorker):
                 "DSpark dense-draft compact verify under --enable-dp-attention does not "
                 "yet support cuda graph (idle DP groups cannot join the token-keyed "
                 "compact graph). Re-run with --disable-cuda-graph (eager is lossless), "
-                "or use SGLANG_RAGGED_VERIFY_MODE=static. The dsv4 (MoE) draft supports "
-                "cuda graph under DP."
+                "or use SGLANG_RAGGED_VERIFY_MODE=static."
             )
         self._kv_injector = TargetHiddenKvInjector(
             draft_model=self.draft_model,

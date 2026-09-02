@@ -23,8 +23,12 @@ _CAPTURE_HEADROOM_GB = 1.0
 
 def _base_logits_dtype(model) -> torch.dtype:
     """Dtype of the block logits; a quantized head's packed `weight` carries no
-    logits dtype, its kernel emits the activation (draft param) dtype instead."""
+    logits dtype, its kernel emits the activation (draft param) dtype instead.
+    Under the DSpark FP32 lm-head path the head, and the markov-corrected
+    block logits, are emitted in FP32."""
     weight = model.lm_head.weight
+    if model._use_fp32_lm_head and weight.is_floating_point():
+        return torch.float32
     if weight.is_floating_point():
         return weight.dtype
     return next(model.markov_head.parameters()).dtype

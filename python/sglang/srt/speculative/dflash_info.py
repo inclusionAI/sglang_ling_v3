@@ -157,6 +157,12 @@ class DFlashVerifyInput(SpecInput):
             qo_indptr = layout.qo_indptr_device
             verify_lens = layout.verify_lens
             kv_indices_extra = layout.total_verify_tokens
+            if kv_indices_extra is None:
+                # Capped/device-assembled layouts leave total_verify_tokens
+                # None (see RaggedVerifyLayout._assemble_device /
+                # padded_to_bucket); size to the captured tier like the
+                # DeepSeek-V4 ragged verify path.
+                kv_indices_extra = layout.graph_num_tokens
 
         cum_kv_seq_len = torch.zeros((bs + 1,), dtype=torch.int32, device=device)
         paged_kernel_lens = paged_kernel_lens + verify_lens

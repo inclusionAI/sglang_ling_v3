@@ -1,0 +1,738 @@
+import unittest
+from contextlib import nullcontext
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import torch
+from torch import nn
+
+from sglang.srt.configs.bailing_hybrid import BailingHybridConfig
+from sglang.srt.configs.hybrid_arch import mambaish_config
+from sglang.srt.configs.model_config import ModelConfig
+from sglang.srt.layers.attention.flashinfer_mla_backend import (
+    _use_causal_mla_prefill,
+)
+from sglang.srt.layers.radix_attention import AttentionType
+from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode
+from sglang.srt.models.bailing_moe_v3 import (
+    BailingMoELinearDecoderLayer,
+    BailingMoELinearModel,
+    resolve_bailing_mla_rope,
+)
+from sglang.srt.models.dspark import VanillaMarkov
+from sglang.srt.models.ling_v3_dspark import LingV3ForCausalLMDSparkMLA
+from sglang.srt.speculative.dspark_components.dspark_config import (
+    apply_namespaced_dspark_draft_config,
+    dspark_draft_is_moe,
+    parse_dspark_draft_config,
+)
+from sglang.srt.speculative.spec_info import SpeculativeAlgorithm
+from sglang.test.ci.ci_register import register_cpu_ci
+from sglang.test.test_utils import CustomTestCase
+
+register_cpu_ci(est_time=5, suite="base-a-test-cpu")
+
+
+def _run_ling_mla_post_load(attention):
+    draft = SimpleNamespace(
+        layers=[SimpleNamespace(attention=attention)],
+        quant_config=None,
+    )
+    LingV3ForCausalLMDSparkMLA._post_load_mla_weights(draft)
+
+
+class TestLingDsparkMlaProtocol(CustomTestCase):
+    def test_capture_completes_pending_mlp_allreduce(self):
+        class FakeCommunicator:
+            def __init__(self):
+                self.postprocess_calls = 0
+
+            def prepare_attn(self, hidden, residual, forward_batch):
+                return hidden, residual
+
+            def prepare_mlp(self, hidden, residual, forward_batch):
+                return hidden, residual
+
+            def should_fuse_mlp_allreduce_with_next_layer(self, forward_batch):
+                return True
+
+            def should_use_reduce_scatter(self, forward_batch):
+                return False
+
+            def postprocess_layer(self, hidden, residual, forward_batch):
+                self.postprocess_calls += 1
+                return hidden + 10, residual
+
+        class FakeMlp(nn.Module):
+            def forward(self, hidden, forward_batch):
+                return hidden * 2
+
+        layer = BailingMoELinearDecoderLayer.__new__(BailingMoELinearDecoderLayer)
+        nn.Module.__init__(layer)
+        layer.layer_communicator = FakeCommunicator()
+        layer.mlp = FakeMlp()
+        layer.attention_type = 1
+        layer.use_mla = True
+        layer.is_layer_sparse = True
+        forward_batch = SimpleNamespace(
+            forward_mode=SimpleNamespace(is_idle=lambda: True)
+        )
+        fake_forward = SimpleNamespace(scoped=lambda **kwargs: nullcontext())
+
+        with (
+            patch(
+                "sglang.srt.models.bailing_moe_v3.get_forward",
+                return_value=fake_forward,
+            ),
+            patch(
+                "sglang.srt.models.bailing_moe_v3.enable_moe_dense_fully_dp",
+                return_value=False,
+            ),
+        ):
+            fused, _ = layer(
+                hidden_states=torch.ones((1, 2)),
+                positions=torch.zeros(1, dtype=torch.long),
+                forward_batch=forward_batch,
+                residual=torch.zeros((1, 2)),
+                zero_allocator=None,
+            )
+            completed, _ = layer(
+                hidden_states=torch.ones((1, 2)),
+                positions=torch.zeros(1, dtype=torch.long),
+                forward_batch=forward_batch,
+                residual=torch.zeros((1, 2)),
+                zero_allocator=None,
+                capture_after_layer=True,
+            )
+
+        self.assertTrue(fused._sglang_needs_allreduce_fusion)
+        self.assertEqual(layer.layer_communicator.postprocess_calls, 1)
+        torch.testing.assert_close(completed, torch.full((1, 2), 12.0))
+
+    def test_capture_skips_dp_scattered_empty_output(self):
+        # Regression: under DP attention a captured layer's input (attention
+        # runs at TP_ATTN_FULL) can be non-empty while its SCATTERED output is
+        # empty on this rank. The capture decision must key on the completed
+        # output, not the pre-layer input, so a 0-row output is not appended
+        # into the aux list -- downstream concatenates it feature-wise and so
+        # requires a shared row count. Before the fix the 0-row output was
+        # appended and the aux was returned; after the fix the aux stays empty
+        # and forward returns the plain hidden state.
+        class _ProjectionStub(nn.Module):
+            def __init__(self, out_rows):
+                super().__init__()
+                self.out_rows = out_rows
+                self.capture_after_layer_seen = None
+
+            def forward(
+                self,
+                *,
+                hidden_states,
+                positions,
+                forward_batch,
+                residual,
+                zero_allocator,
+                capture_after_layer,
+            ):
+                self.capture_after_layer_seen = capture_after_layer
+                out = hidden_states.new_zeros((self.out_rows, hidden_states.shape[-1]))
+                return out, None
+
+        passthrough = _ProjectionStub(out_rows=4)  # layer 0, non-captured
+        captured = _ProjectionStub(out_rows=0)  # layer 1, captured, empty output
+
+        model = BailingMoELinearModel.__new__(BailingMoELinearModel)
+        nn.Module.__init__(model)
+        model.start_layer = 0
+        model.end_layer = 2
+        model.layers = nn.ModuleList([passthrough, captured])
+        model.layers_to_capture = [1]
+        model.capture_aux_hidden_states = True
+        model.pp_group = SimpleNamespace(is_first_rank=True, is_last_rank=True)
+        model.norm = nn.Identity()
+
+        forward_batch = SimpleNamespace(
+            can_run_tbo=False,
+            capture_hidden_mode=CaptureHiddenMode.FULL,
+            forward_mode=SimpleNamespace(is_idle=lambda: False),
+        )
+        result = model.forward(
+            input_ids=None,
+            positions=torch.zeros(4, dtype=torch.long),
+            forward_batch=forward_batch,
+            inputs_embeds=torch.zeros((4, 3)),
+        )
+
+        # No 0-row capture appended: the aux list is empty, so forward returns
+        # the plain hidden state rather than a (hidden, aux) tuple.
+        self.assertIsInstance(result, torch.Tensor)
+        # The captured layer still had its MLP all-reduce forced to complete
+        # (the partial-output fix), regardless of the empty output below.
+        self.assertTrue(captured.capture_after_layer_seen)
+        self.assertFalse(passthrough.capture_after_layer_seen)
+
+    def test_flashinfer_mla_noncausal_is_dspark_draft_worker_only(self):
+        draft = SimpleNamespace(
+            is_draft_worker=True,
+            spec_algorithm=SpeculativeAlgorithm.DSPARK,
+        )
+        target = SimpleNamespace(
+            is_draft_worker=False,
+            spec_algorithm=SpeculativeAlgorithm.DSPARK,
+        )
+        regular = SimpleNamespace(
+            is_draft_worker=False,
+            spec_algorithm=SpeculativeAlgorithm.NONE,
+        )
+        self.assertFalse(_use_causal_mla_prefill(draft))
+        self.assertTrue(_use_causal_mla_prefill(target))
+        self.assertTrue(_use_causal_mla_prefill(regular))
+
+    def test_draft_block_visibility_matches_training_mask(self):
+        prefix_len = 7
+        gamma = 5
+        anchor_position = prefix_len
+        anchor_token = 42
+        mask_token = 99
+        draft_input = torch.tensor([anchor_token] + [mask_token] * (gamma - 1))
+        draft_positions = anchor_position + torch.arange(gamma)
+        prefix_positions = torch.arange(prefix_len)
+
+        torch.testing.assert_close(
+            draft_input,
+            torch.tensor(
+                [anchor_token, mask_token, mask_token, mask_token, mask_token]
+            ),
+        )
+        torch.testing.assert_close(
+            draft_positions, anchor_position + torch.arange(gamma)
+        )
+        self.assertEqual(int(prefix_positions.max()), anchor_position - 1)
+
+        context_allow = prefix_positions.view(1, -1) < anchor_position
+        block_allow = torch.ones((gamma, gamma), dtype=torch.bool)
+        training_allow = torch.cat(
+            [context_allow.expand(gamma, -1), block_allow], dim=1
+        )
+        inference_allow = torch.ones_like(training_allow)
+        causal_allow = torch.arange(prefix_len + gamma).view(1, -1) <= (
+            prefix_len + torch.arange(gamma)
+        ).view(-1, 1)
+        torch.testing.assert_close(inference_allow, training_allow)
+        self.assertFalse(torch.equal(causal_allow, training_allow))
+
+    def test_ling_mla_draft_layers_are_bidirectional(self):
+        class FakeLayer(nn.Module):
+            def __init__(self, **kwargs):
+                super().__init__()
+                self.attention = SimpleNamespace(
+                    attn_mqa=SimpleNamespace(attn_type=AttentionType.DECODER),
+                    attn_mha=SimpleNamespace(attn_type=AttentionType.DECODER),
+                )
+
+        config = SimpleNamespace(
+            target_layer_ids=[39, 40, 41],
+            block_size=5,
+            num_hidden_layers=3,
+            hidden_size=4,
+            rms_norm_eps=1e-6,
+            router_dtype="fp32",
+        )
+        with (
+            patch(
+                "sglang.srt.models.ling_v3_dspark.BailingMoELinearDecoderLayer",
+                FakeLayer,
+            ),
+            patch(
+                "sglang.srt.models.ling_v3_dspark.build_markov_head",
+                return_value=nn.Identity(),
+            ),
+            patch(
+                "sglang.srt.models.ling_v3_dspark.build_confidence_head",
+                return_value=None,
+            ),
+            patch(
+                "sglang.srt.models.ling_v3_dspark.is_namespaced_dspark_bundle",
+                return_value=False,
+            ),
+        ):
+            model = LingV3ForCausalLMDSparkMLA(config)
+        self.assertTrue(
+            all(
+                layer.attention.attn_mqa.attn_type == AttentionType.ENCODER_ONLY
+                for layer in model.layers
+            )
+        )
+        self.assertTrue(
+            all(
+                layer.attention.attn_mha.attn_type == AttentionType.ENCODER_ONLY
+                for layer in model.layers
+            )
+        )
+        self.assertTrue(model.sample_from_anchor)
+
+    def test_default_rope_parameters_do_not_enable_yarn(self):
+        rope_parameters = {"rope_theta": 6_000_000, "rope_type": "default"}
+        rope_theta, rope_scaling = resolve_bailing_mla_rope(
+            SimpleNamespace(rope_parameters=rope_parameters)
+        )
+        self.assertEqual(rope_theta, 6_000_000)
+        self.assertIsNone(rope_scaling)
+        self.assertEqual(rope_parameters["rope_type"], "default")
+
+    def test_scaled_rope_parameters_are_preserved(self):
+        rope_parameters = {
+            "rope_theta": 10_000,
+            "rope_type": "yarn",
+            "factor": 4.0,
+        }
+        rope_theta, rope_scaling = resolve_bailing_mla_rope(
+            SimpleNamespace(rope_parameters=rope_parameters)
+        )
+        self.assertEqual(rope_theta, 10_000)
+        self.assertIs(rope_scaling, rope_parameters)
+
+    def test_markov_recursive_matches_teacher_forcing(self):
+        head = VanillaMarkov(vocab_size=4, markov_rank=4)
+        with torch.no_grad():
+            head.markov_w1.weight.copy_(torch.eye(4))
+            head.markov_w2.weight.copy_(10 * torch.roll(torch.eye(4), 1, dims=0))
+        base_logits = torch.zeros((1, 3, 4))
+        proposal, corrected = head.sample_block(
+            base_logits,
+            first_prev_tokens=torch.tensor([0]),
+            hidden_states=None,
+            sampler=lambda logits, _: logits.argmax(dim=-1),
+        )
+        teacher_prev = torch.cat([torch.tensor([[0]]), proposal[:, :-1]], dim=1)
+        teacher_logits = head.apply_block_logits(
+            base_logits,
+            token_ids=teacher_prev,
+            hidden_states=None,
+        )
+        torch.testing.assert_close(corrected, teacher_logits)
+        torch.testing.assert_close(proposal, teacher_logits.argmax(dim=-1))
+
+    def test_namespaced_bundle_projects_draft_config(self):
+        config = BailingHybridConfig(
+            num_hidden_layers=42,
+            dspark_bundle_format="namespaced_safetensors",
+            dspark_bundle_version=1,
+            dspark_config={
+                "architectures": ["LingV3ForCausalLMDSparkMLA"],
+                "attention_type": "mla",
+                "num_hidden_layers": 3,
+                "num_target_layers": 42,
+                "target_layer_ids": [39, 40, 41],
+                "block_size": 5,
+                "markov_rank": 256,
+                "markov_head_type": "vanilla",
+                "mask_token_id": 156894,
+                "layer_group_size": 1,
+            },
+        )
+        parsed = parse_dspark_draft_config(draft_hf_config=config)
+        self.assertEqual(parsed.num_hidden_layers, 3)
+        self.assertEqual(parsed.target_layer_ids, [39, 40, 41])
+        self.assertEqual(parsed.gamma, 5)
+
+        self.assertTrue(apply_namespaced_dspark_draft_config(config))
+        self.assertEqual(config.architectures, ["LingV3ForCausalLMDSparkMLA"])
+        self.assertEqual(config.num_hidden_layers, 3)
+        self.assertEqual(config.full_attention_type, "mla")
+        self.assertEqual(config.attention_type, 1)
+
+    def test_namespaced_bundle_uses_nested_arch_in_model_config(self):
+        config = BailingHybridConfig(
+            num_hidden_layers=42,
+            dspark_bundle_format="namespaced_safetensors",
+            dspark_bundle_version=1,
+            dspark_config={
+                "architectures": ["LingV3ForCausalLMDSparkMLA"],
+                "attention_type": "mla",
+                "num_hidden_layers": 3,
+                "layer_group_size": 1,
+            },
+        )
+        config.architectures = ["BailingMoeV3ForCausalLM"]
+        model_config = object.__new__(ModelConfig)
+        model_config.is_draft_model = True
+        model_config.speculative_algorithm = "DSPARK"
+        model_config.hf_config = config
+        model_config.hf_text_config = config
+
+        model_config._config_draft_model()
+
+        self.assertEqual(
+            model_config.hf_config.architectures,
+            ["LingV3ForCausalLMDSparkMLA"],
+        )
+        self.assertEqual(model_config.hf_config.num_hidden_layers, 3)
+
+    def test_namespaced_bundle_requires_draft_architecture(self):
+        config = SimpleNamespace(
+            dspark_bundle_format="namespaced_safetensors",
+            dspark_bundle_version=1,
+            dspark_config={"attention_type": "mla"},
+        )
+        with self.assertRaisesRegex(ValueError, "dspark_config.architectures"):
+            apply_namespaced_dspark_draft_config(config)
+
+    def test_namespaced_bundle_preserves_numeric_attention_type(self):
+        config = SimpleNamespace(
+            dspark_bundle_format="namespaced_safetensors",
+            dspark_bundle_version=1,
+            dspark_config={
+                "architectures": ["SomeFutureDSparkModel"],
+                "attention_type": 0,
+            },
+        )
+        self.assertTrue(apply_namespaced_dspark_draft_config(config))
+        self.assertEqual(config.attention_type, 0)
+        self.assertFalse(hasattr(config, "full_attention_type"))
+
+    def test_moe_detection_uses_draft_geometry(self):
+        self.assertTrue(dspark_draft_is_moe(SimpleNamespace(num_experts=512)))
+        self.assertTrue(dspark_draft_is_moe(SimpleNamespace(n_routed_experts=256)))
+        self.assertFalse(dspark_draft_is_moe(SimpleNamespace(num_experts=1)))
+        self.assertTrue(
+            dspark_draft_is_moe(
+                SimpleNamespace(num_experts=1, dspark_config={"num_experts": 8})
+            )
+        )
+        self.assertFalse(
+            dspark_draft_is_moe(
+                SimpleNamespace(num_experts=512, dspark_config={"num_experts": 1})
+            )
+        )
+
+    def test_native_mla_draft_is_not_classified_as_hybrid_linear(self):
+        config = BailingHybridConfig(short_conv_kernel_size=4, num_hidden_layers=3)
+        config.architectures = ["LingV3ForCausalLMDSparkMLA"]
+        model_config = SimpleNamespace(
+            hf_config=config,
+            linear_attn_registry_result=None,
+        )
+        self.assertIsNone(mambaish_config(model_config))
+        config.layer_group_size = 2
+        self.assertIs(mambaish_config(model_config), config)
+
+    def test_bf16_mla_post_load_is_local_to_ling_dspark(self):
+        weight = torch.arange(48, dtype=torch.bfloat16).view(12, 4)
+        attention = SimpleNamespace(
+            kv_b_proj=SimpleNamespace(weight=weight),
+            qk_nope_head_dim=2,
+            v_head_dim=1,
+            w_kc=None,
+            w_vc=None,
+            w_scale=None,
+        )
+        _run_ling_mla_post_load(attention)
+        w_kc, w_vc = weight.unflatten(0, (-1, 3)).split([2, 1], dim=1)
+        torch.testing.assert_close(
+            attention.w_kc, w_kc.transpose(1, 2).contiguous().transpose(1, 2)
+        )
+        torch.testing.assert_close(attention.w_vc, w_vc.contiguous().transpose(1, 2))
+
+    def test_absorbed_mla_matches_explicit_reference(self):
+        torch.manual_seed(0)
+        num_queries, num_keys = 3, 7
+        num_heads, qk_nope_dim, value_dim, kv_lora_rank = 2, 3, 2, 4
+        kv_b_weight = torch.randn(num_heads * (qk_nope_dim + value_dim), kv_lora_rank)
+        attention = SimpleNamespace(
+            kv_b_proj=SimpleNamespace(weight=kv_b_weight),
+            qk_nope_head_dim=qk_nope_dim,
+            v_head_dim=value_dim,
+            w_kc=None,
+            w_vc=None,
+            w_scale=None,
+        )
+        _run_ling_mla_post_load(attention)
+
+        q_nope = torch.randn(num_queries, num_heads, qk_nope_dim)
+        kv_latent = torch.randn(num_keys, kv_lora_rank)
+        explicit_k = torch.einsum("kl,hql->khq", kv_latent, attention.w_kc)
+        explicit_v = torch.einsum("kl,hlv->khv", kv_latent, attention.w_vc)
+        explicit_probs = torch.softmax(
+            torch.einsum("nhq,khq->nhk", q_nope, explicit_k), dim=-1
+        )
+        explicit_output = torch.einsum("nhk,khv->nhv", explicit_probs, explicit_v)
+
+        absorbed_q = torch.einsum("nhq,hql->nhl", q_nope, attention.w_kc)
+        absorbed_probs = torch.softmax(
+            torch.einsum("nhl,kl->nhk", absorbed_q, kv_latent), dim=-1
+        )
+        absorbed_latent = torch.einsum("nhk,kl->nhl", absorbed_probs, kv_latent)
+        absorbed_output = torch.einsum("nhl,hlv->nhv", absorbed_latent, attention.w_vc)
+        torch.testing.assert_close(absorbed_probs, explicit_probs)
+        torch.testing.assert_close(absorbed_output, explicit_output)
+
+    def test_context_kv_preserves_single_kv_head_axis(self):
+        class FakeAttention(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.kv_lora_rank = 2
+                self.num_local_heads = 4
+                self.qk_rope_head_dim = 2
+                self.kv_a_layernorm = nn.Identity()
+                self.attn_mqa = object()
+
+            def kv_a_proj_with_mqa(self, hidden):
+                return torch.cat([hidden[:, :2], hidden[:, 2:4]], dim=-1), None
+
+            def rotary_emb(self, positions, q, k):
+                self.rotary_shapes = (tuple(q.shape), tuple(k.shape))
+                return q, k
+
+        class FakeLayer(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.attention = FakeAttention()
+
+        class FakePool:
+            def set_mla_kv_buffer(self, layer, loc, k_nope, k_rope):
+                self.shapes = (tuple(k_nope.shape), tuple(k_rope.shape))
+
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.layers = nn.ModuleList([FakeLayer()])
+        model.project_target_hidden = lambda hidden: hidden
+        pool = FakePool()
+        model.write_target_hidden_kv(
+            target_hidden=torch.ones((3, 4)),
+            pool=pool,
+            positions=torch.arange(3),
+            cache_loc=torch.arange(3),
+        )
+        self.assertEqual(
+            model.layers[0].attention.rotary_shapes, ((3, 4, 2), (3, 1, 2))
+        )
+        self.assertEqual(pool.shapes, ((3, 1, 2), (3, 1, 2)))
+
+    def test_partial_commit_filters_context_rows(self):
+        class FakeAttention(nn.Module):
+            kv_lora_rank = 2
+            num_local_heads = 1
+            qk_rope_head_dim = 2
+            kv_a_layernorm = nn.Identity()
+            attn_mqa = object()
+
+            def kv_a_proj_with_mqa(self, hidden):
+                return hidden, None
+
+            def rotary_emb(self, positions, q, k):
+                return q, k
+
+        class FakeLayer(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.attention = FakeAttention()
+
+        class FakePool:
+            def set_mla_kv_buffer(self, layer, loc, k_nope, k_rope):
+                self.loc = loc
+                self.rows = k_nope.shape[0]
+
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.layers = nn.ModuleList([FakeLayer()])
+        model.project_target_hidden = lambda hidden: hidden
+        pool = FakePool()
+        model.write_target_hidden_kv(
+            target_hidden=torch.ones((6, 4)),
+            pool=pool,
+            positions=torch.arange(6),
+            cache_loc=torch.arange(6),
+            cache_loc_2d=torch.arange(6).view(2, 3),
+            commit_lens=torch.tensor([2, 1]),
+        )
+        torch.testing.assert_close(pool.loc, torch.tensor([0, 1, 3]))
+        self.assertEqual(pool.rows, 3)
+
+    def test_quantization_scales_use_standard_weight_loaders(self):
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.config = SimpleNamespace(num_experts=2)
+        layer = nn.Module()
+        layer.attention = nn.Module()
+        layer.attention.kv_b_proj = nn.Module()
+        layer.attention.kv_b_proj.register_parameter(
+            "weight_scale_inv", nn.Parameter(torch.zeros(1))
+        )
+        layer.mlp = nn.Module()
+        layer.mlp.experts = nn.Module()
+        w13_scale = nn.Parameter(torch.zeros(2, 2, 1))
+        w2_scale = nn.Parameter(torch.zeros(2, 1))
+        layer.mlp.experts.register_parameter("w13_weight_scale_inv", w13_scale)
+        layer.mlp.experts.register_parameter("w2_weight_scale_inv", w2_scale)
+        model.layers = nn.ModuleList([layer])
+        model._post_load_weights = lambda: None
+
+        expert_loads = []
+
+        def load_expert(param, weight, name, *, shard_id, expert_id):
+            expert_loads.append((param, name, shard_id, expert_id, weight.clone()))
+
+        w13_scale.weight_loader = load_expert
+        w2_scale.weight_loader = load_expert
+        direct_scale = torch.tensor([3.0])
+        model.load_weights(
+            [
+                (
+                    "layers.0.attention.kv_b_proj.weight_scale_inv",
+                    direct_scale,
+                ),
+                (
+                    "layers.0.mlp.experts.1.gate_proj.weight_scale_inv",
+                    torch.tensor([4.0]),
+                ),
+                (
+                    "layers.0.mlp.experts.0.up_proj.weight_scale_inv",
+                    torch.tensor([5.0]),
+                ),
+                (
+                    "layers.0.mlp.experts.1.down_proj.weight_scale_inv",
+                    torch.tensor([6.0]),
+                ),
+            ]
+        )
+
+        torch.testing.assert_close(
+            model.layers[0].attention.kv_b_proj.weight_scale_inv, direct_scale
+        )
+        self.assertEqual(
+            [(call[2], call[3]) for call in expert_loads],
+            [("w1", 1), ("w3", 0), ("w2", 1)],
+        )
+
+    def test_bundled_loader_consumes_only_dspark_namespace(self):
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.config = SimpleNamespace(num_experts=1)
+        model.is_bundled = True
+        model.register_parameter("target_norm", nn.Parameter(torch.zeros(1)))
+        model._post_load_weights = lambda: None
+
+        loaded = model.load_weights(
+            [
+                ("model.layers.0.weight", torch.ones(1)),
+                ("dspark.target_norm", torch.tensor([2.0])),
+            ]
+        )
+        self.assertEqual(loaded, {"target_norm"})
+        torch.testing.assert_close(model.target_norm, torch.tensor([2.0]))
+
+    def test_write_target_hidden_kv_drops_q_lora_slice_in_fused_mla(self):
+        # When q_lora_rank is set the MLA builds fused_qkv_a_proj_with_mqa (and
+        # no standalone kv_a_proj_with_mqa), so the KV latent is the trailing
+        # part of that fused projection, behind the leading q_lora_rank slice.
+        q_lora_rank, kv_lora_rank, rope_dim = 3, 2, 1
+        sentinel = -999.0
+
+        class FusedAttention(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.q_lora_rank = q_lora_rank
+                self.kv_lora_rank = kv_lora_rank
+                self.qk_rope_head_dim = rope_dim
+                self.num_local_heads = 4
+                self.kv_a_layernorm = nn.Identity()
+                self.attn_mqa = object()
+                self.called_fused = False
+
+            def fused_qkv_a_proj_with_mqa(self, context):
+                self.called_fused = True
+                rows = context.shape[0]
+                q_slice = torch.full((rows, q_lora_rank), sentinel)
+                kv_slice = torch.arange(rows * kv_lora_rank, dtype=torch.float).view(
+                    rows, kv_lora_rank
+                )
+                rope_slice = torch.full((rows, rope_dim), 777.0)
+                return torch.cat([q_slice, kv_slice, rope_slice], dim=-1), None
+
+            def rotary_emb(self, positions, q, k):
+                return q, k
+
+        class FakeLayer(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.attention = FusedAttention()
+
+        class FakePool:
+            def set_mla_kv_buffer(self, layer, loc, k_nope, k_rope):
+                self.k_nope = k_nope.clone()
+                self.k_rope = k_rope.clone()
+
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.layers = nn.ModuleList([FakeLayer()])
+        model.project_target_hidden = lambda hidden: hidden
+        pool = FakePool()
+        model.write_target_hidden_kv(
+            target_hidden=torch.ones((3, 5)),
+            pool=pool,
+            positions=torch.arange(3),
+            cache_loc=torch.arange(3),
+        )
+
+        attn = model.layers[0].attention
+        self.assertTrue(attn.called_fused)
+        self.assertFalse(hasattr(attn, "kv_a_proj_with_mqa"))
+        self.assertFalse((pool.k_nope == sentinel).any())
+        self.assertFalse((pool.k_rope == sentinel).any())
+        torch.testing.assert_close(
+            pool.k_nope.squeeze(1),
+            torch.arange(3 * kv_lora_rank, dtype=torch.float).view(3, kv_lora_rank),
+        )
+        torch.testing.assert_close(
+            pool.k_rope.squeeze(1), torch.full((3, rope_dim), 777.0)
+        )
+
+    def test_q_lora_fused_load_concatenates_q_and_kv_down_proj(self):
+        # q_lora_rank builds a single fused_qkv_a_proj_with_mqa, but the draft
+        # checkpoint stores q_a_proj and kv_a_proj_with_mqa separately; load_weights
+        # must concatenate the pair into the fused parameter.
+        q_lora_rank, kv_lora_rank, rope_dim, hidden = 3, 2, 1, 5
+        fused_out = q_lora_rank + kv_lora_rank + rope_dim
+        q_a_proj = torch.randn(q_lora_rank, hidden)
+        kv_a_proj = torch.randn(kv_lora_rank + rope_dim, hidden)
+
+        def build_model():
+            model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+            nn.Module.__init__(model)
+            model.config = SimpleNamespace(q_lora_rank=q_lora_rank, num_experts=1)
+            model._post_load_weights = lambda: None
+            layer = nn.Module()
+            layer.attention = nn.Module()
+            layer.attention.fused_qkv_a_proj_with_mqa = nn.Linear(
+                hidden, fused_out, bias=False
+            )
+            model.layers = nn.ModuleList([layer])
+            return model
+
+        for bundled in (True, False):
+            with self.subTest(bundled=bundled):
+                model = build_model()
+                model.is_bundled = bundled
+                prefix = "dspark." if bundled else ""
+                loaded = model.load_weights(
+                    [
+                        (f"{prefix}layers.0.attention.q_a_proj.weight", q_a_proj),
+                        (
+                            f"{prefix}layers.0.attention.kv_a_proj_with_mqa.weight",
+                            kv_a_proj,
+                        ),
+                    ]
+                )
+                self.assertEqual(
+                    loaded,
+                    {"layers.0.attention.fused_qkv_a_proj_with_mqa.weight"},
+                )
+                torch.testing.assert_close(
+                    model.layers[0].attention.fused_qkv_a_proj_with_mqa.weight.data,
+                    torch.cat([q_a_proj, kv_a_proj], dim=0),
+                )
+
+
+if __name__ == "__main__":
+    unittest.main()

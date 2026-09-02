@@ -501,6 +501,7 @@ class DSparkDraftMixin:
             self.markov_head = build_markov_head(config)
         self.confidence_head = build_confidence_head(config)
         self.lm_head: Optional[nn.Module] = None
+        self._use_fp32_lm_head = envs.SGLANG_DSPARK_FP32_LM_HEAD.get()
         # Expose the draft's own layer count so the draft ModelRunner sizes the
         # draft KV pool correctly. Some DSpark draft checkpoints inherit the
         # target's ``num_nextn_predict_layers`` (>0) on the config; without this
@@ -543,7 +544,11 @@ class DSparkDraftMixin:
             )
         if self.logits_mup_width_multiplier:
             hidden = hidden / self.logits_mup_width_multiplier
-        local_logits = project_through_lm_head(hidden, self.lm_head)
+        weight = self.lm_head.weight
+        if self._use_fp32_lm_head and weight.is_floating_point():
+            local_logits = F.linear(hidden.float(), weight.float())
+        else:
+            local_logits = project_through_lm_head(hidden, self.lm_head)
         base_logits = gather_and_crop_vocab(local_logits, self.lm_head)
         return base_logits, None
 

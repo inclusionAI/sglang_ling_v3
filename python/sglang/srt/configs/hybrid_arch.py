@@ -112,7 +112,11 @@ def kimi_linear_config(model_config: ModelConfig):
     config = model_config.hf_config
     if isinstance(config, KimiLinearConfig):
         return config
-    if isinstance(config, BailingHybridConfig) and config.use_kda:
+    if (
+        isinstance(config, BailingHybridConfig)
+        and config.use_kda
+        and config.linear_layer_ids
+    ):
         return config
     text_config = get_hf_text_config(config)
     if isinstance(text_config, BailingHybridConfig) and text_config.use_kda:
