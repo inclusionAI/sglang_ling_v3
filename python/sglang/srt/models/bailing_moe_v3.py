@@ -989,6 +989,12 @@ class BailingMoE(nn.Module):
         """Whether this Bailing MoE needs model-specific TP requantization."""
         if not isinstance(self.quant_config, Fp8Config):
             return False
+        if getattr(self.quant_config, "is_fp4_experts", False):
+            # Routed experts ship as MXFP4 (packed e2m1 + per-row group-32
+            # e8m0 scales); the blockwise-FP8 [128, 128] scale grid only
+            # describes the dense/shared projections, so a non-block-aligned
+            # per-rank intermediate size needs no requantization here.
+            return False
         if not self.quant_config.is_checkpoint_fp8_serialized:
             return False
         if getattr(self.quant_config, "use_mxfp8", False):

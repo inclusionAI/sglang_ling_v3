@@ -19,7 +19,7 @@ from sglang.srt.layers.moe.utils import (  # noqa: E402
     MoeA2ABackend,
     MoeRunnerBackend,
 )
-from sglang.srt.layers.quantization.fp8 import Fp8MoEMethod  # noqa: E402
+from sglang.srt.layers.quantization.fp8 import Fp8Config, Fp8MoEMethod  # noqa: E402
 from sglang.srt.models.bailing_moe_v3 import (  # noqa: E402
     BailingMLP,
     BailingMoE,
@@ -278,6 +278,38 @@ class TestBailingMoeV3TpRequant(CustomTestCase):
             "model.decoder.mlp.shared_experts.down_proj.weight_scale_inv",
         )
         self.assertIs(nextn_moe, model.model.decoder.mlp)
+
+    def test_mxfp4_routed_experts_skip_serialized_fp8_requant(self):
+        """Ling-3.0-plus-mxfp4 ships routed experts as MXFP4 (packed e2m1 +
+        per-row group-32 e8m0 scales) under a model-level blockwise-FP8 config
+        that only describes the dense/shared projections. The TP-local
+        intermediate (320 at TP4, 160 at TP8) is not [128, 128]-aligned, but
+        there is no FP8 scale grid to requantize, so the gate must not fire --
+        with the humming runner it used to raise "non-Triton MoE runner" at
+        load and no TP size could launch at all."""
+        for tp_size in (4, 8):
+            for is_fp4_experts in (True, False):
+                with self.subTest(tp_size=tp_size, is_fp4_experts=is_fp4_experts):
+                    moe = self._empty_moe()
+                    moe.layer_id = 20
+                    moe.intermediate_size = 1280
+                    moe.moe_tp_size = tp_size
+                    moe.quant_config = Fp8Config(
+                        is_checkpoint_fp8_serialized=True,
+                        weight_block_size=[128, 128],
+                        is_fp4_experts=is_fp4_experts,
+                    )
+                    validated = []
+                    moe._validate_serialized_fp8_tp_requant_support = lambda: (
+                        validated.append(True)
+                    )
+                    self.assertEqual(
+                        moe._requires_serialized_fp8_tp_requant(),
+                        not is_fp4_experts,
+                    )
+                    # FP8 experts still reach the runtime validation; MXFP4
+                    # experts never consult it.
+                    self.assertEqual(bool(validated), not is_fp4_experts)
 
     def test_standalone_tail_gate_accepts_tp8_logical_160(self):
         parallel = SimpleNamespace(

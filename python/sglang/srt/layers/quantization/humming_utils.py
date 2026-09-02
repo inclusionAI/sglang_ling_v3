@@ -148,7 +148,7 @@ def prepare_humming_moe_layer(layer: FusedMoE, quant_config: dict):
             layer=layer,
             shape_n=shape_n,
             shape_k=shape_k,
-            pad_n_to_multiple=256,
+            pad_n_to_multiple=128,
             pad_k_to_multiple=128,
             input_schema=sub_input_schema,
             weight_schema=weight_schema_new,
