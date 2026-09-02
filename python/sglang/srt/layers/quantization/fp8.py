@@ -1373,6 +1373,40 @@ class Fp8LinearMethod(LinearMethodBase):
             use_per_token_if_dynamic=self.use_per_token_if_dynamic,
         )
 
+    def apply_into(
+        self,
+        layer: torch.nn.Module,
+        x: torch.Tensor,
+        output: torch.Tensor,
+        bias: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """Run the linear into caller-owned ``output`` with ``apply``'s numerics:
+        the block-quant deepgemm path writes in place (row chunks are bit-identical
+        to the same rows of a full-M call), everything else computes and copies."""
+        if (
+            self.block_quant
+            and not self.use_marlin
+            and not self.use_mxfp8
+            and not isinstance(x, tuple)
+            and self.w8a8_block_fp8_linear
+            is deepgemm_w8a8_block_fp8_linear_with_fallback
+            and not use_intel_amx_backend(layer)
+            and output.is_contiguous()
+            and output.dtype == x.dtype
+            and output.shape == (*x.shape[:-1], layer.weight.shape[0])
+        ):
+            return deepgemm_w8a8_block_fp8_linear_with_fallback(
+                input=x,
+                weight=layer.weight,
+                block_size=self.weight_block_size,
+                weight_scale=layer.weight_scale_inv,
+                input_scale=None,
+                bias=bias,
+                out=output,
+            )
+        output.copy_(self.apply(layer, x, bias=bias))
+        return output
+
 
 class Fp8MoEMethod(FusedMoEMethodBase):
     """MoE method for FP8.

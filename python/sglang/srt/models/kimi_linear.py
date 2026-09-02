@@ -15,6 +15,7 @@ from sglang.srt.distributed import (
     tensor_model_parallel_all_reduce,
 )
 from sglang.srt.eplb.expert_distribution import get_global_expert_distribution_recorder
+from sglang.srt.layers.chunked_gemm_ar import try_forward_chunked_gemm_ar_inline
 from sglang.srt.layers.dcp.planner import prepare_decode_context_parallel_metadata
 from sglang.srt.layers.layer_boundary import (
     declare_attn,
@@ -192,6 +193,9 @@ class KimiMoE(nn.Module):
 
 
 class KimiDeltaAttention(nn.Module):
+    # Outcome of the inline attention-TP reduce for the most recent forward.
+    _inline_tp_reduced: bool = False
+
     def __init__(
         self,
         layer_idx: int,
@@ -235,6 +239,7 @@ class KimiDeltaAttention(nn.Module):
         else:
             self.shard_tp_size = self.tp_size
             self.shard_tp_rank = get_parallel().tp_rank
+        self.shard_on_attn_tp = shard_on_attn_tp
         self.hidden_size = hidden_size
         self.config = config
         self.head_dim = config.linear_attn_config["head_dim"]
@@ -513,7 +518,11 @@ class KimiDeltaAttention(nn.Module):
         positions: torch.Tensor,
         forward_batch: ForwardBatch,
         zero_allocator: BumpAllocator,
-    ) -> None:
+        inline_tp_reduce: bool = False,
+    ) -> torch.Tensor:
+        # inline_tp_reduce: the owner of this o_proj's all-reduce lets us do it
+        # here (layers/chunked_gemm_ar.py); _inline_tp_reduced reports back.
+        self._inline_tp_reduced = False
         if self.do_fuse_qkvbfg:
             mixed_qkv, beta, forget_gate, g_proj_states = self.forward_qkvbfg_fused(
                 hidden_states
@@ -552,6 +561,16 @@ class KimiDeltaAttention(nn.Module):
         core_attn_out = self.o_norm(core_attn_out, norm_gate)
         core_attn_out = core_attn_out.squeeze(0).flatten(-2)  # 1 n h d -> n (h d)
 
+        if inline_tp_reduce:
+            reduced = try_forward_chunked_gemm_ar_inline(
+                layer=self.o_proj,
+                input_parallel=core_attn_out,
+                forward_batch=forward_batch,
+                reduce_on_attn_tp=self.shard_on_attn_tp,
+            )
+            if reduced is not None:
+                self._inline_tp_reduced = True
+                return reduced
         return self.o_proj(core_attn_out)[0]
 
 

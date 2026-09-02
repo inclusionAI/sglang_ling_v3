@@ -30,6 +30,7 @@ from sglang.srt.layers.layer_boundary.contracts import (
     StageKind,
     StagePath,
 )
+from sglang.srt.layers.layer_boundary.layout import SumGroup
 from sglang.srt.layers.layer_boundary.ops import attn_tp_gather_input
 from sglang.srt.layers.layer_boundary.residual.access import buffer, from_pp
 from sglang.srt.layers.layer_boundary.residual.add_norm import (
@@ -38,7 +39,7 @@ from sglang.srt.layers.layer_boundary.residual.add_norm import (
 from sglang.srt.layers.layer_boundary.residual.batch import stream_of
 from sglang.srt.layers.layer_boundary.residual.stream import DeclaredSum, ResidualStream
 from sglang.srt.model_executor.forward_batch_info import ForwardBatch
-from sglang.srt.runtime_context import get_forward
+from sglang.srt.runtime_context import get_forward, get_parallel
 
 if TYPE_CHECKING:
     from sglang.srt.layers.layer_boundary.construction import StagePlan
@@ -167,17 +168,37 @@ class StageBoundary:
         )
         return hidden_states
 
-    def finish(self, hidden_states, forward_batch):
+    def can_inline_attn_tp_reduce(self, forward_batch):
+        """Whether attention may complete its plain TP sum inside o_proj."""
+        produced = self.plan.produced(forward_batch)
+        parallel = get_parallel()
+        return (
+            self.kind is StageKind.ATTENTION
+            and self.plan.variant_for(forward_batch) is BatchVariant.ORDINARY
+            and produced.always_partial
+            and produced.group is SumGroup.ATTN_TP
+            and parallel.attn_dp_size == 1
+            and parallel.attn_cp_size == 1
+            and not get_forward().attn_input_scattered
+        )
+
+    def finish(self, hidden_states, forward_batch, *, already_reduced=False):
         """Hand this attention's actual contribution to the following stage."""
         if self.kind is not StageKind.ATTENTION or not self.plan.finishes_directly:
             raise RuntimeError(
                 "use the stage exit scope for an FFN or single-stage mixer"
             )
         produced = self.plan.produced(forward_batch)
+        if already_reduced and not self.can_inline_attn_tp_reduce(forward_batch):
+            raise RuntimeError("attention output cannot be reduced inline on this path")
         return stream_of(forward_batch).record(
             hidden_states,
             produced.update,
-            declared_sum=produced.group if produced.always_partial else None,
+            declared_sum=(
+                produced.group
+                if produced.always_partial and not already_reduced
+                else None
+            ),
         )
 
     def exit(self, forward_batch):

@@ -1192,8 +1192,12 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
     weight_scale: torch.Tensor,
     input_scale: Optional[torch.Tensor] = None,
     bias: Optional[torch.Tensor] = None,
+    out: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
+    # out: caller-owned buffer; deepgemm writes in place, fallbacks copy in.
     if input_scale is not None:
+        # Pre-quantized inputs come row-padded; no caller combines them with out.
+        assert out is None
         # Pre-quantized activation (SGLANG_OPT_MOE_QUANT_ONCE): ``input`` is
         # the fp8 per-token-group-128 q with rows padded to a multiple of 4
         # and ``input_scale`` the matching column-major fp32 scales
@@ -1240,12 +1244,20 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
             weight_scale = _unpack_ue8m0_scale_for_triton(
                 weight_scale, weight.shape, block_size
             )
-        return triton_w8a8_block_fp8_linear(
+        result = triton_w8a8_block_fp8_linear(
             input, weight, block_size, weight_scale, input_scale, bias
         )
+        if out is not None:
+            out.copy_(result)
+            return out
+        return result
 
     input_2d = input.view(-1, input.shape[-1])
     output_shape = [*input.shape[:-1], weight.shape[0]]
+
+    if out is not None:
+        assert out.is_contiguous() and out.dtype == output_dtype
+        assert out.shape == tuple(output_shape)
 
     if not _is_musa:
         q_input, x_scale = sglang_per_token_group_quant_fp8(
@@ -1262,7 +1274,13 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
         )
 
     output = w8a8_block_fp8_matmul_deepgemm(
-        q_input, weight, x_scale, weight_scale, block_size, output_dtype=output_dtype
+        q_input,
+        weight,
+        x_scale,
+        weight_scale,
+        block_size,
+        output_dtype=output_dtype,
+        out=out.view(-1, weight.shape[0]) if out is not None else None,
     )
     if bias is not None:
         output += bias

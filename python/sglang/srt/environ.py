@@ -1289,6 +1289,28 @@ class Envs:
     # only engages on the standard dispatcher with a runner that reports
     # supports_fused_output_add (humming indexed gemm today).
     SGLANG_OPT_MOE_FUSED_OUTPUT_ADD = EnvBool(True)
+    # Overlap large-M prefill RowParallelLinear (o_proj / dense down_proj)
+    # GEMMs with their TP all-reduce by pipelining row chunks: chunk i's AR
+    # (async c10d, PG-NCCL internal stream) runs under chunk i+1's GEMM, with
+    # deep_gemm capped to (total_sms - RESERVE_SMS) on overlapped chunks so
+    # the NCCL blocks can co-schedule. Bit-identical to the serialized path.
+    # See layers/chunked_gemm_ar.py for eligibility and the pipeline shape.
+    SGLANG_OPT_CHUNKED_GEMM_AR = EnvBool(False)
+    # Minimum token rows before chunking engages (decode / small prefills
+    # stay on the untouched path).
+    SGLANG_OPT_CHUNKED_GEMM_AR_MIN_TOKENS = EnvInt(8192)
+    # Maximum chunks in the pipeline (fewer survive when M is small).
+    SGLANG_OPT_CHUNKED_GEMM_AR_NUM_CHUNKS = EnvInt(4)
+    # Geometric decay chunk_{i+1}/chunk_i. Tune ~= t_AR_per_token /
+    # (t_GEMM_per_token * total_sms / (total_sms - reserve)) so each AR
+    # finishes exactly under the next SM-capped GEMM; 1.0 = equal chunks.
+    # Default tuned for Ling-3.0-plus o_proj on H20 TP4.
+    SGLANG_OPT_CHUNKED_GEMM_AR_RATIO = EnvFloat(0.36)
+    # SMs left free for the concurrent NCCL ring kernel during overlapped
+    # chunks (deep_gemm's persistent grid otherwise fills every SM at one
+    # block/SM and the AR just serializes behind it). 24 = NCCL channel
+    # count observed for TP4 on H20; 0 disables the SM cap.
+    SGLANG_OPT_CHUNKED_GEMM_AR_RESERVE_SMS = EnvInt(24)
 
     # Overlap the MoE finalize epilogue with the post-experts TP all-reduce:
     # finalize (moe_fused_mul_sum) runs in token chunks, and each finished
