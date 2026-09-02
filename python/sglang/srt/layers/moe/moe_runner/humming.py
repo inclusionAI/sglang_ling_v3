@@ -181,6 +181,16 @@ class HummingRunnerCore(MoeRunnerCore):
             gemm_type=humming_gemm_type,
             sublayer_name="w2",
         )
+        w13_tuning_config = self._apply_tuning_override(
+            humming_gemm_type=humming_gemm_type,
+            sublayer_name="w13",
+            default=w13_tuning_config,
+        )
+        w2_tuning_config = self._apply_tuning_override(
+            humming_gemm_type=humming_gemm_type,
+            sublayer_name="w2",
+            default=w2_tuning_config,
+        )
         self.humming_gemm_configs[humming_gemm_type.value] = {
             "compute_config": compute_config,
             "w13_tuning_config": w13_tuning_config,
@@ -191,6 +201,39 @@ class HummingRunnerCore(MoeRunnerCore):
         }
 
         return self.humming_gemm_configs[humming_gemm_type.value]
+
+    @staticmethod
+    def _apply_tuning_override(
+        *, humming_gemm_type: HummingGemmType, sublayer_name: str, default: list
+    ) -> list:
+        # Same [min_m, max_m, config] bucket shape as the heuristic output, so
+        # bucket selection downstream does not change.
+        override = envs.SGLANG_HUMMING_TUNING_OVERRIDE.get()
+        if not override:
+            return default
+        entries = (override.get(humming_gemm_type.value) or {}).get(sublayer_name)
+        if not entries:
+            return default
+        # Replace only the buckets whose [min_m, max_m) range is named; the
+        # heuristic keeps every other range (decode-sized M stays untouched).
+        patches = {(int(lo), int(hi)): dict(cfg) for lo, hi, cfg in entries}
+        merged = []
+        for lo, hi, cfg in default:
+            merged.append((lo, hi, patches.pop((int(lo), int(hi)), cfg)))
+        if patches:
+            raise ValueError(
+                f"SGLANG_HUMMING_TUNING_OVERRIDE {humming_gemm_type.value}/"
+                f"{sublayer_name}: ranges {sorted(patches)} match no heuristic "
+                f"bucket; available: {[(lo, hi) for lo, hi, _ in default]}"
+            )
+        logger.info(
+            "humming tuning override for %s/%s: %d of %d bucket(s) replaced",
+            humming_gemm_type.value,
+            sublayer_name,
+            len(entries),
+            len(default),
+        )
+        return merged
 
     def estimate_local_valid_shape_m(
         self,

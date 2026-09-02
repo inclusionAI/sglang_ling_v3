@@ -1039,6 +1039,13 @@ class Envs:
     SGLANG_HUMMING_ONLINE_QUANT_CONFIG = EnvJSON(None)
     SGLANG_HUMMING_INPUT_QUANT_CONFIG = EnvJSON(None)
     SGLANG_HUMMING_USE_F16_ACCUM = EnvBool(False)
+    # Per-sublayer humming tuning-config override, keyed by gemm type then
+    # sublayer: {"indexed": {"w13": [[min_m, max_m, {tuning cfg}], ...],
+    # "w2": [...]}}. Replaces the heuristic bucket list wholesale for that
+    # sublayer (humming validates the configs when it compiles them). Meant
+    # for carrying a measured sweep result into serving without a humming
+    # release; unset = heuristics as before.
+    SGLANG_HUMMING_TUNING_OVERRIDE = EnvJSON(None)
     SGLANG_HUMMING_MOE_GEMM_TYPE = EnvStr("")
 
     # ===================================================================
