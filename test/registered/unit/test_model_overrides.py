@@ -214,6 +214,7 @@ class TestModelOverridableWhitelist(CustomTestCase):
                     "radix_eviction_policy",
                     "mm_preprocess_cache_size_mb",
                     "mm_feature_transport",
+                    "tool_call_parser",
                 }
             ),
         )
@@ -1562,6 +1563,62 @@ class TestGoldenModelOverrides(_IsolatedPublish):
             _exaone_overrides(None, SimpleNamespace(sliding_window_pattern=None)),
             {},
         )
+
+    def test_bailing_moe_v3_defaults_tool_call_parser(self):
+        from sglang.srt.arg_groups.overrides import _bailing_moe_v3_overrides
+
+        hf_config = SimpleNamespace(architectures=["BailingMoeV3ForCausalLM"])
+        self.assertEqual(
+            _bailing_moe_v3_overrides(
+                SimpleNamespace(tool_call_parser=None), hf_config
+            ),
+            {"tool_call_parser": "ling3"},
+        )
+        # An explicit parser is kept; "auto" stays on chat-template detection.
+        for explicit in ("glm45", "auto"):
+            self.assertEqual(
+                _bailing_moe_v3_overrides(
+                    SimpleNamespace(tool_call_parser=explicit), hf_config
+                ),
+                {},
+            )
+        # A parser an earlier resolver declared is seen through the view.
+        self.assertEqual(
+            _bailing_moe_v3_overrides(
+                SimpleNamespace(
+                    tool_call_parser=None,
+                    _resolved_overrides=[
+                        ("_handle_deprecated_args", {"tool_call_parser": "glm"})
+                    ],
+                ),
+                hf_config,
+            ),
+            {},
+        )
+
+    def test_bailing_moe_v3_tool_call_parser_registered_for_v3_only(self):
+        from sglang.srt.arg_groups.overrides import _bailing_moe_v3_overrides
+
+        declarations = collect_model_override_declarations(
+            "BailingMoeV3ForCausalLM",
+            SimpleNamespace(tool_call_parser=None),
+            SimpleNamespace(architectures=["BailingMoeV3ForCausalLM"]),
+        )
+        self.assertIn(
+            ("_bailing_moe_v3_overrides", {"tool_call_parser": "ling3"}),
+            declarations,
+        )
+        # Ling-2.5 (BailingMoeV2_5) and the V1/V2 entry classes use other
+        # tool-call formats; the default is scoped to the V3 architecture.
+        for other in (
+            "BailingMoeV2_5ForCausalLM",
+            "BailingMoeV2ForCausalLM",
+            "BailingMoEForCausalLM",
+        ):
+            self.assertNotIn(
+                _bailing_moe_v3_overrides,
+                overrides_module._MODEL_OVERRIDE_FNS.get(other, ()),
+            )
 
     def test_gpt_oss_mxfp4_forces_bfloat16(self):
         from sglang.srt.layers.quantization import QUANTIZATION_METHODS

@@ -217,7 +217,7 @@ class Serving(msgspec.Struct):
         bool,
         "Enable strict token filtering during the thinking phase. Blocks model-specific excluded tokens (e.g., tool call markers) during reasoning. Requires a grammar backend that supports token filtering.",
     ] = False
-    tool_call_parser: Optional[str] = None
+    tool_call_parser: A[Optional[str], Arg(no_cli=True, resolvable=True)] = None
     tool_server: A[
         Optional[str],
         "Either 'demo' or a comma-separated list of tool server urls to use for the model. If not specified, no tool server will be used.",
