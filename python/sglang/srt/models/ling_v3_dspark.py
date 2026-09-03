@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Iterable, Optional, Tuple
 
 import torch
@@ -27,7 +28,11 @@ from sglang.srt.layers.quantization.int8_utils import (
 from sglang.srt.layers.radix_attention import AttentionType
 from sglang.srt.model_executor.forward_batch_info import ForwardBatch
 from sglang.srt.model_loader.weight_utils import default_weight_loader
-from sglang.srt.models.bailing_moe_v3 import BailingMoELinearDecoderLayer
+from sglang.srt.models.bailing_moe_v3 import (
+    BailingMLP,
+    BailingMoE,
+    BailingMoELinearDecoderLayer,
+)
 from sglang.srt.models.deepseek_common.utils import (
     _is_cpu,
     _is_cpu_amx_available,
@@ -45,6 +50,8 @@ from sglang.srt.speculative.dspark_components.dspark_config import (
     is_namespaced_dspark_bundle,
 )
 from sglang.srt.utils import BumpAllocator, add_prefix, bind_or_assign
+
+logger = logging.getLogger(__name__)
 
 _is_fp8_fnuz = is_fp8_fnuz()
 
@@ -295,6 +302,35 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
                         del cached_a_proj[q_a_name]
                         del cached_a_proj[kv_a_name]
                     continue
+                # Standalone shared-expert scales: when TP cuts a block through
+                # the shared intermediate, the serialized global scale must be
+                # cached (not TP-sliced) and the merged param satisfied by the
+                # post-load requant; mirrors the target BailingMoeV3.
+                if "mlp.shared_experts" in name and name.endswith("weight_scale_inv"):
+                    shared_mlp_name = name.rsplit(".", 2)[0]
+                    shared_mlp = self.get_submodule(shared_mlp_name)
+                    projection = next(
+                        (
+                            projection
+                            for projection in ("gate_proj", "up_proj", "down_proj")
+                            if f".{projection}." in name
+                        ),
+                        None,
+                    )
+                    if (
+                        projection is not None
+                        and isinstance(shared_mlp, BailingMLP)
+                        and shared_mlp.cache_serialized_fp8_scale_for_tp_requant(
+                            loaded_weight, projection
+                        )
+                    ):
+                        merged_param = (
+                            f"{shared_mlp_name}.down_proj.weight_scale_inv"
+                            if projection == "down_proj"
+                            else f"{shared_mlp_name}.gate_up_proj.weight_scale_inv"
+                        )
+                        loaded.add(merged_param)
+                        continue
                 for param_suffix, ckpt_suffix, shard_id in stacked_mapping:
                     if ckpt_suffix not in name or ".experts." in name:
                         continue
@@ -320,6 +356,21 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
                         if candidate not in params:
                             unexpected.append(checkpoint_name)
                         else:
+                            # When TP cuts a block through the intermediate dim,
+                            # the serialized global scale must be cached (not
+                            # TP-sliced) so post-load requant rebuilds block grids
+                            # local to this rank; mirrors the target BailingMoeV3.
+                            if candidate.endswith("weight_scale_inv"):
+                                moe_module = self.get_submodule(
+                                    candidate.rsplit(".experts.", 1)[0]
+                                )
+                                if isinstance(moe_module, BailingMoE) and (
+                                    moe_module.cache_serialized_fp8_scale_for_tp_requant(
+                                        loaded_weight, shard_id, expert_id
+                                    )
+                                ):
+                                    loaded.add(candidate)
+                                    break
                             params[candidate].weight_loader(
                                 params[candidate],
                                 loaded_weight,
@@ -346,11 +397,43 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
             getattr(param, "weight_loader", default_weight_loader)(param, loaded_weight)
             loaded.add(name)
 
-        missing = sorted(set(params) - loaded)
+        # Optional FP8 KV-cache scales (attn_mha/attn_mqa k_/v_scale):
+        # registered as -1.0 sentinels, defaulted to 1.0 when absent, so
+        # legitimately missing from the draft checkpoint.
+        optional_kv_scale = (
+            ".attn_mha.k_scale",
+            ".attn_mha.v_scale",
+            ".attn_mqa.k_scale",
+            ".attn_mqa.v_scale",
+        )
+        missing = sorted(
+            p
+            for p in (set(params) - loaded)
+            if not p.endswith(optional_kv_scale)
+        )
         if unexpected or missing:
             raise ValueError(
                 "Ling DSpark checkpoint does not match the model: "
                 f"unexpected={unexpected[:20]}, missing={missing[:20]}."
+            )
+        # DefaultModelLoader invokes each quant method immediately after this
+        # method returns, so rebuild TP-local blocks before the generic
+        # per-module post-load quantization transforms the scale layout.
+        requantized_moe_layers = sum(
+            module.requantize_serialized_fp8_tp_weights()
+            for module in self.modules()
+            if isinstance(module, BailingMoE)
+        )
+        requantized_shared_mlps = sum(
+            module.requantize_serialized_fp8_tp_weights()
+            for module in self.modules()
+            if isinstance(module, BailingMLP)
+        )
+        if requantized_moe_layers or requantized_shared_mlps:
+            logger.info(
+                "Requantized serialized blockwise FP8 TP weights in "
+                f"{requantized_moe_layers} Bailing MoE layer(s) and "
+                f"{requantized_shared_mlps} standalone shared MLP(s)."
             )
         self._post_load_weights()
         return loaded

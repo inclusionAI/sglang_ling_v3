@@ -146,10 +146,17 @@ def check_quantized_moe_compatibility(
                 and moe_a2a_backend in ("deepep", "mooncake", "nixl")
             )
             architectures = getattr(model_config.hf_config, "architectures", None) or []
-            is_bailing_v3 = "BailingMoeV3ForCausalLM" in architectures or (
-                "BailingMoeForCausalLMNextN" in architectures
-                and model_config.hf_config.model_type == "bailing_hybrid"
-                and getattr(model_config.hf_config, "use_kda", False)
+            # The DSpark draft (LingV3ForCausalLMDSparkMLA) reuses BailingMoE's
+            # fp8-tail path; include it so TP8's 1280/8=160 partial block is
+            # handled the same as the main BailingMoEV3 model.
+            is_bailing_v3 = (
+                "BailingMoeV3ForCausalLM" in architectures
+                or "LingV3ForCausalLMDSparkMLA" in architectures
+                or (
+                    "BailingMoeForCausalLMNextN" in architectures
+                    and model_config.hf_config.model_type == "bailing_hybrid"
+                    and getattr(model_config.hf_config, "use_kda", False)
+                )
             )
             supports_bailing_fp8_tail = (
                 is_bailing_v3
