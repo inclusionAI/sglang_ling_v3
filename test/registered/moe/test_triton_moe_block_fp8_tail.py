@@ -3,11 +3,15 @@ import unittest
 import torch
 import torch.nn.functional as F
 
+from sglang.kernels.ops.moe.silu_and_mul_block_quant import (
+    silu_and_mul_block_quant_two_group,
+)
 from sglang.srt.layers.moe.moe_runner import MoeRunnerConfig
 from sglang.srt.layers.moe.moe_runner.triton_utils.fused_moe import fused_moe
 from sglang.srt.layers.moe.topk import TopKConfig, select_experts
 from sglang.srt.server_args import ServerArgs, set_global_server_args_for_scheduler
 from sglang.test.ci.ci_register import register_cuda_ci
+from sglang.test.layer_ut_utils import init_single_process_dist
 from sglang.test.test_utils import CustomTestCase
 
 register_cuda_ci(est_time=15, stage="base-b", runner_config="1-gpu-large")
@@ -106,8 +110,8 @@ def _torch_block_fp8_moe_reference(
         gate, up = gate_up.chunk(2, dim=-1)
         activation = (F.silu(gate) * up).to(hidden_states.dtype)
 
-        # Ling V3 TP8 has logical K=160. Its second 128-element scale group
-        # contains only 32 live values and must be zero padded for quantization.
+        # This is the Ling V3 TP8 case under test: logical K=160 produces two
+        # scale groups, with only 32 live values in the second group.
         assert activation.shape[-1] == 160
         activation, activation_scale = _quantize_per_token_groups(activation)
         down = _block_scaled_mm(
@@ -121,11 +125,119 @@ def _torch_block_fp8_moe_reference(
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required")
 class TestTritonMoEBlockFP8Tail(CustomTestCase):
-    def test_native_down_gemm_k160(self):
-        if torch.cuda.get_device_capability() < (8, 9):
+    def test_native_fused_silu_block_quant_k160(self):
+        capability = torch.cuda.get_device_capability()
+        if capability < (8, 9):
+            self.skipTest("FP8 requires compute capability 8.9 or newer")
+
+        torch.manual_seed(0)
+        rows, logical_k = 6, 160
+        gate_up = (
+            torch.randn(
+                rows,
+                2 * logical_k,
+                device="cuda",
+                dtype=torch.bfloat16,
+            )
+            * 0.5
+        )
+        expert_ids = torch.tensor([0, -1, 1], device="cuda", dtype=torch.int32)
+
+        actual, actual_scale = silu_and_mul_block_quant_two_group(
+            gate_up,
+            _BLOCK,
+            expert_ids=expert_ids,
+            expert_step=2,
+        )
+
+        gate, up = gate_up.chunk(2, dim=-1)
+        activation = (F.silu(gate) * up).to(gate_up.dtype)
+        activation[2:4].zero_()
+        expected, expected_scale = _quantize_per_token_groups(activation)
+
+        self.assertEqual(actual.shape, (rows, logical_k))
+        self.assertEqual(actual_scale.shape, (rows, 2))
+        self.assertEqual(actual.dtype, _FP8_DTYPE)
+        self.assertEqual(actual_scale.dtype, torch.float32)
+        torch.testing.assert_close(
+            actual_scale,
+            expected_scale,
+            rtol=0.02,
+            atol=1e-7,
+        )
+
+        scale_columns = actual_scale.repeat_interleave(_BLOCK, dim=-1)[:, :logical_k]
+        expected_scale_columns = expected_scale.repeat_interleave(_BLOCK, dim=-1)[
+            :, :logical_k
+        ]
+        actual_dequant = actual.float() * scale_columns
+        expected_dequant = expected.float() * expected_scale_columns
+        relative_error = (actual_dequant - expected_dequant).abs().mean() / (
+            expected_dequant.abs().mean().clamp(min=1e-6)
+        )
+        self.assertLess(relative_error.item(), 0.01)
+        self.assertEqual(torch.count_nonzero(actual[2:4].float()).item(), 0)
+
+    def test_native_fused_silu_block_quant_shared_limit_k160(self):
+        capability = torch.cuda.get_device_capability()
+        if capability < (8, 9):
+            self.skipTest("FP8 requires compute capability 8.9 or newer")
+
+        torch.manual_seed(1)
+        rows, logical_k = 6, 160
+        gate_up = torch.randn(
+            rows,
+            2 * logical_k,
+            device="cuda",
+            dtype=torch.bfloat16,
+        )
+        # Each expert id covers two TMA-layout rows: routed, shared, padding.
+        expert_ids = torch.tensor([0, 2, -1], device="cuda", dtype=torch.int32)
+        shared_limit = 0.25
+
+        actual, actual_scale = silu_and_mul_block_quant_two_group(
+            gate_up,
+            _BLOCK,
+            expert_ids=expert_ids,
+            expert_step=2,
+            shared_limit=shared_limit,
+            num_routed_experts=2,
+        )
+
+        gate, up = gate_up.chunk(2, dim=-1)
+        activation = (F.silu(gate) * up).to(gate_up.dtype)
+        activation[2:4] = (
+            F.silu(gate[2:4]).clamp(max=shared_limit)
+            * up[2:4].clamp(min=-shared_limit, max=shared_limit)
+        ).to(gate_up.dtype)
+        activation[4:6].zero_()
+        expected, expected_scale = _quantize_per_token_groups(activation)
+
+        torch.testing.assert_close(
+            actual_scale,
+            expected_scale,
+            rtol=0.02,
+            atol=1e-7,
+        )
+        scale_columns = actual_scale.repeat_interleave(_BLOCK, dim=-1)[:, :logical_k]
+        expected_scale_columns = expected_scale.repeat_interleave(_BLOCK, dim=-1)[
+            :, :logical_k
+        ]
+        actual_dequant = actual.float() * scale_columns
+        expected_dequant = expected.float() * expected_scale_columns
+        relative_error = (actual_dequant - expected_dequant).abs().mean() / (
+            expected_dequant.abs().mean().clamp(min=1e-6)
+        )
+        self.assertLess(relative_error.item(), 0.01)
+        self.assertEqual(torch.count_nonzero(actual[4:6].float()).item(), 0)
+
+    def test_native_fused_down_gemm_k160(self):
+        capability = torch.cuda.get_device_capability()
+        if capability < (8, 9):
             self.skipTest("FP8 requires compute capability 8.9 or newer")
 
         set_global_server_args_for_scheduler(ServerArgs(model_path="dummy"))
+        init_single_process_dist(master_port=29642)
         torch.manual_seed(0)
 
         device = "cuda"
