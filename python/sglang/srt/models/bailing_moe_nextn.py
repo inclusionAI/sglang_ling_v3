@@ -97,11 +97,17 @@ class BailingMoEModelNextN(nn.Module):
         self.enorm = RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.hnorm = RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
+        # currently eh_proj is not quant for blockwise fp8 quant, but quant for compressed-tensor
+        eh_quant = (
+            None
+            if quant_config is None or quant_config.get_name() == "fp8"
+            else quant_config
+        )
         self.eh_proj = ReplicatedLinear(
             2 * config.hidden_size,
             config.hidden_size,
             bias=False,
-            quant_config=quant_config,
+            quant_config=eh_quant,
             prefix=add_prefix(f"layers.{config.num_hidden_layers}.eh_proj", prefix),
         )
 

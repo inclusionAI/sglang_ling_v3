@@ -45,7 +45,7 @@ from sglang.srt.sampling.sampling_observer_pp import (
 )
 from sglang.srt.sampling.sampling_params import SamplingParams
 from sglang.srt.utils import DynamicGradMode, broadcast_pyobj, point_to_point_pyobj
-from sglang.srt.utils.common import get_device_module, is_xpu
+from sglang.srt.utils.common import get_device_module
 
 logger = logging.getLogger(__name__)
 
@@ -1290,7 +1290,7 @@ class SchedulerPPMixin:
 
         # CUDA: send first
         # XPU: even ranks send first, odd ranks recv first.
-        send_first = (not is_xpu()) or ((self.ps.pp_rank % 2) == 0)
+        send_first = (self.ps.pp_rank % 2) == 0
 
         def _do_send():
             return self._pp_send_output_to_next_stage(

@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import base64
 import io
+import os
 import re
 from typing import List, Optional, Tuple
 
-from datasets import concatenate_datasets, load_dataset
+from datasets import concatenate_datasets, load_dataset, load_from_disk
 from PIL import Image
 
 from sglang.test import simple_eval_common as common
@@ -59,11 +60,13 @@ class MMMUVLMEval(Eval):
         num_threads: int = 32,
         seed: int = 42,
         response_answer_regex: str = None,
+        data_path: Optional[str] = None,
     ):
         """Create MMMU VLM eval (Math subset, 100 fixed samples by default)."""
         self.num_examples = num_examples
         self.num_threads = num_threads
         self.seed = seed
+        self.data_path = data_path
         # Prepare samples deterministically across all MMMU subjects (validation split)
         self.samples = self._prepare_mmmu_samples(self.num_examples)
         # For example, "<\|begin_of_box\|>foo<\|end_of_box\|>" could be used to extract "foo" as the answer from the response text
@@ -90,6 +93,19 @@ class MMMUVLMEval(Eval):
             ch += 1
         return index2ans, all_choices
 
+    def _load_subject(self, subj: str):
+        """Load a single subject's validation split.
+
+        If ``self.data_path`` is set, load from local directory saved by
+        ``datasets.Dataset.save_to_disk()``; otherwise fall back to HuggingFace.
+        """
+        if self.data_path:
+            subj_path = os.path.join(self.data_path, subj)
+            if not os.path.isdir(subj_path):
+                return None
+            return load_from_disk(subj_path)
+        return load_dataset("MMMU/MMMU", subj, split="validation")
+
     def _prepare_mmmu_samples(self, k: int) -> List[dict]:
         # Subjects and domains copied from MMMU data_utils to categorize results
         subjects: List[str] = []
@@ -100,7 +116,9 @@ class MMMUVLMEval(Eval):
         datasets = []
         for subj in subjects:
             try:
-                d = load_dataset("MMMU/MMMU", subj, split="validation")
+                d = self._load_subject(subj)
+                if d is None:
+                    continue
                 # attach subject info via transform
                 d = d.add_column("__subject__", [subj] * len(d))
                 datasets.append(d)

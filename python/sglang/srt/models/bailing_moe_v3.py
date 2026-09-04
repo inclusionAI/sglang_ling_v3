@@ -182,6 +182,18 @@ class DsV3MLA(DeepseekV2AttentionMLA):
         else:
             self.g_proj = None
 
+        if "mrope_section" in rope_scaling and rope_scaling.get("video_rope", False):
+            rope_scaling["rope_type"] = "default"
+            is_neox_style = not getattr(config, "rope_interleave", True)
+            self.rotary_emb = get_rope(
+                qk_rope_head_dim,
+                rotary_dim=qk_rope_head_dim,
+                max_position=max_position_embeddings,
+                base=rope_theta,
+                rope_scaling=rope_scaling,
+                is_neox_style=is_neox_style,
+            )
+
     def forward(
         self,
         positions: torch.Tensor,
@@ -1158,7 +1170,15 @@ class BailingMoELinearModel(nn.Module):
             or self.num_layers % self.layer_group_size == 0
         ), f"num_layers={self.num_layers} must be divided by layer_group_size={self.layer_group_size}"
 
-        if self.pp_group.is_first_rank:
+        # Under pipeline parallelism the lm_head on the last stage reuses the
+        # input embeddings when tie_word_embeddings is set. Keep a real
+        # VocabParallelEmbedding on the first stage and also on the last stage
+        # when tied, so `lm_head = word_embeddings` is valid there. For
+        # pp_size == 1 (first == last) the behavior is unchanged.
+        keep_word_embeddings = self.pp_group.is_first_rank or (
+            getattr(config, "tie_word_embeddings", False) and self.pp_group.is_last_rank
+        )
+        if keep_word_embeddings:
             self.word_embeddings = VocabParallelEmbedding(
                 self.vocab_size,
                 self.embed_dim,
@@ -1222,14 +1242,14 @@ class BailingMoELinearModel(nn.Module):
         input_ids: Optional[torch.Tensor],
         positions: torch.Tensor,
         forward_batch: Optional[ForwardBatch] = None,
-        inputs_embeds: Optional[torch.Tensor] = None,
+        input_embeds: Optional[torch.Tensor] = None,
         pp_proxy_tensors: Optional[PPProxyTensors] = None,
     ) -> Union[torch.Tensor, PPProxyTensors]:
         if self.pp_group.is_first_rank:
-            if inputs_embeds is None:
+            if input_embeds is None:
                 hidden_states = self.word_embeddings(input_ids)
             else:
-                hidden_states = inputs_embeds
+                hidden_states = input_embeds
             residual = None
         else:
             assert pp_proxy_tensors is not None
@@ -1237,7 +1257,10 @@ class BailingMoELinearModel(nn.Module):
             residual = pp_proxy_tensors["residual"]
 
         total_num_layers = self.end_layer - self.start_layer
-        device = inputs_embeds.device if inputs_embeds is not None else input_ids.device
+        # hidden_states is always non-None in both is_first_rank and
+        # non-first-rank paths (pp_proxy_tensors["hidden_states"] is mandated
+        # by the PP protocol); use its device directly.
+        device = hidden_states.device
         zero_allocator = BumpAllocator(
             buffer_size=total_num_layers * 2 * (2 if forward_batch.can_run_tbo else 1),
             dtype=torch.float32,
@@ -1674,13 +1697,13 @@ class BailingMoeV3ForCausalLM(nn.Module):
         input_ids: torch.Tensor,
         positions: torch.Tensor,
         forward_batch: ForwardBatch,
-        inputs_embeds: Optional[torch.Tensor] = None,
+        input_embeds: Optional[torch.Tensor] = None,
         pp_proxy_tensors: Optional[PPProxyTensors] = None,
     ) -> Union[torch.Tensor, PPProxyTensors]:
         hidden_states = self.model(
             input_ids=input_ids,
             positions=positions,
-            inputs_embeds=inputs_embeds,
+            input_embeds=input_embeds,
             forward_batch=forward_batch,
             pp_proxy_tensors=pp_proxy_tensors,
         )

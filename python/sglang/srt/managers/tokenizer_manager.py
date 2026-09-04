@@ -1075,6 +1075,9 @@ class TokenizerManager(TokenizerControlMixin, TokenizerManagerScoreMixin):
                     max_req_input_len=self.max_req_input_len,
                 )
 
+            if mm_inputs:
+                mm_inputs.model_vocab_size = self.model_config.vocab_size
+
             if mm_inputs and mm_inputs.input_ids is not None:
                 input_ids = mm_inputs.input_ids
             if mm_inputs and mm_inputs.token_type_ids is not None:
@@ -1119,6 +1122,7 @@ class TokenizerManager(TokenizerControlMixin, TokenizerManagerScoreMixin):
             ):
                 for item in mm_inputs.mm_items:
                     if isinstance(item, MultimodalDataItem):
+                        item.model_vocab_size = self.model_config.vocab_size
                         item.set_pad_value()
         else:
             mm_inputs = None

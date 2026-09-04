@@ -289,6 +289,7 @@ def run_eval(args):
             args.num_examples,
             args.num_threads,
             response_answer_regex=getattr(args, "response_answer_regex", None),
+            data_path=getattr(args, "data_path", None),
         )
     elif args.eval_name in ("mmmu_pro", "mmmu-pro"):
         # Canonical sgl-eval name for MMMU-Pro's standard 10-option split.
@@ -515,6 +516,12 @@ if __name__ == "__main__":
         type=int,
         default=42,
         help="Seed for per-question random sampling in mixed_prefix_gsm8k (default: 42)",
+    )
+    parser.add_argument(
+        "--data-path",
+        type=str,
+        default=None,
+        help="Local dataset directory for MMMU (contains per-subject subdirs saved by save_to_disk)",
     )
 
     args = parser.parse_args()

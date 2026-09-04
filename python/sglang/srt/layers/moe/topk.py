@@ -591,6 +591,7 @@ class TopK(BaseFusedOp):
         *,
         num_token_non_padded: Optional[torch.Tensor] = None,
         expert_location_dispatch_info: Optional[ExpertLocationDispatchInfo] = None,
+        dynamic_expert_bias: Optional[torch.Tensor] = None,
     ) -> TopKOutput:
         self.topk_config.torch_native = True
         topk_output = select_experts(
@@ -600,6 +601,7 @@ class TopK(BaseFusedOp):
             topk_config=self.topk_config,
             num_token_non_padded=num_token_non_padded,
             expert_location_dispatch_info=expert_location_dispatch_info,
+            dynamic_expert_bias=dynamic_expert_bias,
         )
         return self._apply_waterfill(topk_output, hidden_states.shape[0])
 
@@ -610,6 +612,7 @@ class TopK(BaseFusedOp):
         *,
         num_token_non_padded: Optional[torch.Tensor] = None,
         expert_location_dispatch_info: Optional[ExpertLocationDispatchInfo] = None,
+        dynamic_expert_bias: Optional[torch.Tensor] = None,
     ) -> TopKOutput:
         if self.topk_config.output_format is not None:
             output_format = self.topk_config.output_format
@@ -675,6 +678,7 @@ class TopK(BaseFusedOp):
                     topk_config=self.topk_config,
                     num_token_non_padded=num_token_non_padded,
                     expert_location_dispatch_info=expert_location_dispatch_info,
+                    dynamic_expert_bias=dynamic_expert_bias,
                 )
         return self._apply_waterfill(topk_output, hidden_states.shape[0])
 
@@ -685,6 +689,7 @@ class TopK(BaseFusedOp):
         *,
         num_token_non_padded: Optional[torch.Tensor] = None,
         expert_location_dispatch_info: Optional[ExpertLocationDispatchInfo] = None,
+        dynamic_expert_bias: Optional[torch.Tensor] = None,
     ) -> TopKOutput:
         topk_output = select_experts(
             hidden_states=hidden_states,
@@ -693,6 +698,7 @@ class TopK(BaseFusedOp):
             topk_config=self.topk_config,
             num_token_non_padded=num_token_non_padded,
             expert_location_dispatch_info=expert_location_dispatch_info,
+            dynamic_expert_bias=dynamic_expert_bias,
         )
         return self._apply_waterfill(topk_output, hidden_states.shape[0])
 
@@ -703,6 +709,7 @@ class TopK(BaseFusedOp):
         *,
         num_token_non_padded: Optional[torch.Tensor] = None,
         expert_location_dispatch_info: Optional[ExpertLocationDispatchInfo] = None,
+        dynamic_expert_bias: Optional[torch.Tensor] = None,
     ) -> TopKOutput:
 
         from sglang.srt.hardware_backend.npu.moe.topk import fused_topk_npu
@@ -1291,7 +1298,9 @@ def biased_topk_impl(
     num_token = scores.shape[0]
     num_experts = scores.shape[1]
 
-    scores_for_choice = scores.view(num_token, -1) + correction_bias.unsqueeze(0)
+    scores_for_choice = scores.view(num_token, -1) + correction_bias.view(
+        -1, num_experts
+    )
     _, topk_ids = torch.topk(
         scores_for_choice,
         k=topk,
@@ -1596,6 +1605,7 @@ def biased_grouped_topk_gpu(
     experts_per_group = (
         num_experts // num_expert_group if num_expert_group else num_experts
     )
+    dynamic_bias = len(correction_bias.shape) == 2
 
     # topk for routed experts only (shared experts are appended separately below)
     topk_routed = topk - num_fused_shared_experts
@@ -1641,6 +1651,7 @@ def biased_grouped_topk_gpu(
             if num_expert_group > 1
             else num_experts <= 384
         )
+        and not dynamic_bias
     ):
         # Pre-allocate output tensors (flashinfer mutates them in-place)
         topk_weights = torch.empty(
@@ -1683,7 +1694,7 @@ def biased_grouped_topk_gpu(
 
         return topk_weights, topk_ids
 
-    elif _is_cuda and num_expert_group > 1:
+    elif _is_cuda and num_expert_group > 1 and not dynamic_bias:
         # CUDA grouped fallback (flashinfer unavailable / constraints unmet): the
         # unified Triton router replaces the retired AOT moe_fused_gate kernel. It
         # handles any experts-per-group (no MAX_VPT=32 cap) and any num_experts.
@@ -1770,6 +1781,7 @@ def biased_grouped_topk_gpu(
         # needs experts<=512 + topk<=8.
         _jit_gate_ok = (
             _is_cuda
+            and not dynamic_bias
             and num_expert_group == 1
             and (topk_group is None or topk_group == 1)
             and (
@@ -2280,6 +2292,7 @@ def select_experts(
     layer_id: Optional[int] = None,
     num_token_non_padded: Optional[torch.Tensor] = None,
     expert_location_dispatch_info: Optional[ExpertLocationDispatchInfo] = None,
+    dynamic_expert_bias: Optional[torch.Tensor] = None,
 ) -> StandardTopKOutput:
     top_k = topk_config.top_k
     use_grouped_topk = topk_config.use_grouped_topk
@@ -2288,7 +2301,11 @@ def select_experts(
     renormalize = topk_config.renormalize
     num_fused_shared_experts = topk_config.num_fused_shared_experts
     custom_routing_function = topk_config.custom_routing_function
-    correction_bias = topk_config.correction_bias
+    correction_bias = (
+        topk_config.correction_bias
+        if dynamic_expert_bias is None
+        else dynamic_expert_bias
+    )
     torch_native = topk_config.torch_native
     routed_scaling_factor = topk_config.routed_scaling_factor
     apply_routed_scaling_factor_on_output = (

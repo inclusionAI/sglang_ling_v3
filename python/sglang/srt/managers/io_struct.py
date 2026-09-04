@@ -348,6 +348,9 @@ class GenerateReqInput:
     # Batch-level: List[List[int]] (one per request). After __getitem__: List[int].
     multi_item_delimiter_indices: Optional[Union[List[List[int]], List[int]]] = None
 
+    # Request-scoped keyword arguments for multimodal preprocessing.
+    mm_sampling_kwargs: Optional[Dict[str, Any]] = None
+
     # Cache namespace used to isolate otherwise-identical prefixes.
     cache_salt: Optional[Union[List[str], str]] = None
 
@@ -964,6 +967,7 @@ class GenerateReqInput:
                 if self.multi_item_delimiter_indices is not None
                 else None
             ),
+            mm_sampling_kwargs=self.mm_sampling_kwargs,
         )
         cache[i] = sub
         return sub

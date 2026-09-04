@@ -26,6 +26,7 @@ from sglang.srt.configs.mamba_utils import (
     Mamba2CacheParams,
     Mamba2StateShape,
 )
+from sglang.srt.configs.qwen3_vl import Qwen3VLMoeVisionConfig
 from sglang.srt.runtime_context import get_parallel
 
 logger = logging.get_logger(__name__)
@@ -226,3 +227,54 @@ class BailingHybridConfig(PretrainedConfig):
         )
 
         return Mamba2CacheParams(shape=shape, layers=self.linear_layer_ids)
+
+
+class BailingMoeV3VLConfig(PretrainedConfig):
+    model_type = "bailing_moe_v3_vl"
+
+    def __init__(
+        self,
+        text_config=None,
+        vision_config=None,
+        image_token_id=151655,
+        video_token_id=151656,
+        vision_start_token_id=151652,
+        vision_end_token_id=151653,
+        tie_word_embeddings=False,
+        mrope_section=None,
+        **kwargs,
+    ):
+        if isinstance(vision_config, dict):
+            vision_config = Qwen3VLMoeVisionConfig(**vision_config)
+        elif vision_config is None:
+            vision_config = Qwen3VLMoeVisionConfig()
+
+        if isinstance(text_config, dict):
+            text_config = BailingHybridConfig(**text_config)
+        elif text_config is None:
+            text_config = BailingHybridConfig()
+
+        self.vision_config = vision_config
+        self.llm_config = text_config
+        self.image_token_id = image_token_id
+        self.video_token_id = video_token_id
+        self.vision_start_token_id = vision_start_token_id
+        self.vision_end_token_id = vision_end_token_id
+
+        # M-RoPE section: split qk_rope_head_dim // 2 frequencies into [T, H, W]
+        # Default: [12, 10, 10] sums to 32 = qk_rope_head_dim(64) // 2
+        if mrope_section is None:
+            mrope_section = text_config.rope_parameters.get(
+                "mrope_section", [12, 10, 10]
+            )
+        self.mrope_section = mrope_section
+        text_config.rope_parameters.update(
+            rope_type="default",
+            mrope_section=mrope_section,
+            video_rope=True,
+        )
+
+        if self.llm_config.architectures is None:
+            self.llm_config.architectures = ["BailingMoeV3ForCausalLM"]
+
+        super().__init__(tie_word_embeddings=tie_word_embeddings, **kwargs)

@@ -280,6 +280,12 @@ def matmul_persistent(
     # DeepGEMM has minimum dimension requirements for TMA descriptors
     MIN_DEEPGEMM_DIM = 16
 
+    # DeepGEMM 建 Hopper TMA descriptor, global stride 必须 16 字节对齐。
+    # ViT MLP 的 N=1076 (bf16 -> 2152 字节, 2152%16=8) 让 descriptor 非法
+    # (CUDA_ERROR_INVALID_VALUE)。这种 shape 跳过 DeepGEMM, 走同样确定性的 Triton。
+    elem = a.element_size()
+    deepgemm_tma_ok = (N * elem) % 16 == 0 and (K * elem) % 16 == 0
+
     if (
         _ENABLE_MM_DEEPGEMM
         and ENABLE_JIT_DEEPGEMM
@@ -288,6 +294,7 @@ def matmul_persistent(
         and a.is_contiguous()
         and b.transpose(0, 1).is_contiguous()
         and N >= MIN_DEEPGEMM_DIM
+        and deepgemm_tma_ok
     ):
         if _ENABLE_MM_COMPARISON_TEST:
             out_triton = _matmul_persistent_triton(a=a, b=b, bias=bias)

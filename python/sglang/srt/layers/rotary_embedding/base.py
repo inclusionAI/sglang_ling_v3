@@ -86,6 +86,7 @@ class RotaryEmbedding(BaseFusedOp):
         base: int,
         is_neox_style: bool,
         dtype: torch.dtype,
+        position_start: int = 0,
     ) -> None:
         super().__init__()
         self.head_size = head_size
@@ -98,6 +99,7 @@ class RotaryEmbedding(BaseFusedOp):
             publish_role() is not None
             and get_exec().deterministic.rl_on_policy_target is not None
         )
+        self.position_start = position_start
 
         cache = self._compute_cos_sin_cache()
         # NOTE(ByronHsu): cache needs to be in FP32 for numerical stability.
@@ -173,7 +175,11 @@ class RotaryEmbedding(BaseFusedOp):
     def _compute_cos_sin_cache(self) -> torch.Tensor:
         """Compute the cos and sin cache."""
         inv_freq = self._compute_inv_freq(self.base)
-        t = torch.arange(self.max_position_embeddings, dtype=torch.float)
+        t = torch.arange(
+            self.position_start,
+            self.max_position_embeddings + self.position_start,
+            dtype=torch.float,
+        )
 
         freqs = torch.einsum("i,j -> ij", t, inv_freq)
         cos = freqs.cos()

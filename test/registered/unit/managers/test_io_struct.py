@@ -407,6 +407,29 @@ class TestGenerateReqInputNormalization(CustomTestCase):
             rid=["id1", "id2"],
         )
 
+    def test_mm_sampling_kwargs_are_request_scoped(self):
+        mm_sampling_kwargs = {"min_pixels": 200704, "max_pixels": 1003520}
+        req = GenerateReqInput(
+            text="Hello",
+            mm_sampling_kwargs=mm_sampling_kwargs,
+        )
+
+        self.assertEqual(req.mm_sampling_kwargs, mm_sampling_kwargs)
+
+    def test_mm_sampling_kwargs_are_preserved_when_splitting_a_batch(self):
+        mm_sampling_kwargs = {"min_pixels": 200704, "max_pixels": 1003520}
+        req = GenerateReqInput(
+            text=["Hello", "World"],
+            sampling_params=[{}, {}],
+            rid=["id1", "id2"],
+            mm_sampling_kwargs=mm_sampling_kwargs,
+        )
+
+        req.normalize_batch_and_arguments()
+
+        self.assertEqual(req[0].mm_sampling_kwargs, mm_sampling_kwargs)
+        self.assertEqual(req[1].mm_sampling_kwargs, mm_sampling_kwargs)
+
     def test_single_image_to_list_of_lists(self):
         """Test that a single image is converted to a list of single-image lists."""
         req = copy.deepcopy(self.base_req)
