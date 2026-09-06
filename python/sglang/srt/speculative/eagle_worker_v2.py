@@ -558,6 +558,11 @@ class EagleDraftWorker(EagleDraftWorkerBase):
             from sglang.srt.layers.attention.flashmla_backend import FlashMLABackend
 
             graph_supported_backend_types.append(FlashMLABackend)
+            from sglang.srt.layers.attention.flashinfer_mla_backend import (
+                FlashInferMLAAttnBackend,
+            )
+
+            graph_supported_backend_types.append(FlashInferMLAAttnBackend)
 
         graph_supported_backend = isinstance(
             self.draft_extend_attn_backend,

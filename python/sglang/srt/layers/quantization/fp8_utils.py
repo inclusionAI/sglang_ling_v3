@@ -1185,6 +1185,43 @@ def cutlass_w8a8_block_fp8_linear_with_fallback(
     return output.to(dtype=input_2d.dtype).view(*output_shape)
 
 
+_hopper_fp8_block_gemv = None
+_use_hopper_fp8_block_gemv = None
+
+
+@lru_cache(maxsize=1)
+def _fp8_block_gemv_enabled() -> bool:
+    if not (envs.SGLANG_ENABLE_FP8_BLOCK_GEMV.get() and get_platform().is_sm90):
+        return False
+    global _hopper_fp8_block_gemv, _use_hopper_fp8_block_gemv
+    from sglang.kernels.ops.gemm.hopper_fp8_block_gemv import (
+        hopper_fp8_block_gemv,
+        use_hopper_fp8_block_gemv,
+    )
+
+    _hopper_fp8_block_gemv = hopper_fp8_block_gemv
+    _use_hopper_fp8_block_gemv = use_hopper_fp8_block_gemv
+    return True
+
+
+def _use_fp8_block_gemv(
+    input_2d: torch.Tensor,
+    weight: torch.Tensor,
+    weight_scale: torch.Tensor,
+    block_size: List[int],
+) -> bool:
+    return (
+        _fp8_block_gemv_enabled()
+        and weight_scale.dtype == torch.float32
+        and weight.is_contiguous()
+        and weight_scale.is_contiguous()
+        and input_2d.is_contiguous()
+        and _use_hopper_fp8_block_gemv(
+            input_2d.shape[0], weight.shape[0], weight.shape[1], block_size
+        )
+    )
+
+
 def deepgemm_w8a8_block_fp8_linear_with_fallback(
     input: torch.Tensor,
     weight: torch.Tensor,
@@ -1258,6 +1295,21 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
     if out is not None:
         assert out.is_contiguous() and out.dtype == output_dtype
         assert out.shape == tuple(output_shape)
+
+    if _use_fp8_block_gemv(input_2d, weight, weight_scale, block_size):
+        # Small-M decode shapes: stream the weights once with the Hopper GEMV
+        # (row-major 1x128 activation scales, no TMA alignment needed).
+        q_input, x_scale = sglang_per_token_group_quant_fp8(input_2d, block_size[1])
+        output = _hopper_fp8_block_gemv(
+            q_input,
+            x_scale,
+            weight,
+            weight_scale,
+            out=out.view(-1, weight.shape[0]) if out is not None else None,
+        )
+        if bias is not None:
+            output += bias
+        return output.view(*output_shape)
 
     if not _is_musa:
         q_input, x_scale = sglang_per_token_group_quant_fp8(

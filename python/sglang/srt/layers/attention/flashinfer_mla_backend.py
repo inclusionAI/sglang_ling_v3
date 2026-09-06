@@ -386,6 +386,21 @@ class FlashInferMLAAttnBackend(AttentionBackend):
                     self._verify_graph_key(bs, spec_info)
                 ] = prefill_wrapper
                 self.forward_metadata = PrefillMetadata(prefill_wrapper, False)
+            elif forward_mode.is_draft_extend_v2():
+                # Same uniform-width shape as verify (num_tokens_per_req queries
+                # per request over its full KV) but a separate wrapper: each
+                # captured graph replays its own recorded plan buffers.
+                prefill_wrapper = BatchMLAPagedAttentionWrapper(
+                    self.workspace_buffer,
+                    use_cuda_graph=True,
+                    qo_indptr=self.cuda_graph_qo_indptr[: bs + 1],
+                    kv_indptr=self.cuda_graph_kv_indptr[: bs + 1],
+                    kv_indices=self.cuda_graph_kv_indices,
+                    kv_len_arr=self.cuda_graph_kv_lens[:bs],
+                    backend="auto",
+                )
+                self.prefill_cuda_graph_metadata[("draft_extend", bs)] = prefill_wrapper
+                self.forward_metadata = PrefillMetadata(prefill_wrapper, False)
             else:
                 raise ValueError(f"Invalid mode: {forward_mode=}")
 
@@ -404,6 +419,8 @@ class FlashInferMLAAttnBackend(AttentionBackend):
                 or spec_info.spec_input_type != SpecInputType.DFLASH_VERIFY
             ):
                 # use sync-free fast_mla_prefill_plan for replay
+                prefill_wrapper.plan = partial(fast_mla_prefill_plan, prefill_wrapper)
+            elif forward_mode.is_draft_extend_v2():
                 prefill_wrapper.plan = partial(fast_mla_prefill_plan, prefill_wrapper)
         else:
             self._apply_cuda_graph_metadata(
@@ -615,6 +632,38 @@ class FlashInferMLAAttnBackend(AttentionBackend):
                     if use_generic_fast_plan
                     else None
                 ),
+            )
+        elif forward_mode.is_draft_extend_v2():
+            # Host arrays for the sync-free plan, as the eager DRAFT_EXTEND_V2
+            # path builds them: num_tokens_per_req queries per request, kv =
+            # seq_lens. Capture pads kv by the query width so the causal plan
+            # never sees kv shorter than q on the fill-value rows.
+            assert seq_lens_cpu is not None and spec_info is not None, (
+                "draft-extend cuda-graph replay requires host-resident seq_lens_cpu"
+            )
+            ndt = spec_info.num_tokens_per_req
+            self.fast_plan_qo_indptr_cpu[: bs + 1] = torch.arange(
+                0, (bs + 1) * ndt, ndt, dtype=torch.int32
+            )
+            self.fast_plan_kv_len_arr_cpu[:bs] = seq_lens_cpu[:bs] + (
+                ndt if in_capture else 0
+            )
+            self.fast_plan_kv_indptr_cpu[1 : bs + 1] = torch.cumsum(
+                self.fast_plan_kv_len_arr_cpu[:bs], dim=0
+            )
+            self.indices_updater_prefill.update(
+                req_pool_indices[:bs],
+                seq_lens[:bs],
+                seq_lens_sum,
+                prefix_lens=None,
+                prefill_wrapper_paged=self.prefill_cuda_graph_metadata[
+                    ("draft_extend", bs)
+                ],
+                use_ragged=False,
+                spec_info=spec_info,
+                qo_indptr_cpu=self.fast_plan_qo_indptr_cpu[: bs + 1],
+                kv_indptr_cpu=self.fast_plan_kv_indptr_cpu[: bs + 1],
+                kv_len_arr_cpu=self.fast_plan_kv_len_arr_cpu[:bs],
             )
         else:
             raise ValueError(f"Invalid forward mode: {forward_mode=}")

@@ -1203,6 +1203,11 @@ class Envs:
     SGLANG_USE_DEEPGEMM_BMM = EnvBool(False)
     SGLANG_DEEPGEMM_SANITY_CHECK = EnvBool(False)
     SGLANG_DEEPGEMM_PDL = EnvBool(True)
+    # Route blockwise-FP8 dense linears with M <= 8 tokens (bs<=2 decode /
+    # draft / verify) to the Hopper streaming GEMV instead of DeepGEMM: the
+    # TMA/WGMMA pipeline moves the few-MB decode weights at ~1 TB/s on H20,
+    # the GEMV runs near the bandwidth floor (SM90 only).
+    SGLANG_ENABLE_FP8_BLOCK_GEMV = EnvBool(False)
     SGLANG_PP_PARALLEL_DEEPGEMM_WARMUP = EnvBool(False)
 
     # ===================================================================
