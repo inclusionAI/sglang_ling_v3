@@ -1935,7 +1935,13 @@ class ModelConfig:
 
             # Verify quantization configurations.
             if self.quantization is None:
-                self.quantization = quant_method
+                # `--speculative-draft-model-quantization unquant` resolves the
+                # draft quantization to None with the explicit flag set. A
+                # bundled draft (DSpark / MTP) can ship unquantized weights
+                # inside a quantized target checkpoint, so the target's
+                # quantization_config must not be re-applied to it here.
+                if not (self.is_draft_model and self.is_draft_quantization_explicit):
+                    self.quantization = quant_method
             elif self.quantization != quant_method:
                 # Check if the CLI-specified quantization is compatible with HF config's quant_method
                 is_compatible = preserve_online_draft_quantization or (
