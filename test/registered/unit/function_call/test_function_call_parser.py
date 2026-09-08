@@ -3957,8 +3957,23 @@ class TestLing3Detector(unittest.TestCase):
             "<tool_call>get_date</tool_call>", self.tools
         )
         self.assertEqual(len(result.calls), 1)
+        self.assertEqual(result.calls[0].tool_index, 0)
         self.assertEqual(result.calls[0].name, "get_date")
         self.assertEqual(json.loads(result.calls[0].parameters), {})
+
+    def test_detect_and_parse_uses_call_order_for_tool_index(self):
+        text = (
+            "<tool_call>get_date</tool_call>"
+            "<tool_call>get_weather</tool_call>"
+            "<tool_call>get_date</tool_call>"
+        )
+        result = self.detector.detect_and_parse(text, self.tools)
+        self.assertEqual(len(result.calls), 3)
+        self.assertEqual(
+            [call.name for call in result.calls],
+            ["get_date", "get_weather", "get_date"],
+        )
+        self.assertEqual([call.tool_index for call in result.calls], [0, 1, 2])
 
     def test_streaming_empty_args_emits_single_empty_object(self):
         tool_calls = self._collect_streaming_tool_calls(
@@ -3997,6 +4012,56 @@ class TestLing3Detector(unittest.TestCase):
                 self.assertEqual(len(tool_calls), 1)
                 self.assertEqual(tool_calls[0]["name"], "get_weather")
                 self.assertEqual(tool_calls[0]["parameters"], expected)
+
+    def test_streaming_repeated_tool_uses_call_order_for_tool_index(self):
+        indices = []
+        for chunk in [
+            "<tool_call>get_date</tool_call>",
+            "<tool_call>get_date</tool_call>",
+        ]:
+            result = self.detector.parse_streaming_increment(chunk, self.tools)
+            indices.extend(call.tool_index for call in result.calls if call.name)
+        self.assertEqual(indices, [0, 1])
+
+    def test_streaming_object_argument_across_chunk_boundaries(self):
+        text = (
+            "<tool_call>submit"
+            '<arg_key>payload</arg_key><arg_value>{"a":1}</arg_value>'
+            "</tool_call>"
+        )
+
+        for chunks in ([text], list(text)):
+            with self.subTest(chunk_count=len(chunks)):
+                self.detector = Ling3Detector()
+                tool_calls = self._collect_streaming_tool_calls(chunks)
+                self.assertEqual(len(tool_calls), 1)
+                self.assertEqual(tool_calls[0]["name"], "submit")
+                self.assertEqual(tool_calls[0]["parameters"], '{"payload": {"a":1}}')
+                self.assertEqual(
+                    json.loads(tool_calls[0]["parameters"]), {"payload": {"a": 1}}
+                )
+
+    def test_streaming_multiple_object_calls_close_each_outer_object(self):
+        tool_calls = self._collect_streaming_tool_calls(
+            [
+                "<tool_call>submit",
+                '<arg_key>payload</arg_key><arg_value>{"page":1}</arg_value>',
+                "</tool_call><tool_call>submit",
+                '<arg_key>payload</arg_key><arg_value>{"page":2}</arg_value>',
+                "</tool_call>",
+            ]
+        )
+
+        self.assertEqual(len(tool_calls), 2)
+        for index, tool_call in enumerate(tool_calls):
+            self.assertEqual(tool_call["name"], "submit")
+            self.assertEqual(
+                json.loads(tool_call["parameters"]),
+                {"payload": {"page": index + 1}},
+            )
+            self.assertEqual(
+                self.detector.streamed_args_for_tool[index], tool_call["parameters"]
+            )
 
     def test_nullable_string_null_preserved_non_streaming(self):
         text = (

@@ -1,5 +1,8 @@
 import re
+from typing import List
 
+from sglang.srt.entrypoints.openai.protocol import Tool
+from sglang.srt.function_call.core_types import StreamingParseResult
 from sglang.srt.function_call.glm4_moe_detector import Glm4MoeDetector
 
 
@@ -26,3 +29,11 @@ class Ling3Detector(Glm4MoeDetector):
             r"(<arg_key>.*?)?</tool_call>",
             re.DOTALL,
         )
+
+    def detect_and_parse(self, text: str, tools: List[Tool]) -> StreamingParseResult:
+        result = super().detect_and_parse(text, tools)
+        for tool_index, call in enumerate(result.calls):
+            # The index identifies this call's position in the response, not
+            # the matching tool's position in the request definitions.
+            call.tool_index = tool_index
+        return result

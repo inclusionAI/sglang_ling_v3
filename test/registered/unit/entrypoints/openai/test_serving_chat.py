@@ -4483,6 +4483,50 @@ class ServingChatTestCase(CustomTestCase):
         self.assertEqual(r, reasoning)
         self.assertEqual(t, tool_calls)
 
+    def test_ling3_non_streaming_tool_call_indices_follow_call_order(self):
+        self.chat.tool_call_parser = "ling3"
+        request = ChatCompletionRequest(
+            model="x",
+            messages=[{"role": "user", "content": "Use the tools"}],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "parameters": {"type": "object", "properties": {}},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_date",
+                        "parameters": {"type": "object", "properties": {}},
+                    },
+                },
+            ],
+        )
+        text = (
+            "<tool_call>get_date</tool_call>"
+            "<tool_call>get_weather</tool_call>"
+            "<tool_call>get_date</tool_call>"
+        )
+        finish_reason = {"type": "stop", "matched": None}
+
+        tool_calls, remaining_text, finish_reason = self.chat._process_tool_calls(
+            text=text,
+            tools=request.tools,
+            finish_reason=finish_reason,
+            tool_choice="auto",
+        )
+
+        self.assertEqual(remaining_text, "")
+        self.assertEqual(finish_reason["type"], "tool_calls")
+        self.assertEqual(
+            [call.function.name for call in tool_calls],
+            ["get_date", "get_weather", "get_date"],
+        )
+        self.assertEqual([call.index for call in tool_calls], [0, 1, 2])
+
 
 class TestProcessToolCallsWithRequiredToolChoice(unittest.TestCase):
     """Test _process_tool_calls with tool_choice='required' uses model-specific parser."""
