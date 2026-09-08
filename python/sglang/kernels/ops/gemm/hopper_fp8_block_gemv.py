@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from typing import TYPE_CHECKING, Optional, Sequence
 
 import torch
@@ -22,6 +23,37 @@ if TYPE_CHECKING:
 _MAX_M = 16
 _MAX_K = 4096  # 16 x K bytes of activation slab in shared memory
 
+# Occupancy inputs for the config search. Registers per thread is what ncu
+# reports for the shipped variants (126 for <8, 2, 4, 2>); the shared-memory
+# budget is the "Shared Memory Configuration Size" ncu reports on H20.
+_REGS_PER_SM = 64 * 1024
+_REGS_PER_THREAD = 128
+_SMEM_PER_SM = 135 * 1024
+# Scale blocks a warp needs to own before its share of the split-K reduction and
+# its two barriers are worth the extra K parallelism.
+_MIN_KB_PER_WARP = 4
+# Warps a block keeps after a halving. Below this the block has too little
+# internal parallelism to cover the load latency (1536x1536: k_split 4 -> 2
+# leaves 2 warps and costs 4.70 -> 5.21 us).
+_MIN_WARPS = 4
+
+
+@functools.lru_cache(maxsize=1)
+def _sm_count() -> int:
+    return torch.cuda.get_device_properties(
+        torch.cuda.current_device()
+    ).multi_processor_count
+
+
+def _resident_blocks(max_m: int, row_tiles: int, k_split: int, k: int, nkb: int) -> int:
+    """How many blocks of this shape the whole GPU holds at once."""
+    warps = row_tiles * k_split
+    smem = (
+        max_m * (k + 16) + max_m * nkb * 4 + k_split * row_tiles * 32 * (max_m // 2) * 4
+    )
+    per_sm = min(_REGS_PER_SM // (32 * warps * _REGS_PER_THREAD), _SMEM_PER_SM // smem)
+    return _sm_count() * max(1, per_sm)
+
 
 def _config(m: int, n: int, k: int) -> tuple[int, int, int, int]:
     """(max_m, row_tiles_per_block, k_split_warps, k_unroll)."""
@@ -36,6 +68,21 @@ def _config(m: int, n: int, k: int) -> tuple[int, int, int, int]:
         if nkb % cand == 0 and nkb // cand >= 2 and cand * row_tiles <= 8:
             k_split = cand
             break
+    # Two ways that greedy split overshoots, both fixed by halving it (k_split is
+    # a power of two, so nkb stays divisible). Halve only while the block keeps
+    # enough warps to hide the weight-load latency.
+    #   - too little K per warp: the reduction stops paying for itself;
+    #   - one wave too many: a wider block fits fewer times per SM, so the grid
+    #     spills past the resident-block count and pays a whole tail wave. ncu on
+    #     5120x4096 <8, 2, 4, 2>: 160 blocks against 156 slots, SM Active only 57%
+    #     of Elapsed. Halving takes 12.80 -> 11.99 us (2560x4096: 9.18 -> 8.12,
+    #     4096x1024: 4.77 -> 4.41).
+    if k_split > 1 and row_tiles * (k_split // 2) >= _MIN_WARPS:
+        blocks = (n + 16 * row_tiles - 1) // (16 * row_tiles)
+        wide = _resident_blocks(max_m, row_tiles, k_split, k, nkb)
+        narrow = _resident_blocks(max_m, row_tiles, k_split // 2, k, nkb)
+        if nkb // k_split < _MIN_KB_PER_WARP or (blocks > wide and blocks <= narrow):
+            k_split //= 2
     unroll = 2 if (nkb // k_split) % 2 == 0 else 1
     return max_m, row_tiles, k_split, unroll
 

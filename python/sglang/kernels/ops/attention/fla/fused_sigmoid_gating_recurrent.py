@@ -1,3 +1,4 @@
+import functools
 from typing import Optional
 
 import torch
@@ -47,6 +48,33 @@ def _select_recurrent_launch_config(
         # intermediate-state verify sets target_verify; cache_ring keeps BV=32.
         return 4, 1
     return min(triton.next_power_of_2(v), 32), 1
+
+
+@functools.lru_cache(maxsize=8)
+def _sm_count(device_index: int) -> int:
+    return torch.cuda.get_device_properties(device_index).multi_processor_count
+
+
+def _select_bv(v_size: int, programs_per_split: int, device: torch.device) -> int:
+    """V tile width, sized so the grid covers the machine in one wave.
+
+    V is fully parallel here: the delta rule's only reduction runs over K and
+    stays inside one program (the launcher asserts NK == 1), so every BV gives
+    bit-identical results and only decides how many single-warp programs share a
+    head. The grid is (NK, ceil(V / BV), N * HV), so a fixed BV = 32 left decode
+    badly under-occupied -- at TP8 with 8 heads per rank and bs = 1 that is 32
+    programs on a 78-SM H20, for a kernel that is latency- not bandwidth-bound.
+    Measured there (DSpark bs=1 verify, us per decode step): BV 32 -> 13.76,
+    BV 16 -> 13.40, BV 8 -> 13.67, so 16 is both the best measured width and the
+    floor -- 8 is only ever known to be worse.
+    """
+    v_pow2 = triton.next_power_of_2(v_size)
+    bv_max = min(v_pow2, 32)
+    bv_min = min(16, bv_max)
+    wanted = max(1, _sm_count(device.index) // max(1, programs_per_split))
+    splits = 1 << (wanted.bit_length() - 1)  # round down to a power of two
+    splits = max(1, min(splits, v_pow2 // bv_min))
+    return max(bv_min, min(bv_max, v_pow2 // splits))
 
 
 @triton.jit(do_not_specialize=["T"])
@@ -446,6 +474,8 @@ def fused_sigmoid_gating_delta_rule_update(
     BV, num_warps = _select_recurrent_launch_config(
         N, H, HV, K, V, is_kda, target_verify=intermediate_states_buffer is not None
     )
+    if is_kda and _is_sm90:
+        BV = _select_bv(V, N * HV, v.device)
     BK = triton.next_power_of_2(K)
     NK, NV = triton.cdiv(K, BK), triton.cdiv(V, BV)
     assert NK == 1, "NK > 1 is not supported yet"
