@@ -393,10 +393,12 @@ def router_gate_matvec_kernel(
     x_ptr,  # (M, K) bf16/fp16/fp32, row-major
     w_ptr,  # (E, K) fp32/bf16/fp16, k-major
     out_ptr,  # (M, E) fp32
+    M,
     K,
     E,
     stride_xm,
     stride_we,
+    BLOCK_M: tl.constexpr,
     BLOCK_E: tl.constexpr,
     BLOCK_K: tl.constexpr,
     USE_GDC: tl.constexpr = False,
@@ -407,11 +409,19 @@ def router_gate_matvec_kernel(
     HBM round trip per CTA instead of a serial dependent-load chain, which
     is what dominates in the real model where ~94MB/layer of expert traffic
     flushes L2 between gate calls.
+
+    The grid is one program per expert block; a program walks all M rows
+    against the weight tile it already holds. Splitting the grid over M
+    instead re-reads the whole gate weight once per token, which is what
+    the cost used to scale with (M = 6 on a DSpark verify: 4 MB of gate
+    weight read six times, 9.6 us against a 1.2 us bandwidth floor).
     """
-    pid_m = tl.program_id(0)
-    pid_e = tl.program_id(1)
+    pid_e = tl.program_id(0)
     e_offs = pid_e * BLOCK_E + tl.arange(0, BLOCK_E)
     e_mask = e_offs < E
+    m_offs = tl.arange(0, BLOCK_M)
+    m_mask = m_offs < M
+    acc = tl.zeros([BLOCK_M, BLOCK_E], dtype=tl.float32)
 
     # First K tile, weight load ahead of the PDL wait (see docstring).
     k_offs = tl.arange(0, BLOCK_K)
@@ -424,26 +434,32 @@ def router_gate_matvec_kernel(
     if USE_GDC:
         tl.extra.cuda.gdc_wait()
         tl.extra.cuda.gdc_launch_dependents()
-    x = tl.load(x_ptr + pid_m * stride_xm + k_offs, mask=k_mask, other=0.0).to(
-        tl.float32
-    )
-    acc = tl.sum(w * x[None, :], axis=1)
+    for m in tl.static_range(BLOCK_M):
+        x = tl.load(
+            x_ptr + m * stride_xm + k_offs, mask=k_mask & (m < M), other=0.0
+        ).to(tl.float32)
+        row = tl.sum(w * x[None, :], axis=1)
+        acc += tl.where(m_offs[:, None] == m, row[None, :], 0.0)
 
     for k0 in range(BLOCK_K, K, BLOCK_K):
         k_offs = k0 + tl.arange(0, BLOCK_K)
         k_mask = k_offs < K
-        x = tl.load(x_ptr + pid_m * stride_xm + k_offs, mask=k_mask, other=0.0).to(
-            tl.float32
-        )
         w = tl.load(
             w_ptr + e_offs[:, None] * stride_we + k_offs[None, :],
             mask=e_mask[:, None] & k_mask[None, :],
             other=0.0,
         ).to(tl.float32)
-        acc += tl.sum(w * x[None, :], axis=1)
+        for m in tl.static_range(BLOCK_M):
+            x = tl.load(
+                x_ptr + m * stride_xm + k_offs, mask=k_mask & (m < M), other=0.0
+            ).to(tl.float32)
+            row = tl.sum(w * x[None, :], axis=1)
+            acc += tl.where(m_offs[:, None] == m, row[None, :], 0.0)
 
     tl.store(
-        out_ptr + pid_m * E + e_offs, acc.to(out_ptr.dtype.element_ty), mask=e_mask
+        out_ptr + m_offs[:, None] * E + e_offs[None, :],
+        acc.to(out_ptr.dtype.element_ty),
+        mask=m_mask[:, None] & e_mask[None, :],
     )
 
 
@@ -452,8 +468,21 @@ def router_gate_matvec_kernel(
 # grid even more) — re-tune with benchmark/kernels/bench_router_gate_matvec.py.
 ROUTER_GATE_MATVEC_BLOCK_E = 4
 ROUTER_GATE_MATVEC_NUM_WARPS = 8
-# Beyond this M the per-M re-reads of the gate weight outgrow the library
-# GEMM (cold H20-3e: bf16 wins to M=12, fp32 to M=8; cap at the lower).
+# Cold-cache us/call on H20-3e after the grid stopped splitting over M
+# (E=512, K=4096, bf16 gate, 20 rotating weights over 80 MB, in a CUDA graph):
+#
+#     M          1     2     4     6     8
+#     before   2.12  3.57  6.25  8.20  10.96
+#     after    2.15  2.71  3.97  6.48   6.84
+#     F.linear 6.28  6.25  6.31  6.35   6.37
+#
+# The isolated F.linear column understates the library path: this kernel
+# returns fp32 logits, which is what the top-k kernel consumes, while
+# F.linear returns the gate dtype and the model then pays a separate cast
+# launch. Measured in the model at M = 6 (68 MoE layers, DSpark verify):
+# matvec 9.5 us against nvjet split-K 4.7 + split-K reduce 1.7 + cast 2.5 =
+# 8.9 us, i.e. the library only pulls ahead on paper. Keep the cutoff where
+# the fixed kernel still wins in situ.
 ROUTER_GATE_MATVEC_MAX_M = 8
 
 
@@ -496,14 +525,16 @@ def router_gate_matvec(
     # chain on a cold weight.
     block_k = min(4096, triton.next_power_of_2(K))
     pdl_kwargs = {"USE_GDC": True, "launch_pdl": True} if is_arch_support_pdl() else {}
-    router_gate_matvec_kernel[(M, triton.cdiv(E, block_e))](
+    router_gate_matvec_kernel[(triton.cdiv(E, block_e),)](
         hidden_states,
         weight,
         out,
+        M,
         K,
         E,
         hidden_states.stride(0),
         weight.stride(0),
+        BLOCK_M=triton.next_power_of_2(M),
         BLOCK_E=block_e,
         BLOCK_K=block_k,
         num_warps=ROUTER_GATE_MATVEC_NUM_WARPS,
