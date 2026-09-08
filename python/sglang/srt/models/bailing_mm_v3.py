@@ -271,6 +271,13 @@ class BailingMoeV3VLForConditionalGeneration(nn.Module):
             )
         return logits_result
 
+    @classmethod
+    def get_model_config_for_expert_location(cls, config):
+        """Expose the language backbone's MoE topology to EPLB/DeepEP."""
+        return BailingMoeV3ForCausalLM.get_model_config_for_expert_location(
+            config.llm_config
+        )
+
     def load_weights(self, weights: Iterable[Tuple[str, torch.Tensor]]):
         """
         Load model weights.
