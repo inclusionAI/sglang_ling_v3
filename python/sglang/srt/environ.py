@@ -552,9 +552,9 @@ class Envs:
     SGLANG_DSPARK_NVLINK_VOCAB_GATHER = EnvBool(True)
     SGLANG_DSPARK_ENABLE_MULTI_STREAM = EnvBool(True)
     SGLANG_DSPARK_CONFIDENCE_RELAY_LAG_STEPS = EnvInt(2)
-    # Keep Ling's target-hidden commit at a fixed verify-window shape and mask
-    # rejected rows on device. This removes dynamic-shape host synchronization.
-    SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT = EnvBool(True)
+    # Keep the DSpark target-hidden commit at a fixed verify-window shape and
+    # mask rejected rows on device. This removes dynamic-shape host sync.
+    SGLANG_DSPARK_ENABLE_STATIC_COMMIT = EnvBool(True)
 
     # ===================================================================
     # Memory pools and KV-cache sizing

@@ -116,7 +116,7 @@ class TargetHiddenKvInjector:
         """
         pool = self.draft_model_runner.token_to_kv_pool
         if (
-            not envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.get()
+            not envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.get()
             or is_unified_kv_triton()
             or hasattr(pool, "set_swa_key_buffer_radix_fused_norm_rope")
             or not hasattr(self.draft_model, "write_target_hidden_kv_static")

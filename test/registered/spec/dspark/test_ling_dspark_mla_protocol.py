@@ -316,6 +316,28 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
             ),
         )
 
+    def test_read_accept_snapshots_cross_replay_values(self):
+        epilogue = DsparkVerifyEpilogue(
+            max_bs=4,
+            verify_num_draft_tokens=3,
+            device="cpu",
+            compact_mode=False,
+        )
+        epilogue.bonus_buf[:2].copy_(torch.tensor([11, 22]))
+        epilogue.new_seq_lens_buf[:2].copy_(torch.tensor([101, 202]))
+
+        accepted = epilogue.read_accept(2)
+        self.assertNotEqual(accepted.bonus.data_ptr(), epilogue.bonus_buf.data_ptr())
+        self.assertNotEqual(
+            accepted.new_seq_lens.data_ptr(), epilogue.new_seq_lens_buf.data_ptr()
+        )
+
+        # Model the next graph replay overwriting its persistent output buffers.
+        epilogue.bonus_buf[:2].fill_(-1)
+        epilogue.new_seq_lens_buf[:2].fill_(-1)
+        torch.testing.assert_close(accepted.bonus, torch.tensor([11, 22]))
+        torch.testing.assert_close(accepted.new_seq_lens, torch.tensor([101, 202]))
+
     def test_capture_completes_pending_mlp_allreduce(self):
         class FakeCommunicator:
             def __init__(self):
@@ -1002,7 +1024,7 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         torch.testing.assert_close(kwargs["commit_lens"], fx.commit_lens)
 
     def test_compact_commit_flag_off_restores_host_compaction(self):
-        """SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT=0 must still route compact
+        """SGLANG_DSPARK_ENABLE_STATIC_COMMIT=0 must still route compact
         verify through the masked commit, not silently keep the fixed-row path."""
 
         class FakePool:
@@ -1020,7 +1042,7 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         draft = FakeDraft()
         injector = self._compact_commit_injector(draft, FakePool(), "cpu")
 
-        with envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.override(False), patch(
+        with envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.override(False), patch(
             "sglang.srt.speculative.dspark_components.dspark_kv_inject."
             "is_unified_kv_triton",
             return_value=False,
@@ -1100,7 +1122,7 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
                 commit()
             # Harness self-check: the masked path this test guards against
             # does synchronize, so a silent no-op debug mode cannot pass above.
-            with unified_patch, envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.override(
+            with unified_patch, envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.override(
                 False
             ), self.assertRaisesRegex(RuntimeError, "synchroniz"):
                 commit()

@@ -765,10 +765,13 @@ class DsparkVerifyEpilogue:
     def read_accept(self, bs: int) -> AcceptOuts:
         return AcceptOuts(
             correct_len=self.correct_len_buf[:bs],
-            bonus=self.bonus_buf[:bs],
+            # These values survive into next_draft_input / the next scheduler
+            # iteration. Detach them from graph-owned persistent buffers before
+            # a subsequent replay overwrites those buffers.
+            bonus=self.bonus_buf[:bs].clone(),
             cap_trim_lens=self.cap_trim_lens_buf[:bs],
             commit_lens=self.commit_lens_buf[:bs],
-            new_seq_lens=self.new_seq_lens_buf[:bs],
+            new_seq_lens=self.new_seq_lens_buf[:bs].clone(),
             out_tokens=self.out_tokens_buf[:bs],
         )
 
