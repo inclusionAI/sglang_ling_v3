@@ -38,6 +38,8 @@ from sglang.srt.layers.moe.ep_moe.layer import get_moe_impl_class
 from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
 from sglang.srt.layers.moe.topk import TopK, TopKOutputFormat
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
+from sglang.srt.layers.quantization.fp8 import Fp8LinearMethod
+from sglang.srt.layers.quantization.fp8_utils import fp8_block_gemv_with_side
 from sglang.srt.layers.radix_linear_attention import RadixLinearAttention
 from sglang.srt.layers.utils import PPMissingLayer, get_layer_id
 from sglang.srt.layers.vocab_parallel_embedding import (
@@ -268,6 +270,7 @@ class KimiDeltaAttention(nn.Module):
         self.do_fuse_qkvbfg = self.no_kda_lora or quant_config is None
         # Beta joins the fused GEMM only when nothing is quantized.
         self.fuse_no_lora_beta = self.no_kda_lora and quant_config is None
+        self.beta_side_gemv = False
 
         if self.do_fuse_qkvbfg and self.no_kda_lora:
             # No LoRA: f/g are full-rank, so q, k, v, (beta,) f, g all fuse into
@@ -307,6 +310,16 @@ class KimiDeltaAttention(nn.Module):
                     tp_rank=self.shard_tp_rank,
                     tp_size=self.shard_tp_size,
                 )
+            # Beta stays bf16 (the checkpoint excludes b_proj from FP8); on the
+            # blockwise-FP8 decode GEMV it rides along as a side projection of
+            # the same launch instead of its own cuBLAS split-K pair.
+            fused_method = self.fused_qkvbfg_proj.quant_method
+            self.beta_side_gemv = (
+                not self.fuse_no_lora_beta
+                and isinstance(fused_method, Fp8LinearMethod)
+                and fused_method.block_quant
+                and fused_method.weight_block_size == [128, 128]
+            )
         elif self.do_fuse_qkvbfg:
             # Fuse: q, k, v, beta (column parallel) + f_a, g_a (replicated)
             self.qkvb_sizes = [
@@ -474,17 +487,41 @@ class KimiDeltaAttention(nn.Module):
             g_proj_states,
         )
 
+    def _fused_qkvbfg_with_beta(self, hidden_states: torch.Tensor):
+        if hidden_states.dim() != 2:
+            return None
+        proj = self.fused_qkvbfg_proj
+        return fp8_block_gemv_with_side(
+            input_2d=hidden_states,
+            weight=proj.weight,
+            weight_scale=proj.weight_scale_inv,
+            block_size=proj.quant_method.weight_block_size,
+            side_weight=self.b_proj.weight,
+        )
+
     def forward_qkvbfg_fused(self, hidden_states: torch.Tensor):
         if self.no_kda_lora:
             # Full-rank f/g: everything comes out of one GEMM, no batched
             # second-stage matmul.
-            fused_states, _ = self.fused_qkvbfg_proj(hidden_states)
-            split_states = torch.split(fused_states, self.split_sizes, dim=-1)
             if self.fuse_no_lora_beta:
-                qkv, beta, forget_gate, g_proj_states = split_states
+                fused_states, _ = self.fused_qkvbfg_proj(hidden_states)
+                qkv, beta, forget_gate, g_proj_states = torch.split(
+                    fused_states, self.split_sizes, dim=-1
+                )
             else:
-                qkv, forget_gate, g_proj_states = split_states
-                beta = self.b_proj(hidden_states)[0]
+                fused = (
+                    self._fused_qkvbfg_with_beta(hidden_states)
+                    if self.beta_side_gemv
+                    else None
+                )
+                if fused is None:
+                    fused_states, _ = self.fused_qkvbfg_proj(hidden_states)
+                    beta = self.b_proj(hidden_states)[0]
+                else:
+                    fused_states, beta = fused
+                qkv, forget_gate, g_proj_states = torch.split(
+                    fused_states, self.split_sizes, dim=-1
+                )
             return (
                 qkv,
                 beta,

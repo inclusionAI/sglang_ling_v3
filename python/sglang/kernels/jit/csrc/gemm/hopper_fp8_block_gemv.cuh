@@ -34,6 +34,7 @@ using namespace device;
 // through shared memory so small-N projections still fill the machine.
 
 constexpr uint32_t kFp8BlockK = 128;
+constexpr uint32_t kMaxSideN = 8;
 
 __device__ __forceinline__ void mma_m16n8k32_e4m3(float (&d)[4], const uint32_t (&a)[4], const uint32_t (&b)[2]) {
   asm volatile(
@@ -43,20 +44,103 @@ __device__ __forceinline__ void mma_m16n8k32_e4m3(float (&d)[4], const uint32_t 
       : "r"(a[0]), "r"(a[1]), "r"(a[2]), "r"(a[3]), "r"(b[0]), "r"(b[1]));
 }
 
+// side_out[m, col] = x[m, :] . side_w[col, :] for one column: the block's
+// threads split K in 16-byte chunks with every load issued up front, then a
+// shuffle + shared-memory reduce. One extra block per side column; it finishes
+// inside the main GEMV's runtime.
+template <uint32_t kMaxM, uint32_t kThreads>
+__device__ __forceinline__ void side_column(
+    bf16_t* __restrict__ side_out,
+    const bf16_t* __restrict__ x,
+    const bf16_t* __restrict__ side_w,
+    float* sred,  // [kThreads / 32][kMaxM]
+    const uint32_t M,
+    const uint32_t K,
+    const uint32_t side_n,
+    const uint32_t col) {
+  constexpr uint32_t kSideWarps = kThreads / 32;
+  const uint32_t tid = threadIdx.x;
+  const uint32_t warp = tid / 32;
+  const uint32_t lane = tid % 32;
+  const bf16_t* wrow = side_w + static_cast<size_t>(col) * K;
+  const uint32_t nvec = K / 8;
+  float acc[kMaxM];
+#pragma unroll
+  for (uint32_t m = 0; m < kMaxM; ++m) {
+    acc[m] = 0.0f;
+  }
+#pragma unroll 4
+  for (uint32_t v = tid; v < nvec; v += kThreads) {
+    const uint4 wv = __ldcs(reinterpret_cast<const uint4*>(wrow + static_cast<size_t>(v) * 8));
+    const bf16x2_t* w2 = reinterpret_cast<const bf16x2_t*>(&wv);
+#pragma unroll
+    for (uint32_t m = 0; m < kMaxM; ++m) {
+      if (m < M) {
+        const uint4 xv =
+            __ldg(reinterpret_cast<const uint4*>(x + static_cast<size_t>(m) * K + static_cast<size_t>(v) * 8));
+        const bf16x2_t* x2 = reinterpret_cast<const bf16x2_t*>(&xv);
+        float p = 0.0f;
+#pragma unroll
+        for (int i = 0; i < 4; ++i) {
+          const auto [w0, w1] = cast<fp32x2_t>(w2[i]);
+          const auto [x0, x1] = cast<fp32x2_t>(x2[i]);
+          p = fmaf(w0, x0, p);
+          p = fmaf(w1, x1, p);
+        }
+        acc[m] += p;
+      }
+    }
+  }
+#pragma unroll
+  for (uint32_t m = 0; m < kMaxM; ++m) {
+#pragma unroll
+    for (uint32_t off = 16; off > 0; off >>= 1) {
+      acc[m] += __shfl_xor_sync(0xffffffff, acc[m], off);
+    }
+  }
+  if (lane == 0) {
+#pragma unroll
+    for (uint32_t m = 0; m < kMaxM; ++m) {
+      sred[warp * kMaxM + m] = acc[m];
+    }
+  }
+  __syncthreads();
+  if (tid < kMaxM && tid < M) {
+    float s = 0.0f;
+#pragma unroll
+    for (uint32_t w = 0; w < kSideWarps; ++w) {
+      s += sred[w * kMaxM + tid];
+    }
+    side_out[static_cast<size_t>(tid) * side_n + col] = cast<bf16_t>(s);
+  }
+}
+
 template <uint32_t kMaxM, uint32_t kRowTiles, uint32_t kKSplit, uint32_t kUnroll>
 __global__ void __launch_bounds__(32 * kRowTiles * kKSplit) hopper_fp8_block_gemv_kernel(
     bf16_t* __restrict__ out,
+    const bf16_t* __restrict__ x,
     const uint8_t* __restrict__ xq,
     const float* __restrict__ xs,
     const uint8_t* __restrict__ wq,
     const float* __restrict__ ws,
+    const bf16_t* __restrict__ side_w,
+    bf16_t* __restrict__ side_out,
     const uint32_t M,
     const uint32_t N,
-    const uint32_t K) {
+    const uint32_t K,
+    const uint32_t side_n,
+    const uint32_t num_main_blocks) {
   constexpr uint32_t kWarps = kRowTiles * kKSplit;
   constexpr uint32_t kThreads = 32 * kWarps;
   constexpr uint32_t kMGroups = kMaxM / 8;  // n8 MMA column groups
   extern __shared__ __align__(16) uint8_t smem_raw[];
+  if (blockIdx.x >= num_main_blocks) {
+    // Side blocks never touch the slab; reuse the front of the dynamic buffer
+    // for their tiny cross-warp reduction.
+    side_column<kMaxM, kThreads>(
+        side_out, x, side_w, reinterpret_cast<float*>(smem_raw), M, K, side_n, blockIdx.x - num_main_blocks);
+    return;
+  }
   const uint32_t nkb = K / kFp8BlockK;
   // Row stride K + 16: lanes (g, t) of a quarter-warp read 16-byte slots at
   // g * S + 32 * t; S = 16 (mod 32) keeps those slots on distinct banks.
@@ -213,12 +297,18 @@ struct HopperFp8BlockGemvKernel {
   static_assert(kRowTiles >= 1 && kKSplit >= 1 && kRowTiles * kKSplit <= 32, "block too large");
   static_assert(kMaxM == 8 || kMaxM == 16, "kMaxM must be 8 or 16 (n8 MMA column groups)");
 
-  static void
-  run(const tvm::ffi::TensorView xq,
+  // out[M, N] = xq[M, K] @ wq[N, K]^T with 1x128 activation and 128x128 weight
+  // scales; with side tensors, one extra block per side column also writes
+  // side_out[M, S] = x[M, K] @ side_w[S, K]^T (bf16 in, fp32 accumulation).
+  static void run_impl(
+      const tvm::ffi::TensorView xq,
       const tvm::ffi::TensorView xs,
       const tvm::ffi::TensorView wq,
       const tvm::ffi::TensorView ws,
-      const tvm::ffi::TensorView out) {
+      const tvm::ffi::TensorView out,
+      const tvm::ffi::TensorView* x,
+      const tvm::ffi::TensorView* side_w,
+      const tvm::ffi::TensorView* side_out) {
     using namespace host;
 
     auto device = SymbolicDevice{};
@@ -246,6 +336,22 @@ struct HopperFp8BlockGemvKernel {
         static_cast<uint32_t>(NB.unwrap()) == (n + kFp8BlockK - 1) / kFp8BlockK,
         "weight scale must have ceil(N/128) rows");
 
+    const bf16_t* x_ptr = nullptr;
+    const bf16_t* side_w_ptr = nullptr;
+    bf16_t* side_out_ptr = nullptr;
+    uint32_t side_n = 0;
+    if (side_w != nullptr) {
+      auto S = SymbolicSize{"S"};
+      TensorMatcher({M, K}).with_dtype<bf16_t>().with_device(device).verify(*x);
+      TensorMatcher({S, K}).with_dtype<bf16_t>().with_device(device).verify(*side_w);
+      TensorMatcher({M, S}).with_dtype<bf16_t>().with_device(device).verify(*side_out);
+      side_n = static_cast<uint32_t>(S.unwrap());
+      RuntimeCheck(side_n >= 1 && side_n <= kMaxSideN, "side projection is at most kMaxSideN columns");
+      x_ptr = static_cast<const bf16_t*>(x->data_ptr());
+      side_w_ptr = static_cast<const bf16_t*>(side_w->data_ptr());
+      side_out_ptr = static_cast<bf16_t*>(side_out->data_ptr());
+    }
+
     const size_t smem_bytes = static_cast<size_t>(kMaxM) * (k + 16) + static_cast<size_t>(kMaxM) * nkb * sizeof(float) +
                               static_cast<size_t>(kKSplit) * kRowTiles * 32 * (kMaxM / 2) * sizeof(float);
     auto* kernel = hopper_fp8_block_gemv_kernel<kMaxM, kRowTiles, kKSplit, kUnroll>;
@@ -259,17 +365,43 @@ struct HopperFp8BlockGemvKernel {
     }
 
     constexpr uint32_t kRowsPerBlock = 16 * kRowTiles;
-    const uint32_t num_blocks = (n + kRowsPerBlock - 1) / kRowsPerBlock;
-    LaunchKernel(num_blocks, 32 * kRowTiles * kKSplit, device.unwrap(), smem_bytes)(
+    const uint32_t num_main_blocks = (n + kRowsPerBlock - 1) / kRowsPerBlock;
+    LaunchKernel(num_main_blocks + side_n, 32 * kRowTiles * kKSplit, device.unwrap(), smem_bytes)(
         kernel,
         static_cast<bf16_t*>(out.data_ptr()),
+        x_ptr,
         static_cast<const uint8_t*>(xq.data_ptr()),
         static_cast<const float*>(xs.data_ptr()),
         static_cast<const uint8_t*>(wq.data_ptr()),
         static_cast<const float*>(ws.data_ptr()),
+        side_w_ptr,
+        side_out_ptr,
         m,
         n,
-        k);
+        k,
+        side_n,
+        num_main_blocks);
+  }
+
+  static void
+  run(const tvm::ffi::TensorView xq,
+      const tvm::ffi::TensorView xs,
+      const tvm::ffi::TensorView wq,
+      const tvm::ffi::TensorView ws,
+      const tvm::ffi::TensorView out) {
+    run_impl(xq, xs, wq, ws, out, nullptr, nullptr, nullptr);
+  }
+
+  static void run_side(
+      const tvm::ffi::TensorView xq,
+      const tvm::ffi::TensorView xs,
+      const tvm::ffi::TensorView wq,
+      const tvm::ffi::TensorView ws,
+      const tvm::ffi::TensorView out,
+      const tvm::ffi::TensorView x,
+      const tvm::ffi::TensorView side_w,
+      const tvm::ffi::TensorView side_out) {
+    run_impl(xq, xs, wq, ws, out, &x, &side_w, &side_out);
   }
 };
 

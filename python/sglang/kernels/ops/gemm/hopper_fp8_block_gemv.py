@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 _MAX_M = 16
 _MAX_K = 4096  # 16 x K bytes of activation slab in shared memory
+_MAX_SIDE_N = 8  # side projection columns, one extra block each
 
 # Occupancy inputs for the config search. Registers per thread is what ncu
 # reports for the shipped variants (126 for <8, 2, 4, 2>); the shared-memory
@@ -96,7 +97,10 @@ def _jit_hopper_fp8_block_gemv_module(
         "hopper_fp8_block_gemv",
         *args,
         cuda_files=["gemm/hopper_fp8_block_gemv.cuh"],
-        cuda_wrappers=[("run", f"sglang::HopperFp8BlockGemvKernel<{args}>::run")],
+        cuda_wrappers=[
+            ("run", f"sglang::HopperFp8BlockGemvKernel<{args}>::run"),
+            ("run_side", f"sglang::HopperFp8BlockGemvKernel<{args}>::run_side"),
+        ],
         extra_cuda_cflags=["-O3"],
     )
 
@@ -118,22 +122,42 @@ def use_hopper_fp8_block_gemv(
     return m <= 8 or n <= 1536
 
 
+def use_hopper_fp8_block_gemv_side(side_w: torch.Tensor, k: int) -> bool:
+    return (
+        side_w.dtype == torch.bfloat16
+        and side_w.is_contiguous()
+        and side_w.ndim == 2
+        and 1 <= side_w.shape[0] <= _MAX_SIDE_N
+        and side_w.shape[1] == k
+    )
+
+
 def hopper_fp8_block_gemv(
     xq: torch.Tensor,
     xs: torch.Tensor,
     wq: torch.Tensor,
     ws: torch.Tensor,
     out: Optional[torch.Tensor] = None,
-) -> torch.Tensor:
+    x_bf16: Optional[torch.Tensor] = None,
+    side_w: Optional[torch.Tensor] = None,
+):
     """out[M, N] (bf16) = xq[M, K] @ wq[N, K]^T with 1x128 / 128x128 fp8 block scales.
 
     xq / wq are float8_e4m3fn, xs is fp32 [M, K/128] (row-major), ws is fp32
     [ceil(N/128), K/128]; all contiguous.
+
+    With ``x_bf16`` (the unquantized [M, K] activation) and ``side_w`` (bf16
+    [S, K], S <= 8) one extra block also computes side_out[M, S] = x @ side_w^T
+    (fp32 accumulation, bf16 output) and the call returns ``(out, side_out)``.
     """
     m, k = xq.shape
     n = wq.shape[0]
     if out is None:
         out = torch.empty((m, n), dtype=torch.bfloat16, device=xq.device)
     module = _jit_hopper_fp8_block_gemv_module(*_config(m, n, k))
-    module.run(xq, xs, wq, ws, out)
-    return out
+    if side_w is None:
+        module.run(xq, xs, wq, ws, out)
+        return out
+    side_out = torch.empty((m, side_w.shape[0]), dtype=torch.bfloat16, device=xq.device)
+    module.run_side(xq, xs, wq, ws, out, x_bf16, side_w, side_out)
+    return out, side_out

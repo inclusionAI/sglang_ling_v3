@@ -1187,6 +1187,7 @@ def cutlass_w8a8_block_fp8_linear_with_fallback(
 
 _hopper_fp8_block_gemv = None
 _use_hopper_fp8_block_gemv = None
+_use_hopper_fp8_block_gemv_side = None
 
 
 @lru_cache(maxsize=1)
@@ -1194,13 +1195,16 @@ def _fp8_block_gemv_enabled() -> bool:
     if not (envs.SGLANG_ENABLE_FP8_BLOCK_GEMV.get() and get_platform().is_sm90):
         return False
     global _hopper_fp8_block_gemv, _use_hopper_fp8_block_gemv
+    global _use_hopper_fp8_block_gemv_side
     from sglang.kernels.ops.gemm.hopper_fp8_block_gemv import (
         hopper_fp8_block_gemv,
         use_hopper_fp8_block_gemv,
+        use_hopper_fp8_block_gemv_side,
     )
 
     _hopper_fp8_block_gemv = hopper_fp8_block_gemv
     _use_hopper_fp8_block_gemv = use_hopper_fp8_block_gemv
+    _use_hopper_fp8_block_gemv_side = use_hopper_fp8_block_gemv_side
     return True
 
 
@@ -1219,6 +1223,31 @@ def _use_fp8_block_gemv(
         and _use_hopper_fp8_block_gemv(
             input_2d.shape[0], weight.shape[0], weight.shape[1], block_size
         )
+    )
+
+
+def fp8_block_gemv_with_side(
+    input_2d: torch.Tensor,
+    weight: torch.Tensor,
+    weight_scale: torch.Tensor,
+    block_size: List[int],
+    side_weight: torch.Tensor,
+) -> Optional[Tuple[torch.Tensor, torch.Tensor]]:
+    """One Hopper GEMV launch for a blockwise-FP8 projection plus a tiny bf16
+    side projection of the same input (KDA beta next to its fused qkvfg proj).
+
+    Returns ``(out, side_out)``, or None when the GEMV path does not cover the
+    shapes and the caller must run the two projections separately.
+    """
+    if not (
+        input_2d.dtype == torch.bfloat16
+        and _use_fp8_block_gemv(input_2d, weight, weight_scale, block_size)
+        and _use_hopper_fp8_block_gemv_side(side_weight, input_2d.shape[1])
+    ):
+        return None
+    q_input, x_scale = sglang_per_token_group_quant_fp8(input_2d, block_size[1])
+    return _hopper_fp8_block_gemv(
+        q_input, x_scale, weight, weight_scale, x_bf16=input_2d, side_w=side_weight
     )
 
 
