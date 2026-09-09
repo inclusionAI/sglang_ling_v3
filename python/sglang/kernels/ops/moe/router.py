@@ -5,6 +5,10 @@ import triton
 import triton.language as tl
 
 from sglang.kernels.jit.utils import is_arch_support_pdl
+from sglang.kernels.ops.moe.router_gate_matvec_cuda import (
+    router_gate_matvec_cuda,
+    use_router_gate_matvec_cuda,
+)
 from sglang.srt.utils import is_hip
 
 _is_hip = is_hip()
@@ -517,6 +521,10 @@ def router_gate_matvec(
         )
         and weight.is_contiguous()
     )
+    if use_router_gate_matvec_cuda(hidden_states, weight):
+        # Hopper: the CUDA kernel keeps the whole gate in flight at once
+        # instead of walking the M rows per program (see its header).
+        return router_gate_matvec_cuda(hidden_states, weight)
     M, K = hidden_states.shape
     E = weight.shape[0]
     out = torch.empty((M, E), dtype=torch.float32, device=hidden_states.device)
