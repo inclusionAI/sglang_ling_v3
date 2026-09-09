@@ -5,12 +5,13 @@ import torch
 from sglang.kernels.ops.attention.dsv4.unified_kv_kernels.env_gate import (
     is_unified_kv_triton,
 )
-from sglang.kernels.ops.speculative.cache_locs import assign_extend_cache_locs_func
 from sglang.kernels.ops.speculative.dspark.dspark_verify_window import (
     BuildCommitInjectLayout,
     build_unified_commit_inject_layout,
 )
+from sglang.srt.environ import envs
 from sglang.srt.managers.schedule_batch import ScheduleBatch
+from sglang.srt.speculative.dspark_components.dspark_planner import VerifyWindow
 from sglang.srt.speculative.ragged_verify import RaggedVerifyLayout
 
 
@@ -108,10 +109,15 @@ class TargetHiddenKvInjector:
         positions: torch.Tensor,
         commit_lens: torch.Tensor,
     ) -> bool:
-        """Commit a uniform verify window without host-visible compaction."""
+        """Commit a uniform verify window without host-visible compaction.
+
+        Returns False when the fixed-row protocol is disabled or the draft pool
+        does not honor the reserved skip slot; the caller then compacts eagerly.
+        """
         pool = self.draft_model_runner.token_to_kv_pool
         if (
-            is_unified_kv_triton()
+            not envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.get()
+            or is_unified_kv_triton()
             or hasattr(pool, "set_swa_key_buffer_radix_fused_norm_rope")
             or not hasattr(self.draft_model, "write_target_hidden_kv_static")
             or not hasattr(pool, "set_mla_kv_buffer")
@@ -245,6 +251,7 @@ class TargetHiddenKvInjector:
         batch: ScheduleBatch,
         layout: RaggedVerifyLayout,
         hidden_strided: torch.Tensor,
+        verify_window: VerifyWindow,
         commit_lens: torch.Tensor,
         bs: int,
     ) -> None:
@@ -284,21 +291,24 @@ class TargetHiddenKvInjector:
                 )
             return
 
-        positions_2d = prefix_lens.unsqueeze(1) + self._block_pos_offsets
-        verify_cache_loc = assign_extend_cache_locs_func(
-            req_pool_indices=batch.req_pool_indices,
-            req_to_token=self.model_runner.req_to_token_pool.req_to_token,
-            start_offset=prefix_lens,
-            end_offset=prefix_lens + stride,
-            batch_size=bs,
-            draft_token_num=stride,
-            device=self.device,
-        )
-        verify_cache_loc_2d = verify_cache_loc.view(bs, stride)
+        # Compact verify already scattered its rows back to one stride per
+        # request, so the fixed-row protocol applies unchanged: rows at or past
+        # commit_lens (rejected drafts and never-verified padding) land on the
+        # reserved skip slot instead of being gathered through a host-visible
+        # boolean mask.
+        target_hidden = hidden.reshape(-1, hidden.shape[-1])
+        positions = verify_window.positions_2d.reshape(-1)
+        if self.inject_target_hidden_static(
+            target_hidden=target_hidden,
+            cache_loc=verify_window.verify_cache_loc,
+            positions=positions,
+            commit_lens=commit_lens,
+        ):
+            return
         self.inject_target_hidden(
-            target_hidden=hidden.reshape(-1, hidden.shape[-1]),
-            cache_loc=verify_cache_loc,
-            cache_loc_2d=verify_cache_loc_2d,
-            positions=positions_2d.reshape(-1),
+            target_hidden=target_hidden,
+            cache_loc=verify_window.verify_cache_loc,
+            cache_loc_2d=verify_window.verify_cache_loc_2d,
+            positions=positions,
             commit_lens=commit_lens,
         )

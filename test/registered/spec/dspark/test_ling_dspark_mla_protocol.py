@@ -12,6 +12,7 @@ from sglang.kernels.ops.speculative.dspark.dspark_verify_window import (
 from sglang.srt.configs.bailing_hybrid import BailingHybridConfig
 from sglang.srt.configs.hybrid_arch import mambaish_config
 from sglang.srt.configs.model_config import ModelConfig
+from sglang.srt.environ import envs
 from sglang.srt.layers.attention.flashinfer_mla_backend import (
     _use_causal_mla_prefill,
 )
@@ -34,6 +35,7 @@ from sglang.srt.speculative.dspark_components.dspark_config import (
 from sglang.srt.speculative.dspark_components.dspark_kv_inject import (
     TargetHiddenKvInjector,
 )
+from sglang.srt.speculative.dspark_components.dspark_planner import VerifyWindow
 from sglang.srt.speculative.dspark_components.dspark_verify import (
     AcceptGreedy,
     DsparkVerifyEpilogue,
@@ -906,6 +908,208 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         torch.testing.assert_close(
             draft.kwargs["commit_lens"], torch.tensor([2, 1], dtype=torch.int32)
         )
+
+    def _compact_commit_fixture(self, device):
+        """A compact-verify commit of stride 4 over two requests.
+
+        verify_lens (2, 3) leave never-verified padding rows; commit_lens (1, 3)
+        reject one draft of the second request. Slots 100.. are the first
+        request's verify window, 200.. the second's.
+        """
+        stride = 4
+        prefix_lens = torch.tensor([10, 20], dtype=torch.int64, device=device)
+        block_pos_offsets = torch.arange(stride, dtype=torch.int64, device=device)
+        verify_cache_loc = torch.tensor(
+            [100, 101, 102, 103, 200, 201, 202, 203],
+            dtype=torch.int64,
+            device=device,
+        )
+        verify_window = VerifyWindow(
+            positions_2d=prefix_lens.unsqueeze(1) + block_pos_offsets,
+            verify_cache_loc=verify_cache_loc,
+            verify_cache_loc_2d=verify_cache_loc.view(2, stride),
+        )
+        return SimpleNamespace(
+            stride=stride,
+            batch=SimpleNamespace(
+                seq_lens=prefix_lens,
+                req_pool_indices=torch.tensor([3, 4], device=device),
+            ),
+            layout=SimpleNamespace(
+                verify_lens=torch.tensor([2, 3], dtype=torch.int64, device=device)
+            ),
+            hidden=torch.arange(
+                2 * stride * 4, dtype=torch.float32, device=device
+            ).view(2 * stride, 4),
+            verify_window=verify_window,
+            commit_lens=torch.tensor([1, 3], dtype=torch.int32, device=device),
+            expected_loc=torch.tensor(
+                [100, 0, 0, 0, 200, 201, 202, 0], dtype=torch.int64, device=device
+            ),
+        )
+
+    def _compact_commit_injector(self, draft, pool, device):
+        injector = TargetHiddenKvInjector.__new__(TargetHiddenKvInjector)
+        injector.draft_model = draft
+        injector.draft_model_runner = SimpleNamespace(token_to_kv_pool=pool)
+        injector.model_runner = SimpleNamespace(device=device)
+        injector.verify_num_draft_tokens = 4
+        return injector
+
+    def test_compact_commit_uses_fixed_row_protocol(self):
+        """Compact verify commits the whole [bs * stride] window through the
+        fixed-row protocol; compacting accepted rows with a boolean mask would
+        synchronize the host in the verify tail."""
+
+        class FakePool:
+            def set_mla_kv_buffer(self, *args, **kwargs):
+                pass
+
+        class FakeDraft:
+            def write_target_hidden_kv_static(self, **kwargs):
+                self.static_kwargs = kwargs
+
+            def write_target_hidden_kv(self, **kwargs):
+                raise AssertionError("compact commit compacted rows on the host")
+
+        fx = self._compact_commit_fixture("cpu")
+        draft = FakeDraft()
+        injector = self._compact_commit_injector(draft, FakePool(), "cpu")
+
+        with patch(
+            "sglang.srt.speculative.dspark_components.dspark_kv_inject."
+            "is_unified_kv_triton",
+            return_value=False,
+        ):
+            injector.inject_ragged(
+                batch=fx.batch,
+                layout=fx.layout,
+                hidden_strided=fx.hidden,
+                verify_window=fx.verify_window,
+                commit_lens=fx.commit_lens,
+                bs=2,
+            )
+
+        kwargs = draft.static_kwargs
+        self.assertEqual(kwargs["verify_len"], fx.stride)
+        self.assertEqual(kwargs["target_hidden"].shape[0], 2 * fx.stride)
+        torch.testing.assert_close(
+            kwargs["cache_loc"], fx.verify_window.verify_cache_loc
+        )
+        torch.testing.assert_close(
+            kwargs["positions"], fx.verify_window.positions_2d.reshape(-1)
+        )
+        torch.testing.assert_close(kwargs["commit_lens"], fx.commit_lens)
+
+    def test_compact_commit_flag_off_restores_host_compaction(self):
+        """SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT=0 must still route compact
+        verify through the masked commit, not silently keep the fixed-row path."""
+
+        class FakePool:
+            def set_mla_kv_buffer(self, *args, **kwargs):
+                pass
+
+        class FakeDraft:
+            def write_target_hidden_kv_static(self, **kwargs):
+                raise AssertionError("fixed-row commit ran with the flag off")
+
+            def write_target_hidden_kv(self, **kwargs):
+                self.eager_kwargs = kwargs
+
+        fx = self._compact_commit_fixture("cpu")
+        draft = FakeDraft()
+        injector = self._compact_commit_injector(draft, FakePool(), "cpu")
+
+        with envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.override(False), patch(
+            "sglang.srt.speculative.dspark_components.dspark_kv_inject."
+            "is_unified_kv_triton",
+            return_value=False,
+        ):
+            injector.inject_ragged(
+                batch=fx.batch,
+                layout=fx.layout,
+                hidden_strided=fx.hidden,
+                verify_window=fx.verify_window,
+                commit_lens=fx.commit_lens,
+                bs=2,
+            )
+
+        kwargs = draft.eager_kwargs
+        torch.testing.assert_close(
+            kwargs["cache_loc_2d"], fx.verify_window.verify_cache_loc_2d
+        )
+        torch.testing.assert_close(kwargs["commit_lens"], fx.commit_lens)
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required")
+    def test_compact_commit_runs_without_host_sync_and_masks_rows(self):
+        """The compact commit must stay device-side end to end: rejected and
+        never-verified rows go to the reserved skip slot, and no kernel in the
+        tail synchronizes the host."""
+
+        class FakeAttention(nn.Module):
+            kv_lora_rank = 2
+            num_local_heads = 1
+            qk_rope_head_dim = 2
+            kv_a_layernorm = nn.Identity()
+            attn_mqa = object()
+
+            def kv_a_proj_with_mqa(self, hidden):
+                return hidden, None
+
+            def rotary_emb(self, positions, q, k):
+                return q, k
+
+        class FakeLayer(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.attention = FakeAttention()
+
+        class FakePool:
+            def set_mla_kv_buffer(self, layer, loc, k_nope, k_rope):
+                self.loc = loc.clone()
+                self.k_nope = k_nope.clone()
+
+        device = torch.device("cuda")
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.layers = nn.ModuleList([FakeLayer()])
+        model.project_target_hidden = lambda hidden: hidden
+        pool = FakePool()
+        fx = self._compact_commit_fixture(device)
+        injector = self._compact_commit_injector(model, pool, device)
+
+        def commit():
+            injector.inject_ragged(
+                batch=fx.batch,
+                layout=fx.layout,
+                hidden_strided=fx.hidden,
+                verify_window=fx.verify_window,
+                commit_lens=fx.commit_lens,
+                bs=2,
+            )
+
+        unified_patch = patch(
+            "sglang.srt.speculative.dspark_components.dspark_kv_inject."
+            "is_unified_kv_triton",
+            return_value=False,
+        )
+        torch.cuda.synchronize(device)
+        torch.cuda.set_sync_debug_mode("error")
+        try:
+            with unified_patch:
+                commit()
+            # Harness self-check: the masked path this test guards against
+            # does synchronize, so a silent no-op debug mode cannot pass above.
+            with unified_patch, envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.override(
+                False
+            ), self.assertRaisesRegex(RuntimeError, "synchroniz"):
+                commit()
+        finally:
+            torch.cuda.set_sync_debug_mode("default")
+
+        torch.testing.assert_close(pool.loc, fx.expected_loc)
+        kept = [0, 4, 5, 6]
+        torch.testing.assert_close(pool.k_nope[kept, 0], fx.hidden[kept, :2])
 
     def test_quantization_scales_use_standard_weight_loaders(self):
         model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)

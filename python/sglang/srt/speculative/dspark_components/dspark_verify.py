@@ -26,7 +26,6 @@ from sglang.kernels.ops.speculative.dspark.dspark_verify_window import (
     build_unified_commit_inject_layout,
     scatter_compact_to_strided_into,
 )
-from sglang.srt.environ import envs
 from sglang.srt.layers.logits_processor import LogitsProcessorOutput
 from sglang.srt.managers.schedule_batch import ScheduleBatch
 from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode
@@ -383,6 +382,7 @@ class TargetVerifyExecutor:
                 batch=batch,
                 layout=layout,
                 hidden_strided=hidden_strided,
+                verify_window=verify_window,
                 commit_lens=commit_lens,
                 bs=bs,
             )
@@ -391,14 +391,11 @@ class TargetVerifyExecutor:
         if hidden is None:
             raise RuntimeError("DSpark verify requires target hidden states, got None.")
         hidden = hidden.view(bs, self.verify_num_draft_tokens, -1)
-        if (
-            envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.get()
-            and self.kv_injector.inject_target_hidden_static(
-                target_hidden=hidden.reshape(-1, hidden.shape[-1]),
-                cache_loc=verify_window.verify_cache_loc,
-                positions=verify_window.positions_2d.reshape(-1),
-                commit_lens=commit_lens,
-            )
+        if self.kv_injector.inject_target_hidden_static(
+            target_hidden=hidden.reshape(-1, hidden.shape[-1]),
+            cache_loc=verify_window.verify_cache_loc,
+            positions=verify_window.positions_2d.reshape(-1),
+            commit_lens=commit_lens,
         ):
             return
         state_slot = None
