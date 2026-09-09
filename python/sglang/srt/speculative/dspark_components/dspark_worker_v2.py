@@ -350,6 +350,7 @@ class DSparkWorkerV2(BaseSpecWorker):
                 device=self.device,
                 tp_sync=self._tp_sync,
                 fused_argmax=target_is_dsv41,
+                compact_mode=self._verify_planner.is_compact_mode,
                 commit_ctx=CommitInjectCtx(
                     draft_model=self.draft_model,
                     block_pos_offsets=self._block_pos_offsets,
@@ -931,6 +932,7 @@ class DSparkWorkerV2(BaseSpecWorker):
                     verify_ids_2d=verify_ids_2d,
                     verify_window=verify_window,
                     sampling_info=sampling_info,
+                    inject_gate=fold_eligible,
                 )
                 hidden_strided = None
         logits_output = target_verify.logits_output
@@ -1047,6 +1049,7 @@ class DSparkWorkerV2(BaseSpecWorker):
             next_draft_input=next_draft_input,
             speculative_num_draft_tokens=int(self.verify_num_draft_tokens),
             new_seq_lens=accept.new_seq_lens,
+            persistent_result_copy_owner=epilogue if folded_accept else None,
         )
 
     def _commit_target_mamba_states_after_verify(

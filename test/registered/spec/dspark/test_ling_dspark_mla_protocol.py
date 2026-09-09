@@ -1,18 +1,23 @@
 import unittest
 from contextlib import nullcontext
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import torch
 from torch import nn
 
+from sglang.kernels.ops.speculative.dspark.dspark_verify_window import (
+    BuildOutTokens,
+)
 from sglang.srt.configs.bailing_hybrid import BailingHybridConfig
 from sglang.srt.configs.hybrid_arch import mambaish_config
 from sglang.srt.configs.model_config import ModelConfig
 from sglang.srt.layers.attention.flashinfer_mla_backend import (
     _use_causal_mla_prefill,
 )
+from sglang.srt.layers.logits_processor import LogitsProcessorOutput
 from sglang.srt.layers.radix_attention import AttentionType
+from sglang.srt.managers.utils import GenerationBatchResult
 from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode
 from sglang.srt.models.bailing_moe_v3 import (
     BailingMoELinearDecoderLayer,
@@ -25,6 +30,15 @@ from sglang.srt.speculative.dspark_components.dspark_config import (
     apply_namespaced_dspark_draft_config,
     dspark_draft_is_moe,
     parse_dspark_draft_config,
+)
+from sglang.srt.speculative.dspark_components.dspark_kv_inject import (
+    TargetHiddenKvInjector,
+)
+from sglang.srt.speculative.dspark_components.dspark_verify import (
+    AcceptGreedy,
+    DsparkVerifyEpilogue,
+    FinalizeAcceptLens,
+    TargetVerifyExecutor,
 )
 from sglang.srt.speculative.spec_info import SpeculativeAlgorithm
 from sglang.test.ci.ci_register import register_cpu_ci
@@ -42,6 +56,264 @@ def _run_ling_mla_post_load(attention):
 
 
 class TestLingDsparkMlaProtocol(CustomTestCase):
+    def test_static_folded_tail_stages_replay_inputs(self):
+        epilogue = DsparkVerifyEpilogue(
+            max_bs=4,
+            verify_num_draft_tokens=3,
+            device="cpu",
+            compact_mode=False,
+        )
+        input_ids = torch.tensor([[1, 2, 3], [4, 5, 6]])
+        seq_lens = torch.tensor([100, 200])
+        req_pool_indices = torch.tensor([7, 8])
+
+        epilogue.begin_step(
+            None,
+            armed=True,
+            bs=2,
+            input_ids=input_ids,
+            seq_lens=seq_lens,
+            req_pool_indices=req_pool_indices,
+        )
+
+        torch.testing.assert_close(
+            epilogue.static_input_ids_buf[:6], input_ids.view(-1)
+        )
+        torch.testing.assert_close(epilogue.static_seq_lens_buf[:2], seq_lens)
+        torch.testing.assert_close(
+            epilogue.static_req_pool_indices_buf[:2], req_pool_indices
+        )
+        torch.testing.assert_close(epilogue.verify_lens_buf[:2], torch.full((2,), 3))
+        torch.testing.assert_close(
+            epilogue.verify_lens_buf[2:],
+            torch.zeros_like(epilogue.verify_lens_buf[2:]),
+        )
+
+    def test_folded_result_copy_event_is_consumed_once_at_reuse(self):
+        epilogue = DsparkVerifyEpilogue(
+            max_bs=4,
+            verify_num_draft_tokens=3,
+            device="cpu",
+            compact_mode=False,
+        )
+        event = Mock()
+        stream = Mock()
+        device_module = Mock()
+        device_module.Event.return_value = event
+        device_module.current_stream.return_value = stream
+
+        with patch("torch.get_device_module", return_value=device_module):
+            epilogue.record_result_copy_done()
+            event.record.assert_called_once_with()
+            with self.assertRaisesRegex(RuntimeError, "copied again"):
+                epilogue.record_result_copy_done()
+
+            epilogue.wait_for_result_copy_done()
+            stream.wait_event.assert_called_once_with(event)
+            epilogue.wait_for_result_copy_done()
+            self.assertEqual(stream.wait_event.call_count, 1)
+
+            epilogue.record_result_copy_done()
+            epilogue.wait_for_result_copy_done()
+            device_module.Event.assert_called_once_with()
+            self.assertEqual(event.record.call_count, 2)
+            self.assertEqual(stream.wait_event.call_count, 2)
+
+    def test_target_verify_waits_at_persistent_result_reuse_point(self):
+        order = []
+        executor = TargetVerifyExecutor.__new__(TargetVerifyExecutor)
+        executor.verify_epilogue = SimpleNamespace(
+            wait_for_result_copy_done=lambda: order.append("wait")
+        )
+        executor.target_worker = SimpleNamespace(
+            forward_batch_generation=lambda **kwargs: (
+                order.append("forward")
+                or SimpleNamespace(logits_output=Mock(), can_run_cuda_graph=True)
+            )
+        )
+        verify_input = SimpleNamespace(
+            prepare_for_verify=lambda batch, worker: (
+                order.append("prepare") or Mock(),
+                None,
+            )
+        )
+        batch = SimpleNamespace(seq_lens_cpu=torch.tensor([8]), seq_lens_sum=8)
+
+        executor._forward_prepared_verify(
+            batch=batch,
+            verify_input=verify_input,
+            seq_lens_cpu_backup=batch.seq_lens_cpu,
+            seq_lens_sum_backup=batch.seq_lens_sum,
+        )
+
+        self.assertEqual(order, ["prepare", "wait", "forward"])
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required")
+    def test_delayed_folded_result_copy_finishes_before_buffer_reuse(self):
+        device = torch.device("cuda")
+        epilogue = DsparkVerifyEpilogue(
+            max_bs=2,
+            verify_num_draft_tokens=3,
+            device=device,
+            compact_mode=False,
+        )
+        old_tokens = torch.tensor(
+            [[11, 12, 13], [21, 22, 23]], dtype=torch.int64, device=device
+        )
+        old_lens = torch.tensor([2, 3], dtype=torch.int32, device=device)
+        epilogue.out_tokens_buf.copy_(old_tokens)
+        epilogue.commit_lens_buf.copy_(old_lens)
+
+        result = GenerationBatchResult(
+            logits_output=LogitsProcessorOutput(next_token_logits=None),
+            next_token_ids=epilogue.out_tokens_buf.reshape(-1),
+            accept_lens=epilogue.commit_lens_buf,
+            copy_done=torch.cuda.Event(),
+            persistent_result_copy_owner=epilogue,
+        )
+        forward_stream = torch.cuda.current_stream(device)
+        copy_stream = torch.cuda.Stream(device=device)
+        copy_stream.wait_stream(forward_stream)
+        with torch.cuda.stream(copy_stream):
+            torch.cuda._sleep(20_000_000)
+            result.copy_to_cpu(return_logprob=False, return_hidden_states=False)
+
+        epilogue.wait_for_result_copy_done()
+        epilogue.out_tokens_buf.fill_(99)
+        epilogue.commit_lens_buf.fill_(1)
+        torch.cuda.synchronize(device)
+
+        torch.testing.assert_close(result.next_token_ids, old_tokens.cpu().reshape(-1))
+        torch.testing.assert_close(result.accept_lens, old_lens.cpu())
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA is required")
+    def test_folded_accept_matches_eager_oracle_for_static_and_compact(self):
+        device = torch.device("cuda")
+        stride = 6
+        gamma = stride - 1
+        vocab = 32
+        candidates = torch.tensor(
+            [
+                [1, 2, 3, 4, 5, 6],
+                [7, 8, 9, 10, 11, 12],
+                [13, 14, 15, 16, 17, 18],
+                [19, 20, 21, 22, 23, 24],
+            ],
+            dtype=torch.int64,
+            device=device,
+        )
+        # Exercise leading accept lengths 0, 1, 3, and gamma.
+        target_predict = torch.tensor(
+            [
+                [30, 3, 4, 5, 6, 7],
+                [8, 31, 10, 11, 12, 13],
+                [14, 15, 16, 30, 18, 19],
+                [20, 21, 22, 23, 24, 25],
+            ],
+            dtype=torch.int64,
+            device=device,
+        )
+        target_logits = torch.full(
+            (candidates.numel(), vocab),
+            -100.0,
+            dtype=torch.float32,
+            device=device,
+        )
+        target_logits.scatter_(1, target_predict.reshape(-1, 1), 100.0)
+        prefix_lens = torch.tensor(
+            [100, 200, 300, 400], dtype=torch.int64, device=device
+        )
+        draft_tokens = candidates[:, 1:].contiguous()
+
+        def eager_oracle(oracle_candidates, logits, prefixes, cutoff=None):
+            correct_len, bonus, cap_trim_lens = AcceptGreedy.execute(
+                candidates=oracle_candidates,
+                target_logits=logits,
+                verify_num_draft_tokens=stride,
+                cutoff_verify_lens=cutoff,
+            )
+            finalized = FinalizeAcceptLens.execute(
+                correct_len=correct_len,
+                cap_trim_lens=cap_trim_lens,
+                prefix_lens=prefixes,
+            )
+            out_tokens = BuildOutTokens.execute(
+                draft_tokens=draft_tokens[: oracle_candidates.shape[0]],
+                correct_len=correct_len,
+                bonus=bonus,
+                verify_num_draft_tokens=stride,
+                gamma=gamma,
+            )
+            return (
+                correct_len,
+                bonus,
+                finalized.cap_trim_lens,
+                finalized.commit_lens,
+                finalized.new_seq_lens,
+                out_tokens.view(oracle_candidates.shape[0], stride),
+            )
+
+        def assert_result(result, expected):
+            actual = (
+                result.correct_len,
+                result.bonus,
+                result.cap_trim_lens,
+                result.commit_lens,
+                result.new_seq_lens,
+                result.out_tokens,
+            )
+            for got, want in zip(actual, expected):
+                torch.testing.assert_close(got, want, rtol=0, atol=0)
+
+        static = DsparkVerifyEpilogue(
+            max_bs=4,
+            verify_num_draft_tokens=stride,
+            device=device,
+            compact_mode=False,
+        )
+        static.strided_logits = target_logits
+        static.draft_tokens_buf.copy_(draft_tokens.reshape(-1))
+        static._accept(candidates.reshape(-1), prefix_lens, None, bs=4)
+        assert_result(
+            static.read_accept(4),
+            eager_oracle(candidates, target_logits, prefix_lens),
+        )
+
+        # Reuse the BS4 bucket with a smaller live batch to catch stale rows.
+        static.correct_len_buf[3] = 99
+        static._accept(candidates[:3].reshape(-1), prefix_lens[:3], None, bs=3)
+        assert_result(
+            static.read_accept(3),
+            eager_oracle(candidates[:3], target_logits[: 3 * stride], prefix_lens[:3]),
+        )
+
+        compact = DsparkVerifyEpilogue(
+            max_bs=4,
+            verify_num_draft_tokens=stride,
+            device=device,
+            compact_mode=True,
+        )
+        widths = (1, 2, 4, 6)
+        verify_lens = torch.tensor(widths, dtype=torch.int64, device=device)
+        compact_candidates = torch.cat(
+            [candidates[row, :width] for row, width in enumerate(widths)]
+        )
+        padded_candidates = torch.zeros_like(candidates)
+        for row, width in enumerate(widths):
+            padded_candidates[row, :width] = candidates[row, :width]
+        compact.strided_logits = target_logits
+        compact.draft_tokens_buf.copy_(draft_tokens.reshape(-1))
+        compact._accept(compact_candidates, prefix_lens, verify_lens, bs=4)
+        assert_result(
+            compact.read_accept(4),
+            eager_oracle(
+                padded_candidates,
+                target_logits,
+                prefix_lens,
+                cutoff=verify_lens,
+            ),
+        )
+
     def test_capture_completes_pending_mlp_allreduce(self):
         class FakeCommunicator:
             def __init__(self):
@@ -549,6 +821,92 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         torch.testing.assert_close(pool.loc, torch.tensor([0, 1, 3]))
         self.assertEqual(pool.rows, 3)
 
+    def test_static_commit_keeps_rows_and_masks_rejected_locs(self):
+        class FakeAttention(nn.Module):
+            kv_lora_rank = 2
+            num_local_heads = 1
+            qk_rope_head_dim = 2
+            kv_a_layernorm = nn.Identity()
+            attn_mqa = object()
+
+            def kv_a_proj_with_mqa(self, hidden):
+                return hidden, None
+
+            def rotary_emb(self, positions, q, k):
+                return q, k
+
+        class FakeLayer(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.attention = FakeAttention()
+
+        class FakePool:
+            def set_mla_kv_buffer(self, layer, loc, k_nope, k_rope):
+                self.loc = loc.clone()
+                self.k_nope = k_nope.clone()
+                self.k_rope = k_rope.clone()
+
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.layers = nn.ModuleList([FakeLayer()])
+        model.project_target_hidden = lambda hidden: hidden
+        pool = FakePool()
+        hidden = torch.arange(24, dtype=torch.float32).view(6, 4)
+
+        model.write_target_hidden_kv_static(
+            target_hidden=hidden,
+            pool=pool,
+            positions=torch.arange(6),
+            cache_loc=torch.tensor([10, 11, 12, 20, 21, 22]),
+            commit_lens=torch.tensor([2, 1]),
+            verify_len=3,
+        )
+
+        torch.testing.assert_close(pool.loc, torch.tensor([10, 11, 0, 20, 0, 0]))
+        self.assertEqual(pool.k_nope.shape[0], 6)
+        self.assertEqual(pool.k_rope.shape[0], 6)
+        torch.testing.assert_close(pool.k_nope[[0, 1, 3], 0], hidden[[0, 1, 3], :2])
+        torch.testing.assert_close(pool.k_rope[[0, 1, 3], 0], hidden[[0, 1, 3], 2:])
+
+    def test_static_inject_normalizes_inputs_and_uses_fixed_row_protocol(self):
+        class FakePool:
+            def set_mla_kv_buffer(self, *args, **kwargs):
+                pass
+
+        class FakeDraft:
+            def write_target_hidden_kv_static(self, **kwargs):
+                self.kwargs = kwargs
+
+        draft = FakeDraft()
+        pool = FakePool()
+        injector = TargetHiddenKvInjector.__new__(TargetHiddenKvInjector)
+        injector.draft_model = draft
+        injector.draft_model_runner = SimpleNamespace(token_to_kv_pool=pool)
+        injector.model_runner = SimpleNamespace(device="cpu")
+        injector.verify_num_draft_tokens = 3
+
+        with patch(
+            "sglang.srt.speculative.dspark_components.dspark_kv_inject."
+            "is_unified_kv_triton",
+            return_value=False,
+        ):
+            used = injector.inject_target_hidden_static(
+                target_hidden=torch.ones((6, 4)),
+                cache_loc=torch.arange(6, dtype=torch.int32),
+                positions=torch.arange(6, dtype=torch.int32),
+                commit_lens=torch.tensor([2, 1], dtype=torch.int64),
+            )
+
+        self.assertTrue(used)
+        self.assertIs(draft.kwargs["pool"], pool)
+        self.assertEqual(draft.kwargs["verify_len"], 3)
+        self.assertEqual(draft.kwargs["cache_loc"].dtype, torch.int64)
+        self.assertEqual(draft.kwargs["positions"].dtype, torch.int64)
+        self.assertEqual(draft.kwargs["commit_lens"].dtype, torch.int32)
+        torch.testing.assert_close(
+            draft.kwargs["commit_lens"], torch.tensor([2, 1], dtype=torch.int32)
+        )
+
     def test_quantization_scales_use_standard_weight_loaders(self):
         model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
         nn.Module.__init__(model)
@@ -604,6 +962,21 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
             [(call[2], call[3]) for call in expert_loads],
             [("w1", 1), ("w3", 0), ("w2", 1)],
         )
+
+    def test_online_blockwise_fp8_scales_are_created_after_weight_load(self):
+        model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)
+        nn.Module.__init__(model)
+        model.config = SimpleNamespace(num_experts=0)
+        model.quant_config = SimpleNamespace(is_online_block_quant=True)
+        model.register_parameter("weight_scale_inv", nn.Parameter(torch.zeros(1)))
+        model.layers = nn.ModuleList([])
+        model._post_load_weights = lambda: None
+
+        self.assertEqual(model.load_weights([]), set())
+
+        model.quant_config = SimpleNamespace(is_online_block_quant=False)
+        with self.assertRaisesRegex(ValueError, "weight_scale_inv"):
+            model.load_weights([])
 
     def test_bundled_loader_consumes_only_dspark_namespace(self):
         model = LingV3ForCausalLMDSparkMLA.__new__(LingV3ForCausalLMDSparkMLA)

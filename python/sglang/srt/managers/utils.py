@@ -82,6 +82,12 @@ class GenerationBatchResult:
     # Valid output tokens that are not accepted draft proposals. Existing
     # algorithms have one bonus token; UNO also emits its clean root.
     num_non_draft_tokens_per_req: int = 1
+    # Folded speculative epilogues return views into graph-owned persistent
+    # buffers. The owner records a narrow event after those views are copied
+    # to host, then gates only the next replay that can overwrite them.
+    persistent_result_copy_owner: Optional[Any] = dataclasses.field(
+        default=None, repr=False, compare=False
+    )
 
     # Grammar FSM advance memoization (spec-v2 overlap). advance_grammar_fsm sets
     # these once — eagerly via the scheduler's grammar barrier inside verify(), or
@@ -156,6 +162,26 @@ class GenerationBatchResult:
         Only the tensors which are needed for processing results are copied,
         e.g., next_token_ids, logits outputs
         """
+        # Copy graph-owned speculative result fields first. A folded graph may
+        # reuse their backing storage on the next target replay, so its narrow
+        # reuse event must not be delayed by unrelated result transfers.
+        self.next_token_ids = _async_d2h(self.next_token_ids)
+
+        if self.accept_lens is not None:
+            self.accept_lens = _async_d2h(self.accept_lens)
+
+        owner = self.persistent_result_copy_owner
+        if owner is not None:
+            owner.record_result_copy_done()
+            # Avoid retaining the model/graph through the overlap result queue.
+            self.persistent_result_copy_owner = None
+
+        if self.block_accept_lens is not None:
+            self.block_accept_lens = _async_d2h(self.block_accept_lens)
+
+        if self.cap_lens is not None:
+            self.cap_lens = _async_d2h(self.cap_lens)
+
         if return_logprob:
             if self.logits_output.next_token_logprobs is not None:
                 self.logits_output.next_token_logprobs = _async_d2h(
@@ -184,17 +210,6 @@ class GenerationBatchResult:
             self.logits_output.hidden_states = _async_d2h(
                 self.logits_output.hidden_states
             )
-        self.next_token_ids = _async_d2h(self.next_token_ids)
-
-        if self.accept_lens is not None:
-            self.accept_lens = _async_d2h(self.accept_lens)
-
-        if self.block_accept_lens is not None:
-            self.block_accept_lens = _async_d2h(self.block_accept_lens)
-
-        if self.cap_lens is not None:
-            self.cap_lens = _async_d2h(self.cap_lens)
-
         # Sub-objects only declare their device fields; the single copy+safety
         # primitive (_async_d2h: pinned D2H + record_stream) is injected here so
         # all device->host copying and lifetime safety lives in one place.

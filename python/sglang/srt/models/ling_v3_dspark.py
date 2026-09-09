@@ -161,6 +161,60 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
             cache_loc = cache_loc_2d.reshape(-1)[committed]
             if target_hidden.numel() == 0:
                 return
+        self._write_target_hidden_kv_rows(
+            target_hidden=target_hidden,
+            pool=pool,
+            positions=positions,
+            cache_loc=cache_loc,
+        )
+
+    @torch.inference_mode()
+    def write_target_hidden_kv_static(
+        self,
+        *,
+        target_hidden: torch.Tensor,
+        pool,
+        positions: torch.Tensor,
+        cache_loc: torch.Tensor,
+        commit_lens: torch.Tensor,
+        verify_len: int,
+    ) -> None:
+        """Commit a fixed verify window while skipping rejected KV rows."""
+        cache_loc = cache_loc.reshape(-1)
+        positions = positions.reshape(-1)
+        num_rows = target_hidden.shape[0]
+        if (
+            num_rows != cache_loc.numel()
+            or num_rows != positions.numel()
+            or num_rows != commit_lens.numel() * verify_len
+        ):
+            raise ValueError(
+                "DSpark static KV write shape mismatch: "
+                f"hidden={num_rows}, cache_loc={cache_loc.numel()}, "
+                f"positions={positions.numel()}, commit_lens={commit_lens.numel()}, "
+                f"verify_len={verify_len}."
+            )
+
+        col = torch.arange(verify_len, device=cache_loc.device).view(1, -1)
+        committed = (col < commit_lens.to(torch.long).view(-1, 1)).reshape(-1)
+        masked_cache_loc = torch.where(
+            committed, cache_loc, torch.zeros_like(cache_loc)
+        )
+        self._write_target_hidden_kv_rows(
+            target_hidden=target_hidden,
+            pool=pool,
+            positions=positions,
+            cache_loc=masked_cache_loc,
+        )
+
+    def _write_target_hidden_kv_rows(
+        self,
+        *,
+        target_hidden: torch.Tensor,
+        pool,
+        positions: torch.Tensor,
+        cache_loc: torch.Tensor,
+    ) -> None:
         context = self.project_target_hidden(target_hidden)
         for layer in self.layers:
             attn = layer.attention
@@ -406,10 +460,16 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
             ".attn_mqa.k_scale",
             ".attn_mqa.v_scale",
         )
+        quant_config = getattr(self, "quant_config", None)
+        online_block_fp8 = bool(getattr(quant_config, "is_online_block_quant", False))
         missing = sorted(
             p
             for p in (set(params) - loaded)
             if not p.endswith(optional_kv_scale)
+            # Online blockwise FP8 starts from BF16 weights. Its scale
+            # parameters are populated by post-load quantization and therefore
+            # are intentionally absent from the checkpoint.
+            and not (online_block_fp8 and p.endswith("weight_scale_inv"))
         )
         if unexpected or missing:
             raise ValueError(

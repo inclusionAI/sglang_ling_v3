@@ -26,6 +26,7 @@ from sglang.kernels.ops.speculative.dspark.dspark_verify_window import (
     build_unified_commit_inject_layout,
     scatter_compact_to_strided_into,
 )
+from sglang.srt.environ import envs
 from sglang.srt.layers.logits_processor import LogitsProcessorOutput
 from sglang.srt.managers.schedule_batch import ScheduleBatch
 from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode
@@ -267,6 +268,8 @@ class TargetVerifyExecutor:
         verify_forward_batch, _ = verify_input.prepare_for_verify(
             batch, self.target_worker
         )
+        if self.verify_epilogue is not None:
+            self.verify_epilogue.wait_for_result_copy_done()
         self.target_worker.forward_batch_generation(
             batch=None,
             forward_batch=verify_forward_batch,
@@ -282,6 +285,7 @@ class TargetVerifyExecutor:
         verify_ids_2d: torch.Tensor,
         verify_window: VerifyWindow,
         sampling_info,
+        inject_gate: bool = False,
     ) -> TargetVerifyResult:
         verify_w = self.verify_num_draft_tokens
         positions_2d = verify_window.positions_2d
@@ -296,6 +300,15 @@ class TargetVerifyExecutor:
             live_seq_lens_cpu=batch.seq_lens_cpu,
         )
         batch.out_cache_loc = verify_cache_loc
+        if self.verify_epilogue is not None:
+            self.verify_epilogue.begin_step(
+                None,
+                armed=inject_gate,
+                bs=verify_ids_2d.shape[0],
+                input_ids=verify_ids_2d,
+                seq_lens=batch.seq_lens,
+                req_pool_indices=batch.req_pool_indices,
+            )
         seq_lens_cpu_backup = batch.seq_lens_cpu
         seq_lens_sum_backup = batch.seq_lens_sum
         if not self._verify_backend_self_adds_seq_lens():
@@ -340,6 +353,8 @@ class TargetVerifyExecutor:
         batch.seq_lens_cpu = seq_lens_cpu_backup
         batch.seq_lens_sum = seq_lens_sum_backup
 
+        if self.verify_epilogue is not None:
+            self.verify_epilogue.wait_for_result_copy_done()
         target_out = self.target_worker.forward_batch_generation(
             batch=None,
             forward_batch=verify_forward_batch,
@@ -376,6 +391,16 @@ class TargetVerifyExecutor:
         if hidden is None:
             raise RuntimeError("DSpark verify requires target hidden states, got None.")
         hidden = hidden.view(bs, self.verify_num_draft_tokens, -1)
+        if (
+            envs.SGLANG_DSPARK_LING_STATIC_EAGER_COMMIT.get()
+            and self.kv_injector.inject_target_hidden_static(
+                target_hidden=hidden.reshape(-1, hidden.shape[-1]),
+                cache_loc=verify_window.verify_cache_loc,
+                positions=verify_window.positions_2d.reshape(-1),
+                commit_lens=commit_lens,
+            )
+        ):
+            return
         state_slot = None
         if is_unified_kv_triton():
             # unified_kv needs the per-token draft req slot to address the SWA ring
@@ -537,6 +562,7 @@ class DsparkVerifyEpilogue:
         verify_num_draft_tokens: int,
         device,
         tp_sync: SpecTpSync,
+        compact_mode: bool,
         commit_ctx: Optional[CommitInjectCtx] = None,
         fused_argmax: bool = False,
     ) -> None:
@@ -544,6 +570,7 @@ class DsparkVerifyEpilogue:
         self.stride = int(verify_num_draft_tokens)
         self._fused_argmax = bool(fused_argmax)
         self.gamma = self.stride - 1
+        self.compact_mode = bool(compact_mode)
         self.commit_ctx = commit_ctx
         self._tp_sync = tp_sync
         self.inject_gate_buf = torch.zeros((1,), dtype=torch.int32, device=device)
@@ -554,7 +581,7 @@ class DsparkVerifyEpilogue:
             (self.max_bs * self.gamma,), dtype=torch.int64, device=device
         )
         self.correct_len_buf = torch.zeros(
-            (self.max_bs,), dtype=torch.int64, device=device
+            (self.max_bs,), dtype=torch.int32, device=device
         )
         self.bonus_buf = torch.zeros((self.max_bs,), dtype=torch.int64, device=device)
         self.cap_trim_lens_buf = torch.zeros(
@@ -569,15 +596,59 @@ class DsparkVerifyEpilogue:
         self.out_tokens_buf = torch.zeros(
             (self.max_bs, self.stride), dtype=torch.int64, device=device
         )
+        # Static verify shares the decode runner's replay inputs. The scheduler
+        # may refill those buffers after the attention metadata snapshot, while
+        # this epilogue still runs at the graph tail. Stage the live rows into
+        # epilogue-owned storage immediately before replay.
+        self.static_input_ids_buf = torch.zeros(
+            (self.max_bs * self.stride,), dtype=torch.int64, device=device
+        )
+        self.static_seq_lens_buf = torch.zeros(
+            (self.max_bs,), dtype=torch.int64, device=device
+        )
+        self.static_req_pool_indices_buf = torch.zeros(
+            (self.max_bs,), dtype=torch.int64, device=device
+        )
         self.strided_logits: Optional[torch.Tensor] = None
         self.strided_hidden: Optional[torch.Tensor] = None
         self._static_step_state: Optional[tuple[int, bool]] = None
+
+        self._result_copy_done_event = None
+        self._result_copy_pending = False
+
+    def record_result_copy_done(self) -> None:
+        """Fence D2H reads of persistent accept outputs on the copy stream."""
+        if self._result_copy_pending:
+            raise RuntimeError(
+                "DSpark folded result buffer was copied again before its prior "
+                "reuse dependency was consumed."
+            )
+        device_module = torch.get_device_module(self.correct_len_buf.device)
+        if self._result_copy_done_event is None:
+            self._result_copy_done_event = device_module.Event()
+        self._result_copy_done_event.record()
+        self._result_copy_pending = True
+
+    def wait_for_result_copy_done(self) -> None:
+        """Gate the next target replay, leaving the preceding draft overlapped."""
+        if not self._result_copy_pending:
+            return
+        device_module = torch.get_device_module(self.correct_len_buf.device)
+        device_module.current_stream(self.correct_len_buf.device).wait_event(
+            self._result_copy_done_event
+        )
+        self._result_copy_pending = False
 
     def capture_hook(self, runner, out, forward_batch, num_tokens) -> None:
         if (
             runner.model_runner.is_draft_worker
             or not forward_batch.forward_mode.is_target_verify()
         ):
+            return
+        # One worker owns one target graph runner. Match the epilogue layout
+        # to that runner explicitly so static verify keeps its uniform-width
+        # graph while compact verify keeps its packed-token graph.
+        if bool(runner.ragged_verify_mode) != self.compact_mode:
             return
         if (
             not isinstance(out, LogitsProcessorOutput)
@@ -597,10 +668,53 @@ class DsparkVerifyEpilogue:
             bs=forward_batch.batch_size,
         )
 
-    def begin_step(self, verify_lens, armed: bool) -> None:
+    def begin_step(
+        self,
+        verify_lens,
+        armed: bool,
+        bs: Optional[int] = None,
+        *,
+        input_ids: Optional[torch.Tensor] = None,
+        seq_lens: Optional[torch.Tensor] = None,
+        req_pool_indices: Optional[torch.Tensor] = None,
+    ) -> None:
         self._static_step_state = None
+        static_inputs = (input_ids, seq_lens, req_pool_indices)
+        if any(value is not None for value in static_inputs) and not all(
+            value is not None for value in static_inputs
+        ):
+            raise ValueError(
+                "DSpark static folded epilogue inputs must be staged together."
+            )
+        if input_ids is not None:
+            input_ids = input_ids.reshape(-1)
+            seq_lens = seq_lens.reshape(-1)
+            req_pool_indices = req_pool_indices.reshape(-1)
+            if (
+                seq_lens.numel() != req_pool_indices.numel()
+                or input_ids.numel() != seq_lens.numel() * self.stride
+            ):
+                raise ValueError(
+                    "DSpark static folded epilogue staging shape mismatch: "
+                    f"input_ids={input_ids.numel()}, seq_lens={seq_lens.numel()}, "
+                    f"req_pool_indices={req_pool_indices.numel()}, "
+                    f"stride={self.stride}."
+                )
+            if input_ids.numel() > self.static_input_ids_buf.numel():
+                raise ValueError(
+                    "DSpark static folded epilogue staging exceeds capacity: "
+                    f"rows={input_ids.numel()}, "
+                    f"capacity={self.static_input_ids_buf.numel()}."
+                )
+            rows = input_ids.numel()
+            live_bs = seq_lens.numel()
+            self.static_input_ids_buf[:rows].copy_(input_ids)
+            self.static_seq_lens_buf[:live_bs].copy_(seq_lens)
+            self.static_req_pool_indices_buf[:live_bs].copy_(req_pool_indices)
         if verify_lens is None:
             self.verify_lens_buf.zero_()
+            if bs is not None:
+                self.verify_lens_buf[:bs].fill_(self.stride)
         else:
             bs = verify_lens.shape[0]
             self.verify_lens_buf[:bs].copy_(verify_lens)
@@ -698,8 +812,6 @@ class DsparkVerifyEpilogue:
         req_pool_indices: torch.Tensor,
         bs: int,
     ) -> None:
-        self.strided_logits = self._ensure_out(self.strided_logits, compact_logits)
-        self.strided_hidden = self._ensure_out(self.strided_hidden, compact_hidden)
         verify_lens = self.verify_lens_buf[:bs]
         self._scatter(compact_logits, compact_hidden, verify_lens, bs)
         candidates = torch.zeros(
@@ -721,7 +833,11 @@ class DsparkVerifyEpilogue:
         )
         if self.folds_commit:
             self._commit_inject(
-                commit_lens, verify_lens, seq_lens, req_pool_indices, bs
+                commit_lens,
+                verify_lens,
+                seq_lens,
+                req_pool_indices,
+                bs,
             )
 
     def _scatter(self, compact_logits, compact_hidden, verify_lens, bs: int) -> None:

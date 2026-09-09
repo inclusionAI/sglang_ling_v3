@@ -100,6 +100,49 @@ class TargetHiddenKvInjector:
                 target_hidden_is_projected=target_hidden_is_projected,
             )
 
+    def inject_target_hidden_static(
+        self,
+        *,
+        target_hidden: torch.Tensor,
+        cache_loc: torch.Tensor,
+        positions: torch.Tensor,
+        commit_lens: torch.Tensor,
+    ) -> bool:
+        """Commit a uniform verify window without host-visible compaction."""
+        pool = self.draft_model_runner.token_to_kv_pool
+        if (
+            is_unified_kv_triton()
+            or hasattr(pool, "set_swa_key_buffer_radix_fused_norm_rope")
+            or not hasattr(self.draft_model, "write_target_hidden_kv_static")
+            or not hasattr(pool, "set_mla_kv_buffer")
+        ):
+            return False
+
+        device = self.model_runner.device
+        target_hidden = target_hidden.to(device=device, non_blocking=True)
+        cache_loc = cache_loc.to(device=device, dtype=torch.int64, non_blocking=True)
+        positions = positions.to(device=device, dtype=torch.int64, non_blocking=True)
+        commit_lens = commit_lens.to(
+            device=device, dtype=torch.int32, non_blocking=True
+        )
+        verify_len = self.verify_num_draft_tokens
+        if target_hidden.shape[0] != commit_lens.numel() * verify_len:
+            raise ValueError(
+                "DSpark static target-hidden commit shape mismatch: "
+                f"hidden={target_hidden.shape[0]}, "
+                f"commit_lens={commit_lens.numel()}, verify_len={verify_len}."
+            )
+        with torch.inference_mode():
+            self.draft_model.write_target_hidden_kv_static(
+                target_hidden=target_hidden,
+                pool=pool,
+                positions=positions,
+                cache_loc=cache_loc,
+                commit_lens=commit_lens,
+                verify_len=verify_len,
+            )
+        return True
+
     def _inject_mla(
         self,
         *,
