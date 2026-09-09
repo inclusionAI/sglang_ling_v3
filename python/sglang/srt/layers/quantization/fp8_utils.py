@@ -1226,6 +1226,53 @@ def _use_fp8_block_gemv(
     )
 
 
+def can_use_fused_kda_output_quant(
+    linear: torch.nn.Module,
+    m: int,
+    k: int,
+    input_dtype: torch.dtype,
+) -> bool:
+    """Whether ``linear`` can consume standalone KDA output finalization."""
+    if not envs.SGLANG_ENABLE_FUSED_KDA_OUTPUT_QUANT.get() or not 1 <= m <= 8:
+        return False
+    # Import lazily: fp8.py imports this module while defining Fp8LinearMethod.
+    from sglang.srt.layers.quantization.fp8 import Fp8LinearMethod
+
+    quant_method = getattr(linear, "quant_method", None)
+    if not isinstance(quant_method, Fp8LinearMethod):
+        return False
+    if not (
+        input_dtype == torch.bfloat16
+        and quant_method.block_quant
+        and not quant_method.use_marlin
+        and not quant_method.use_mxfp8
+        and quant_method.w8a8_block_fp8_linear
+        is deepgemm_w8a8_block_fp8_linear_with_fallback
+        and tuple(quant_method.weight_block_size) == (128, 128)
+        and getattr(linear, "_online_blockwise_fp8_input_padding", 0) == 0
+        and getattr(linear, "bias", None) is None
+    ):
+        return False
+
+    weight = getattr(linear, "weight", None)
+    weight_scale = getattr(linear, "weight_scale_inv", None)
+    if weight is None or weight_scale is None or weight.ndim != 2:
+        return False
+    n = weight.shape[0]
+    if not (
+        weight.dtype == torch.float8_e4m3fn
+        and weight.shape[1] == k
+        and weight.is_contiguous()
+        and weight_scale.dtype == torch.float32
+        and weight_scale.shape == ((n + 127) // 128, k // 128)
+        and weight_scale.is_contiguous()
+    ):
+        return False
+    return _fp8_block_gemv_enabled() and _use_hopper_fp8_block_gemv(
+        m, n, k, quant_method.weight_block_size
+    )
+
+
 def fp8_block_gemv_with_side(
     input_2d: torch.Tensor,
     weight: torch.Tensor,
@@ -1262,8 +1309,27 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
 ) -> torch.Tensor:
     # out: caller-owned buffer; deepgemm writes in place, fallbacks copy in.
     if input_scale is not None:
-        # Pre-quantized inputs come row-padded; no caller combines them with out.
+        # Pre-quantized inputs use either the native KDA row-major layout or
+        # the legacy row-padded DeepGEMM layout; neither combines with out.
         assert out is None
+        input_2d = input.view(-1, input.shape[-1])
+        # KDA's standalone finalizer emits the native row-major scale layout
+        # consumed by the Hopper small-M GEMV. Route it before the legacy
+        # pre-quantized DeepGEMM branch, whose scales are column-major and
+        # row-padded for TMA.
+        if (
+            input.dtype == torch.float8_e4m3fn
+            and input_scale.dtype == torch.float32
+            and input_scale.shape
+            == (input_2d.shape[0], input_2d.shape[1] // block_size[1])
+            and input_scale.is_contiguous()
+            and _use_fp8_block_gemv(input_2d, weight, weight_scale, block_size)
+        ):
+            output = _hopper_fp8_block_gemv(input_2d, input_scale, weight, weight_scale)
+            if bias is not None:
+                output += bias
+            return output.view(*input.shape[:-1], weight.shape[0])
+
         # Pre-quantized activation (SGLANG_OPT_MOE_QUANT_ONCE): ``input`` is
         # the fp8 per-token-group-128 q with rows padded to a multiple of 4
         # and ``input_scale`` the matching column-major fp32 scales
@@ -1281,7 +1347,6 @@ def deepgemm_w8a8_block_fp8_linear_with_fallback(
             "pre-quantized fp8 input requires a DeepGEMM-supported N dimension "
             f"(got {tuple(weight.shape)})"
         )
-        input_2d = input.view(-1, input.shape[-1])
         output = w8a8_block_fp8_matmul_deepgemm(
             input_2d,
             weight,

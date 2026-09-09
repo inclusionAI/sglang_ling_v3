@@ -1208,6 +1208,10 @@ class Envs:
     # TMA/WGMMA pipeline moves the few-MB decode weights at ~1 TB/s on H20,
     # the GEMV runs near the bandwidth floor (SM90 only).
     SGLANG_ENABLE_FP8_BLOCK_GEMV = EnvBool(False)
+    # Replace KDA target-verify's gated RMSNorm + activation quantization with
+    # one standalone kernel. It preserves the legacy BF16 rounding boundary and
+    # feeds row-major per-head scales directly to the Hopper FP8 block GEMV.
+    SGLANG_ENABLE_FUSED_KDA_OUTPUT_QUANT = EnvBool(False)
     SGLANG_PP_PARALLEL_DEEPGEMM_WARMUP = EnvBool(False)
 
     # ===================================================================

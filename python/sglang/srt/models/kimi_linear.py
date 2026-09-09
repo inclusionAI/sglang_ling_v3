@@ -585,6 +585,9 @@ class KimiDeltaAttention(nn.Module):
             forget_gate = forget_gate.unsqueeze(0)
         beta = beta.unsqueeze(0)
 
+        norm_gate = g_proj_states.unflatten(
+            -1, (-1, self.head_dim)
+        )  # ... (h d) -> ... h d
         core_attn_out = self.attn(
             forward_batch,
             mixed_qkv=mixed_qkv,
@@ -592,13 +595,58 @@ class KimiDeltaAttention(nn.Module):
             b=beta,
         )
 
-        norm_gate = g_proj_states.unflatten(
-            -1, (-1, self.head_dim)
-        )  # ... (h d) -> ... h d
-        core_attn_out = self.o_norm(core_attn_out, norm_gate)
-        core_attn_out = core_attn_out.squeeze(0).flatten(-2)  # 1 n h d -> n (h d)
+        use_fused_output_quant = False
+        num_tokens = hidden_states.shape[0]
+        if (
+            forward_batch.forward_mode.is_target_verify()
+            and self.head_dim == 128
+            and self.head_v_dim == 128
+            and core_attn_out.ndim == 4
+            and core_attn_out.dtype == torch.bfloat16
+            and core_attn_out.is_cuda
+            and core_attn_out.shape
+            == (1, num_tokens, self.local_num_heads, self.head_v_dim)
+            and core_attn_out.stride(-1) == 1
+            and norm_gate.dtype == torch.bfloat16
+            and norm_gate.device == core_attn_out.device
+            and norm_gate.shape == (num_tokens, self.local_num_heads, self.head_v_dim)
+            and norm_gate.stride(-1) == 1
+            and self.o_norm.activation == "sigmoid"
+            and self.o_norm.bias is None
+            and self.o_norm.weight.dtype == torch.bfloat16
+            and self.o_norm.weight.device == core_attn_out.device
+            and self.o_norm.weight.shape == (self.head_v_dim,)
+            and self.o_norm.weight.stride(0) == 1
+        ):
+            # Import lazily so non-FP8 models do not initialize the Hopper JIT
+            # selector on this common model path.
+            from sglang.srt.layers.quantization.fp8_utils import (
+                can_use_fused_kda_output_quant,
+            )
 
-        if inline_tp_reduce:
+            use_fused_output_quant = can_use_fused_kda_output_quant(
+                self.o_proj,
+                m=num_tokens,
+                k=self.local_num_heads * self.head_v_dim,
+                input_dtype=core_attn_out.dtype,
+            )
+
+        if use_fused_output_quant:
+            from sglang.kernels.ops.attention.fla.fused_kda_output_quant import (
+                fused_kda_output_quant,
+            )
+
+            core_attn_out = fused_kda_output_quant(
+                core_attn_out,
+                norm_gate,
+                self.o_norm.weight,
+                self.o_norm.eps,
+            )
+        else:
+            core_attn_out = self.o_norm(core_attn_out, norm_gate)
+            core_attn_out = core_attn_out.squeeze(0).flatten(-2)  # 1 n h d -> n (h d)
+
+        if inline_tp_reduce and not isinstance(core_attn_out, tuple):
             reduced = try_forward_chunked_gemm_ar_inline(
                 layer=self.o_proj,
                 input_parallel=core_attn_out,
