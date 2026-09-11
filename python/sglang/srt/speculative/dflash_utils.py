@@ -156,11 +156,25 @@ def dflash_draft_cell_size_per_token(
     tp_size: int,
 ) -> int:
     """Exact bytes/token of the DFLASH draft KV pool."""
+    from sglang.srt.configs.model_config import AttentionArch
+
     if draft_num_layers <= 0:
         return 0
+    dtype_size = torch._utils._element_size(draft_kv_cache_dtype)
+    if draft_model_config.attention_arch == AttentionArch.MLA:
+        # An MLA draft (e.g. Ling's DSpark head) allocates the same latent pool
+        # as an MLA target: kv_lora_rank + rope per layer, replicated on every
+        # TP rank. Pricing it per kv head over-reserves ~4x on Ling.
+        from sglang.srt.mem_cache.kv_cache_configurator import (
+            calculate_mla_kv_cache_dim,
+        )
+
+        kv_dim = calculate_mla_kv_cache_dim(
+            model_config=draft_model_config, kv_cache_dtype=draft_kv_cache_dtype
+        )
+        return int(kv_dim * int(draft_num_layers) * dtype_size)
     num_kv_heads = draft_model_config.get_num_kv_heads(tp_size)
     kv_dim_per_head = draft_model_config.head_dim + draft_model_config.v_head_dim
-    dtype_size = torch._utils._element_size(draft_kv_cache_dtype)
     return int(num_kv_heads * kv_dim_per_head * int(draft_num_layers) * dtype_size)
 
 

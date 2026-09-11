@@ -1021,7 +1021,10 @@ class TestDflashDraftKvBudget(CustomTestCase):
         )
 
         draft = SimpleNamespace(
-            get_num_kv_heads=lambda tp: 4, head_dim=128, v_head_dim=128
+            attention_arch=AttentionArch.MHA,
+            get_num_kv_heads=lambda tp: 4,
+            head_dim=128,
+            v_head_dim=128,
         )
         # 4 kv heads * (128 + 128) dims * 5 layers * 2 bytes
         self.assertEqual(
@@ -1042,6 +1045,40 @@ class TestDflashDraftKvBudget(CustomTestCase):
             ),
             0,
         )
+
+    def test_mla_draft_priced_by_latent_not_per_head(self):
+        """An MLA draft allocates kv_lora_rank + rope per layer on every TP
+        rank; pricing it as kv_heads x (head_dim + v_head_dim) reserved 4.4x
+        the real pool on Ling-3.0-plus (15360 vs 3456 B/token) and left
+        13-18 GB per rank idle."""
+        import torch
+
+        from sglang.srt.speculative.dflash_utils import (
+            dflash_draft_cell_size_per_token,
+        )
+
+        # Ling-3.0-plus DSpark head: 64 heads, qk 128 + 64 rope, v 128,
+        # kv_lora_rank 512, 3 layers, bf16 KV, TP8.
+        draft = SimpleNamespace(
+            attention_arch=AttentionArch.MLA,
+            get_num_kv_heads=lambda tp: 64 // tp,
+            head_dim=192,
+            v_head_dim=128,
+            kv_lora_rank=512,
+            qk_rope_head_dim=64,
+            hf_config=SimpleNamespace(architectures=["LingV3ForCausalLMDSparkMLA"]),
+        )
+        for tp_size in (1, 8):
+            with self.subTest(tp_size=tp_size):
+                self.assertEqual(
+                    dflash_draft_cell_size_per_token(
+                        draft_model_config=draft,
+                        draft_num_layers=3,
+                        draft_kv_cache_dtype=torch.bfloat16,
+                        tp_size=tp_size,
+                    ),
+                    (512 + 64) * 3 * 2,
+                )
 
     def test_dcp_replication_scales_draft_budget(self):
         """The replicated draft pool spans every DCP virtual location."""
