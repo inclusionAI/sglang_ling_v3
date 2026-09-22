@@ -580,7 +580,7 @@ class BailingMLP(nn.Module):
         element_scale = checkpoint_scale.index_select(0, scale_rows).index_select(
             1, scale_columns
         )
-        return (quantized_weight.float() * element_scale).to(torch.bfloat16)
+        return (quantized_weight.float() * element_scale.float()).to(torch.bfloat16)
 
     def requantize_serialized_fp8_tp_weights(self) -> bool:
         if not self._requires_serialized_fp8_tp_requant() or not hasattr(
@@ -1161,7 +1161,7 @@ class BailingMoE(nn.Module):
         element_scale = checkpoint_scale.index_select(0, scale_rows).index_select(
             1, scale_columns
         )
-        return (quantized_weight.float() * element_scale).to(torch.bfloat16)
+        return (quantized_weight.float() * element_scale.float()).to(torch.bfloat16)
 
     def requantize_serialized_fp8_tp_weights(self) -> bool:
         """Convert serialized global blocks into blocks local to this TP rank."""
