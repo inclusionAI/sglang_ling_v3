@@ -198,7 +198,7 @@ class Serving(msgspec.Struct):
         bool,
         "Return sampled output token ids on the response-level sglext extension for every chat completion request, as if return_output_ids_in_sglext were set on the request.",
     ] = False
-    reasoning_parser: Optional[str] = None
+    reasoning_parser: A[Optional[str], Arg(no_cli=True, resolvable=True)] = None
     default_chat_template_kwargs: A[
         Optional[Dict[str, Any]],
         Arg(

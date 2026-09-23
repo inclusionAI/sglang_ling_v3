@@ -7,7 +7,10 @@ from unittest.mock import MagicMock, patch
 import torch
 from xgrammar import TokenizerInfo
 
-from sglang.srt.constrained.base_grammar_backend import BaseGrammarBackend
+from sglang.srt.constrained.base_grammar_backend import (
+    BaseGrammarBackend,
+    BaseGrammarObject,
+)
 from sglang.srt.constrained.reasoner_grammar_backend import (
     ReasonerGrammarBackend,
     ReasonerGrammarObject,
@@ -20,7 +23,7 @@ from sglang.srt.entrypoints.openai.protocol import ChatCompletionRequest
 from sglang.srt.function_call.inkling_detector import (
     InklingDetector as InklingToolDetector,
 )
-from sglang.srt.function_call.kimik3_format import THINK_CLOSE
+from sglang.srt.function_call.kimik3_format import THINK_CLOSE, TOOLS_OPEN
 from sglang.srt.parser.inkling_tokenizer import (
     CONTENT_INVOKE_TOOL_JSON,
     CONTENT_MODEL_END_SAMPLING,
@@ -217,6 +220,7 @@ class TestReasonerGrammarBackend(CustomTestCase):
         tokenizer = _DummyTokenizer(
             {
                 THINK_CLOSE: think_end_ids,
+                TOOLS_OPEN: [1, 15, 3],
                 "response": [10],
                 "message": [11],
                 "<|end_of_msg|>": [12],
@@ -593,6 +597,140 @@ class TestReasonerGrammarBackend(CustomTestCase):
                 self._make_tokenizer(),
                 enable_strict_thinking=True,
             )
+
+
+class _RecordingGrammar(BaseGrammarObject):
+    def __init__(self):
+        super().__init__()
+        self.tokens = []
+        self.rejected_token = None
+        self.mask_calls = 0
+
+    def accept_token(self, token):
+        if token == self.rejected_token:
+            raise ValueError("Token not accepted")
+        self.tokens.append(token)
+
+    def rollback(self, k):
+        assert 0 < k <= len(self.tokens)
+        del self.tokens[-k:]
+
+    def fill_vocab_mask(self, mask, idx):
+        self.mask_calls += 1
+
+    def copy(self):
+        result = _RecordingGrammar()
+        result.tokens = list(self.tokens)
+        return result
+
+
+class TestImplicitToolReasoningBoundary(CustomTestCase):
+    """A tool marker ends thinking but also belongs to the inner grammar."""
+
+    def _make_object(self, tool_ids=(3, 4), reasoning=True):
+        backend = _DummyGrammarBackend()
+        backend._dispatch_result = _RecordingGrammar()
+        parser = SimpleNamespace(
+            detector=SimpleNamespace(
+                think_end_token="</think>",
+                think_excluded_tokens=None,
+                tool_start_token="<tool_call>",
+            )
+        )
+        tokenizer = _DummyTokenizer({"</think>": [7, 8], "<tool_call>": list(tool_ids)})
+        reasoner = ReasonerGrammarBackend(backend, parser, tokenizer)
+        return reasoner._init_value_dispatch(("structural_tag", "test"), reasoning)
+
+    def test_tool_start_enables_inner_grammar_without_think_end(self):
+        for tool_ids in ((3,), (3, 4)):
+            with self.subTest(tool_ids=tool_ids):
+                obj = self._make_object(tool_ids)
+                obj.accept_token(10)
+                for token in tool_ids[:-1]:
+                    obj.accept_token(token)
+                obj.fill_vocab_mask(None, 0)
+                self.assertEqual(obj.grammar.mask_calls, 0)
+                obj.accept_token(tool_ids[-1])
+                self.assertTrue(obj._is_generation())
+                self.assertEqual(obj.grammar.tokens, list(tool_ids))
+                obj.fill_vocab_mask(None, 0)
+                self.assertEqual(obj.grammar.mask_calls, 1)
+                obj.accept_token(20)
+                self.assertEqual(obj.grammar.tokens, [*tool_ids, 20])
+
+    def test_explicit_end_and_non_reasoning_do_not_replay_marker_twice(self):
+        for reasoning in (True, False):
+            with self.subTest(reasoning=reasoning):
+                obj = self._make_object(reasoning=reasoning)
+                for token in ([10, 7, 8] if reasoning else []) + [3, 4, 20]:
+                    obj.accept_token(token)
+                self.assertTrue(obj._is_generation())
+                self.assertEqual(obj.grammar.tokens, [3, 4, 20])
+
+    def test_partial_and_overlapping_tool_markers(self):
+        obj = self._make_object((3, 3, 4))
+        for token in (3, 3, 9, 3, 3, 3):
+            obj.accept_token(token)
+            self.assertTrue(obj._is_thinking())
+            self.assertEqual(obj.grammar.tokens, [])
+        obj.accept_token(4)
+        self.assertTrue(obj._is_generation())
+        self.assertEqual(obj.grammar.tokens, [3, 3, 4])
+
+    def test_rollback_across_implicit_boundary_matches_fresh_replay(self):
+        for tokens in ([10, 3, 4, 20, 21], [10, 3, 9, 7, 8, 20, 21]):
+            for k in range(1, len(tokens) + 1):
+                with self.subTest(tokens=tokens, rollback=k):
+                    obj = self._make_object()
+                    expected = self._make_object()
+                    for token in tokens:
+                        obj.accept_token(token)
+                    for token in tokens[:-k]:
+                        expected.accept_token(token)
+                    obj.rollback(k)
+                    self.assertEqual(obj.grammar.tokens, expected.grammar.tokens)
+                    for field in (
+                        "tokens_in_think",
+                        "tokens_after_end",
+                        "_matched_think_end_tokens",
+                    ):
+                        self.assertEqual(getattr(obj, field), getattr(expected, field))
+                    for token in tokens[-k:]:
+                        obj.accept_token(token)
+                        expected.accept_token(token)
+                    self.assertEqual(obj.grammar.tokens, expected.grammar.tokens)
+                    self.assertTrue(obj._is_generation())
+
+    def test_copy_preserves_partial_marker_and_boundary_rollback(self):
+        obj = self._make_object()
+        obj.accept_token(3)
+        partial_copy = obj.copy()
+        partial_copy.accept_token(4)
+        self.assertEqual(partial_copy.grammar.tokens, [3, 4])
+        self.assertEqual(obj.grammar.tokens, [])
+        boundary_copy = partial_copy.copy()
+        boundary_copy.rollback(1)
+        self.assertTrue(boundary_copy._is_thinking())
+        self.assertEqual(boundary_copy.grammar.tokens, [])
+        boundary_copy.accept_token(4)
+        self.assertEqual(boundary_copy.grammar.tokens, [3, 4])
+        self.assertTrue(partial_copy._is_generation())
+
+    def test_rejected_marker_replay_is_transactional(self):
+        obj = self._make_object()
+        obj.grammar.rejected_token = 4
+        obj.accept_token(3)
+        with self.assertRaisesRegex(ValueError, "Token not accepted"):
+            obj.accept_token(4)
+        self.assertTrue(obj._is_thinking())
+        self.assertEqual(obj.grammar.tokens, [])
+        obj.grammar.rejected_token = None
+        obj.accept_token(4)
+        self.assertEqual(obj.grammar.tokens, [3, 4])
+
+    def test_unencodable_tool_start_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "tool_start_token"):
+            self._make_object(())
 
 
 class TestReasonerGrammarObjectRollback(CustomTestCase):

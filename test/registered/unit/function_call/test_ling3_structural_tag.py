@@ -6,7 +6,12 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import torch
 import xgrammar as xgr
+from xgrammar.testing import _is_grammar_accept_string
+
+from sglang.srt.constrained.reasoner_grammar_backend import ReasonerGrammarObject
+from sglang.srt.constrained.xgrammar_backend import XGrammarGrammar
 from sglang.srt.entrypoints.openai.protocol import (
     ChatCompletionRequest,
     Function,
@@ -20,9 +25,9 @@ from sglang.srt.function_call.ling3_detector import (
     Ling3Detector,
     _ling3_native_structural_tag_available,
 )
+from sglang.srt.parser.reasoning_parser import Ling3Detector as Ling3ReasoningDetector
 from sglang.test.ci.ci_register import register_cpu_ci
 from sglang.test.test_utils import CustomTestCase
-from xgrammar.testing import _is_grammar_accept_string
 
 register_cpu_ci(est_time=5, suite="base-a-test-cpu")
 
@@ -200,6 +205,155 @@ class TestLing3StructuralTag(CustomTestCase):
             self.assertTrue(matcher.accept_token(token))
         self.assertTrue(matcher.accept_token(256))
         self.assertTrue(matcher.is_terminated())
+
+    def test_thinking_tool_start_activates_native_masks_and_stream_parser(self):
+        # The incident's layout, with synthetic content: no </think>, a newline
+        # after the name/key, and adjacent argument pairs. Exercise the serving
+        # constraint selection AND the real matcher behind the reasoning wrapper.
+        tools = [
+            Tool(
+                type="function",
+                function=Function(
+                    name="chat_history_search",
+                    strict=True,
+                    parameters={
+                        "type": "object",
+                        "properties": {
+                            "query": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 512,
+                            },
+                            "search_mode": {
+                                "type": "string",
+                                "enum": ["recent", "relevance"],
+                            },
+                        },
+                        "required": ["query", "search_mode"],
+                        "additionalProperties": False,
+                    },
+                ),
+            )
+        ]
+        text = (
+            "<tool_call>chat_history_search\n"
+            "<arg_key>query</arg_key>\n<arg_value>昨天的讨论</arg_value>"
+            "<arg_key>search_mode</arg_key>\n<arg_value>relevance</arg_value>\n"
+            "</tool_call>"
+        )
+        chat = self._chat()
+        chat.reasoning_parser = "ling3"
+        chat._reasoning_detector = Ling3ReasoningDetector()
+        chat.template_manager = SimpleNamespace(reasoning_config=None)
+        request = ChatCompletionRequest(
+            model="ling",
+            messages=[{"role": "user", "content": "search"}],
+            input_ids=[1],
+            tools=tools,
+            tool_choice="required",
+            stream=True,
+            chat_template_kwargs={"enable_thinking": True},
+        )
+        processed = chat._process_messages(request, is_multimodal=False)
+        self.assertTrue(processed.require_reasoning)
+        sampling = request.to_sampling_params(
+            stop=[],
+            model_generation_config={},
+            tool_call_constraint=processed.tool_call_constraint,
+        )
+        self.assertIn("structural_tag", sampling)
+        self.assertNotIn("json_schema", sampling)
+        tokenizer_info = xgr.TokenizerInfo(
+            [bytes([i]) for i in range(256)] + [b"<eos>"],
+            vocab_type=xgr.VocabType.RAW,
+            stop_token_ids=[256],
+        )
+        compiled = xgr.GrammarCompiler(tokenizer_info).compile_structural_tag(
+            processed.tool_call_constraint[1]
+        )
+
+        def make_wrapper():
+            inner = XGrammarGrammar(
+                xgr.GrammarMatcher(compiled, max_rollback_tokens=256),
+                257,
+                compiled,
+                [256],
+            )
+            wrapper = ReasonerGrammarObject(
+                inner,
+                think_end_ids=list(b"</think>"),
+                tool_start_ids=list(b"<tool_call>"),
+            )
+            wrapper.maybe_init_reasoning(True)
+            return wrapper
+
+        wrapper = make_wrapper()
+        mask = torch.full((1, 9), -1, dtype=torch.int32)
+
+        def allowed(token):
+            mask.fill_(-1)
+            wrapper.fill_vocab_mask(mask, 0)
+            return bool(int(mask[0, token // 32]) & (1 << (token % 32)))
+
+        prefix = "<tool_call>"
+        suffix = text[len(prefix) :]
+        for token in prefix.encode():
+            self.assertTrue(allowed(token))
+            wrapper.accept_token(token)
+        self.assertTrue(wrapper._is_generation())
+        self.assertFalse(allowed(ord("!")), "unknown tool name must be masked")
+        self.assertFalse(allowed(256), "EOS must wait for a complete required call")
+        for token in suffix.encode():
+            self.assertTrue(allowed(token))
+            wrapper.accept_token(token)
+        self.assertTrue(allowed(256))
+        wrapper.accept_token(256)
+        self.assertTrue(wrapper.is_terminated())
+
+        # The XML string grammar can retain alternative parses at an argument
+        # boundary, so test rejection of the complete invalid continuation,
+        # rather than requiring rejection at its first character.
+        wrapper = make_wrapper()
+        for token in [*text.replace("relevance", "invalid").encode(), 256]:
+            if not allowed(token):
+                break
+            wrapper.accept_token(token)
+        else:
+            self.fail("invalid enum call must not be allowed to terminate")
+
+        reasoning = Ling3ReasoningDetector(force_reasoning=True)
+        parsers, has_calls, chunks = {}, {}, []
+
+        async def collect():
+            for char in text:
+                delta = reasoning.parse_streaming_increment(char)
+                async for chunk in chat._process_tool_call_stream(
+                    index=0,
+                    delta=delta.normal_text,
+                    parser_dict=parsers,
+                    content={"meta_info": {"id": "implicit-tool-test"}},
+                    request=request,
+                    has_tool_calls=has_calls,
+                ):
+                    chunks.append(json.loads(chunk.removeprefix("data: ")))
+
+        asyncio.run(collect())
+        self.assertIsInstance(parsers[0], FunctionCallParser)
+        self.assertTrue(has_calls[0])
+        normal, arguments, names = "", "", []
+        for chunk in chunks:
+            delta = chunk["choices"][0]["delta"]
+            normal += delta.get("content") or ""
+            for call in delta.get("tool_calls") or []:
+                function = call["function"]
+                if function.get("name"):
+                    names.append(function["name"])
+                arguments += function.get("arguments") or ""
+        self.assertEqual(normal, "")
+        self.assertEqual(names, ["chat_history_search"])
+        self.assertEqual(
+            json.loads(arguments), {"query": "昨天的讨论", "search_mode": "relevance"}
+        )
 
     def test_xml_string_values_are_not_reinterpreted_as_json(self):
         grammar = self._grammar()

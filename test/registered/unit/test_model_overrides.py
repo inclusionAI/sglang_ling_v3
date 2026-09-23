@@ -215,6 +215,7 @@ class TestModelOverridableWhitelist(CustomTestCase):
                     "mm_preprocess_cache_size_mb",
                     "mm_feature_transport",
                     "tool_call_parser",
+                    "reasoning_parser",
                 }
             ),
         )
@@ -1574,8 +1575,15 @@ class TestGoldenModelOverrides(_IsolatedPublish):
             ),
             {"tool_call_parser": "ling3"},
         )
-        # An explicit parser is kept; "auto" stays on chat-template detection.
-        for explicit in ("glm45", "auto"):
+        # Architecture-aware auto must not fall back to generic GLM XML detection.
+        self.assertEqual(
+            _bailing_moe_v3_overrides(
+                SimpleNamespace(tool_call_parser="auto"), hf_config
+            ),
+            {"tool_call_parser": "ling3"},
+        )
+        # Preserve an explicitly selected parser.
+        for explicit in ("glm45", "glm", "ling3", "qwen"):
             self.assertEqual(
                 _bailing_moe_v3_overrides(
                     SimpleNamespace(tool_call_parser=explicit), hf_config
@@ -1618,6 +1626,25 @@ class TestGoldenModelOverrides(_IsolatedPublish):
             self.assertNotIn(
                 _bailing_moe_v3_overrides,
                 overrides_module._MODEL_OVERRIDE_FNS.get(other, ()),
+            )
+
+    def test_bailing_moe_v3_reasoning_auto_uses_ling_boundary(self):
+        from sglang.srt.arg_groups.overrides import _bailing_moe_v3_overrides
+
+        hf_config = SimpleNamespace(architectures=["BailingMoeV3ForCausalLM"])
+        args = SimpleNamespace(tool_call_parser="auto", reasoning_parser="auto")
+        self.assertEqual(
+            _bailing_moe_v3_overrides(args, hf_config),
+            {"tool_call_parser": "ling3", "reasoning_parser": "ling3"},
+        )
+        self.assertEqual(
+            vars(args), {"tool_call_parser": "auto", "reasoning_parser": "auto"}
+        )
+        for explicit in (None, "glm45", "ling3", "deepseek-r1"):
+            args.reasoning_parser = explicit
+            self.assertEqual(
+                _bailing_moe_v3_overrides(args, hf_config),
+                {"tool_call_parser": "ling3"},
             )
 
     def test_gpt_oss_mxfp4_forces_bfloat16(self):
