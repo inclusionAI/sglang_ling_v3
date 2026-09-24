@@ -133,6 +133,7 @@
         "BLOCK_SIZE_K": 128,
         "GROUP_SIZE_M": 32,
         "num_warps": 4,
-        "num_stages": 3
+        "num_stages": 3,
+        "USE_FP8_K160_TAIL": true
     }
 }
