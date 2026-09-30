@@ -1655,6 +1655,7 @@ class RowParallelLinear(LinearBase):
         # row chunks (layers/chunked_gemm_ar.py); falls through when ineligible.
         if (
             chunked_gemm_ar_enabled()
+            and not isinstance(input_parallel, tuple)
             and output_tensor is None
             and not skip_all_reduce
             and self.reduce_results

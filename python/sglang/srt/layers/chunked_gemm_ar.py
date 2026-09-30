@@ -222,7 +222,7 @@ def _try_forward_pipeline(
     forward_batch: Optional[ForwardBatch],
     group: GroupCoordinator,
 ) -> Optional[torch.Tensor]:
-    if x.dim() != 2 or not x.is_cuda:
+    if not isinstance(x, torch.Tensor) or x.dim() != 2 or not x.is_cuda:
         return None
     m = x.shape[0]
     knobs = _knobs()
