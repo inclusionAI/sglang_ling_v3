@@ -332,15 +332,8 @@ class DSparkWorkerV2(BaseSpecWorker):
             )
             == "deepseek_v41"
         )
-        static_epilogue_supported = (
-            target_is_dsv41
-            and self._verify_planner.mode_value == "static"
-            and self._draft_is_moe
-            and not get_parallel().enable_dp_attention
-            and self.model_runner.pp_size == 1
-        )
         if (
-            (self._verify_planner.is_compact_mode or static_epilogue_supported)
+            self._verify_planner.mode_value in ("static", "compact")
             and self._decode_graph_allowed
             and is_cuda()
         ):
@@ -921,11 +914,6 @@ class DSparkWorkerV2(BaseSpecWorker):
                     inject_gate=fold_eligible,
                 )
             else:
-                if (
-                    self._verify_epilogue is not None
-                    and self._verify_planner.mode_value == "static"
-                ):
-                    self._verify_epilogue.begin_static_step(bs, fold_eligible)
                 target_verify = self._verify_executor.run_non_compact(
                     batch=batch,
                     draft_input=draft_input,

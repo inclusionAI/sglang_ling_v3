@@ -558,8 +558,8 @@ class DsparkVerifyEpilogue:
         max_bs: int,
         verify_num_draft_tokens: int,
         device,
-        tp_sync: SpecTpSync,
         compact_mode: bool,
+        tp_sync: Optional[SpecTpSync] = None,
         commit_ctx: Optional[CommitInjectCtx] = None,
         fused_argmax: bool = False,
     ) -> None:
@@ -608,8 +608,6 @@ class DsparkVerifyEpilogue:
         )
         self.strided_logits: Optional[torch.Tensor] = None
         self.strided_hidden: Optional[torch.Tensor] = None
-        self._static_step_state: Optional[tuple[int, bool]] = None
-
         self._result_copy_done_event = None
         self._result_copy_pending = False
 
@@ -653,9 +651,6 @@ class DsparkVerifyEpilogue:
             or out.hidden_states is None
         ):
             return
-        if not runner.ragged_verify_mode:
-            self._static_epilogue(out, forward_batch)
-            return
         self(
             compact_logits=out.next_token_logits,
             compact_hidden=out.hidden_states,
@@ -675,7 +670,6 @@ class DsparkVerifyEpilogue:
         seq_lens: Optional[torch.Tensor] = None,
         req_pool_indices: Optional[torch.Tensor] = None,
     ) -> None:
-        self._static_step_state = None
         static_inputs = (input_ids, seq_lens, req_pool_indices)
         if any(value is not None for value in static_inputs) and not all(
             value is not None for value in static_inputs
@@ -718,49 +712,6 @@ class DsparkVerifyEpilogue:
             if bs < self.max_bs:
                 self.verify_lens_buf[bs:].zero_()
         self.inject_gate_buf.fill_(1 if armed else 0)
-
-    def begin_static_step(self, bs: int, armed: bool) -> None:
-        state = (bs, armed)
-        if self._static_step_state == state:
-            return
-        self.verify_lens_buf[:bs].fill_(self.stride)
-        self.verify_lens_buf[bs:].zero_()
-        self.inject_gate_buf.fill_(int(armed))
-        self._static_step_state = state
-
-    def _static_epilogue(self, out, forward_batch) -> None:
-        bs = forward_batch.batch_size
-        verify_lens = self.verify_lens_buf[:bs]
-        candidates = forward_batch.input_ids.view(bs, self.stride)
-        commit_lens = self._accept(
-            candidates=candidates,
-            logits=out.next_token_logits,
-            draft_tokens=candidates[:, 1:].contiguous(),
-            seq_lens=forward_batch.seq_lens,
-        )
-        if not self.folds_commit:
-            return
-        # Same staged locations as target verify; padded and fallback rows skip KV.
-        gated_commit_lens = (
-            torch.minimum(commit_lens, verify_lens.to(torch.int32))
-            * self.inject_gate_buf
-        )
-        cache_loc = forward_batch.out_cache_loc
-        state_slot = None
-        if is_unified_kv_triton():
-            state_slot = (
-                forward_batch.req_pool_indices.view(-1, 1)
-                .expand(bs, self.stride)
-                .reshape(-1)
-            )
-        self.commit_ctx.kv_injector.inject_target_hidden(
-            target_hidden=out.hidden_states,
-            cache_loc=cache_loc,
-            cache_loc_2d=cache_loc.view(bs, self.stride),
-            positions=forward_batch.positions,
-            commit_lens=gated_commit_lens,
-            state_slot=state_slot,
-        )
 
     def read_accept(self, bs: int) -> AcceptOuts:
         return AcceptOuts(
@@ -813,30 +764,28 @@ class DsparkVerifyEpilogue:
         bs: int,
     ) -> None:
         verify_lens = self.verify_lens_buf[:bs]
-        self._scatter(compact_logits, compact_hidden, verify_lens, bs)
-        candidates = torch.zeros(
-            (bs * self.stride, 1), dtype=input_ids.dtype, device=input_ids.device
-        )
-        scatter_compact_to_strided_into(
-            compact=input_ids.view(-1, 1),
-            verify_lens=verify_lens,
-            out=candidates,
-            stride=self.stride,
-            fill_value=0,
-        )
-        commit_lens = self._accept(
-            candidates=candidates.view(bs, self.stride),
-            logits=self.strided_logits[: bs * self.stride],
-            draft_tokens=self.draft_tokens_buf[: bs * self.gamma].view(bs, self.gamma),
-            seq_lens=seq_lens,
-            cutoff_verify_lens=verify_lens,
-        )
+        if self.compact_mode:
+            self.strided_logits = self._ensure_out(self.strided_logits, compact_logits)
+            self.strided_hidden = self._ensure_out(self.strided_hidden, compact_hidden)
+            self._scatter(compact_logits, compact_hidden, verify_lens, bs)
+            accept_input_ids = input_ids
+            commit_seq_lens = seq_lens
+            commit_req_pool_indices = req_pool_indices
+        else:
+            # Static verify already emits one full stride per request. Read the
+            # staged inputs because the decode runner can refill its own buffers.
+            self.strided_logits = compact_logits
+            self.strided_hidden = compact_hidden
+            accept_input_ids = self.static_input_ids_buf[: bs * self.stride]
+            commit_seq_lens = self.static_seq_lens_buf[:bs]
+            commit_req_pool_indices = self.static_req_pool_indices_buf[:bs]
+        commit_lens = self._accept(accept_input_ids, commit_seq_lens, verify_lens, bs)
         if self.folds_commit:
             self._commit_inject(
                 commit_lens,
                 verify_lens,
-                seq_lens,
-                req_pool_indices,
+                commit_seq_lens,
+                commit_req_pool_indices,
                 bs,
             )
 
@@ -856,27 +805,41 @@ class DsparkVerifyEpilogue:
             fill_value=0.0,
         )
 
-    def _accept(
-        self, *, candidates, logits, draft_tokens, seq_lens, cutoff_verify_lens=None
-    ) -> torch.Tensor:
-        bs = candidates.shape[0]
+    def _accept(self, input_ids, seq_lens, verify_lens, bs: int) -> torch.Tensor:
+        if self.compact_mode:
+            candidates = torch.zeros(
+                (bs * self.stride, 1), dtype=input_ids.dtype, device=input_ids.device
+            )
+            scatter_compact_to_strided_into(
+                compact=input_ids.view(-1, 1),
+                verify_lens=verify_lens,
+                out=candidates,
+                stride=self.stride,
+                fill_value=0,
+            )
+            candidates = candidates.view(bs, self.stride)
+            cutoff_verify_lens = verify_lens
+        else:
+            candidates = input_ids.view(bs, self.stride)
+            cutoff_verify_lens = None
         correct_len, bonus, cap_trim_lens = accept_greedy_triton(
             candidates=candidates,
-            target_logits=logits,
+            target_logits=self.strided_logits[: bs * self.stride],
             verify_num_draft_tokens=self.stride,
             cutoff_verify_lens=cutoff_verify_lens,
             fused_argmax=self._fused_argmax,
         )
-        self._tp_sync.sync(SpecTpSyncSite.DSPARK_ACCEPT_GRAPH, correct_len)
-        self._tp_sync.sync(SpecTpSyncSite.DSPARK_ACCEPT_GRAPH, bonus)
-        self._tp_sync.sync(SpecTpSyncSite.DSPARK_ACCEPT_GRAPH, cap_trim_lens)
+        if self._tp_sync is not None:
+            self._tp_sync.sync(SpecTpSyncSite.DSPARK_ACCEPT_GRAPH, correct_len)
+            self._tp_sync.sync(SpecTpSyncSite.DSPARK_ACCEPT_GRAPH, bonus)
+            self._tp_sync.sync(SpecTpSyncSite.DSPARK_ACCEPT_GRAPH, cap_trim_lens)
         finalized = finalize_accept_lens_triton(
             correct_len=correct_len,
             cap_trim_lens=cap_trim_lens,
             prefix_lens=seq_lens[:bs],
         )
         out_tokens = BuildOutTokens.execute(
-            draft_tokens=draft_tokens,
+            draft_tokens=self.draft_tokens_buf[: bs * self.gamma].view(bs, self.gamma),
             correct_len=correct_len,
             bonus=bonus,
             verify_num_draft_tokens=self.stride,
