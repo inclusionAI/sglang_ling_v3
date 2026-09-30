@@ -99,9 +99,7 @@ def _run_masked_act_quant(*, gemm1_clamp_limit: float | None):
             SimpleNamespace(may_quant_input=lambda **kwargs: ("fallback", kwargs)),
             create=True,
         ),
-        patch(
-            "sglang.kernels.ops.attention.dsv4.moe.silu_and_mul_masked_post_quant"
-        ) as fused,
+        patch("sglang.kernels.ops.moe.dsv4.silu_and_mul_masked_post_quant") as fused,
     ):
         runner._grouped_masked_act_quant(gate_up, expert_num_tokens, buffers)
 

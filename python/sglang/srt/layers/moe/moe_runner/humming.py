@@ -207,6 +207,7 @@ class HummingRunnerCore(MoeRunnerCore):
         self.global_num_experts = config.num_experts
         self.activation = config.activation
         self.swiglu_limit = config.swiglu_limit
+        self.gemm1_clamp_limit = config.gemm1_clamp_limit
         self.layer: torch.nn.Module | None = None
         self.humming_gemm_configs = {}
         HummingRunnerCore.runner_cores[id(self)] = self
@@ -485,6 +486,14 @@ class HummingRunnerCore(MoeRunnerCore):
         return buffers
 
     def apply_activation(self, inputs: torch.Tensor, outputs: torch.Tensor):
+        if self.activation == "silu" and self.gemm1_clamp_limit is not None:
+            gate, up = inputs.chunk(2, dim=-1)
+            limit = float(self.gemm1_clamp_limit)
+            outputs.copy_(
+                torch.nn.functional.silu(gate).clamp(max=limit)
+                * up.clamp(min=-limit, max=limit)
+            )
+            return
         if self.activation == "silu" and self.swiglu_limit is not None:
             from sglang.kernels.ops.moe.fused_moe_triton_kernels import (
                 act_and_mul_triton,
