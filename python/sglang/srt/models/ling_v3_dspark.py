@@ -74,7 +74,9 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
         self.config = config
         self.quant_config = quant_config
         self.is_bundled = is_namespaced_dspark_bundle(config)
-        if not self.is_bundled and has_standalone_dspark_weights(config):
+        # A namespaced draft may share its directory with the full target
+        # checkpoint. Prefer its dedicated file and index in that layout too.
+        if has_standalone_dspark_weights(config):
             self.allow_patterns_overrides = ["draft_model.safetensors"]
         self.num_context_features = len(config.target_layer_ids)
         self.block_size = int(config.block_size)

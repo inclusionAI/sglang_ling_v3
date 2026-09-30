@@ -561,6 +561,49 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         )
         self.assertTrue(model.sample_from_anchor)
 
+    def test_namespaced_draft_prefers_its_dedicated_weight_file(self):
+        class FakeLayer(nn.Module):
+            def __init__(self, **kwargs):
+                super().__init__()
+                self.attention = SimpleNamespace(
+                    attn_mqa=SimpleNamespace(attn_type=AttentionType.DECODER),
+                    attn_mha=SimpleNamespace(attn_type=AttentionType.DECODER),
+                )
+
+        with TemporaryDirectory() as draft_path:
+            Path(draft_path, "draft_model.safetensors").touch()
+            config = SimpleNamespace(
+                _name_or_path=draft_path,
+                target_layer_ids=[39],
+                block_size=5,
+                num_hidden_layers=1,
+                hidden_size=4,
+                rms_norm_eps=1e-6,
+                router_dtype="fp32",
+            )
+            with (
+                patch(
+                    "sglang.srt.models.ling_v3_dspark.BailingMoELinearDecoderLayer",
+                    FakeLayer,
+                ),
+                patch(
+                    "sglang.srt.models.ling_v3_dspark.build_markov_head",
+                    return_value=nn.Identity(),
+                ),
+                patch(
+                    "sglang.srt.models.ling_v3_dspark.build_confidence_head",
+                    return_value=None,
+                ),
+                patch(
+                    "sglang.srt.models.ling_v3_dspark.is_namespaced_dspark_bundle",
+                    return_value=True,
+                ),
+            ):
+                model = LingV3ForCausalLMDSparkMLA(config)
+
+        self.assertTrue(model.is_bundled)
+        self.assertEqual(model.allow_patterns_overrides, ["draft_model.safetensors"])
+
     def test_default_rope_parameters_do_not_enable_yarn(self):
         rope_parameters = {"rope_theta": 6_000_000, "rope_type": "default"}
         rope_theta, rope_scaling = resolve_bailing_mla_rope(
