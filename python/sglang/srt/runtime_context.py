@@ -1906,6 +1906,11 @@ def override_platform(**facts: Any) -> _PlatformOverride:
 # Derived config accessors use the process model (the target during speculation).
 
 
+def mamba_extra_buffer_enabled() -> bool:
+    """Whether the published Mamba cache configuration keeps an extra buffer."""
+    return get_exec().mamba.enable_mamba_extra_buffer
+
+
 def mamba_cache_chunk_size() -> int:
     """The caching point granularity for mamba state: ``max(the model's mamba
     chunk size, page_size)``. Cached on the config after the first call."""
