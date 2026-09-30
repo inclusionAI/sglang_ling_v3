@@ -101,6 +101,7 @@ from sglang.srt.models.deepseek_v2 import DeepseekV2AttentionMLA
 from sglang.srt.models.kimi_linear import KimiDeltaAttention
 from sglang.srt.runtime_context import (
     get_exec,
+    get_forward,
     get_parallel,
     get_platform,
     get_stream,
@@ -1337,6 +1338,9 @@ class BailingMoE(nn.Module):
             final_hidden_states = moe_tensor_model_parallel_all_reduce(
                 final_hidden_states
             )
+        # The runner's hand-off flag belongs to this MoE block. A following
+        # block may use a different runner and must decide its own TP reduction.
+        get_forward().set("moe_post_experts_allreduce_done", False)
         return final_hidden_states
 
     def _forward_shared_experts(
