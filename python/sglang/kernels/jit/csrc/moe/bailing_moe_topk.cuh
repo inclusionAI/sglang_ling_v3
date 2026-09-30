@@ -17,6 +17,8 @@
 
 namespace {
 
+namespace host = sglang::host;
+
 static constexpr int WARP_SIZE = 32;
 static constexpr int NUM_EXPERTS = 512;
 static constexpr int NUM_GROUPS = 8;
