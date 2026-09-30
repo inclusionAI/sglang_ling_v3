@@ -1459,6 +1459,19 @@ class PrefillAdder:
                         prefix_len + extend_len < len(req.full_untruncated_fill_ids)
                     )
                     max_new_tokens = admission.max_new_tokens
+                    if self.dllm_config is None and is_chunked:
+                        # A larger-than-promised host hit moves the starting
+                        # prefix. Keep the admitted extend from crossing the
+                        # Mamba fork after that shift.
+                        branch_split_len = self._mamba_branch_split_len(
+                            req, truncation_align_size, prefix_len=prefix_len
+                        )
+                        if (
+                            branch_split_len is not None
+                            and branch_split_len < extend_len
+                        ):
+                            extend_len = branch_split_len
+                            max_new_tokens = 0
                     if admission.is_chunked and not is_chunked:
                         max_new_tokens = min(
                             req.sampling_params.max_new_tokens, CLIP_MAX_NEW_TOKENS
