@@ -125,7 +125,7 @@ export const config = {
       },
       {
         match: { hw: "h20-3e", quant, spec: "dspark", nodes: "single" },
-        verified: false,
+        verified: quant === "mxfp4",
         flags: [...flags, ...dspark, ...common],
       },
     ]);
