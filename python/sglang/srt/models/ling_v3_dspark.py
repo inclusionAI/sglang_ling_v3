@@ -32,6 +32,7 @@ from sglang.srt.models.bailing_moe_v3 import (
     BailingMLP,
     BailingMoE,
     BailingMoELinearDecoderLayer,
+    _get_awq_dequantize,
 )
 from sglang.srt.models.deepseek_common.utils import (
     _is_cpu,
@@ -54,17 +55,6 @@ from sglang.srt.utils import BumpAllocator, add_prefix, bind_or_assign
 logger = logging.getLogger(__name__)
 
 _is_fp8_fnuz = is_fp8_fnuz()
-
-if _is_cuda:
-    from sgl_kernel import awq_dequantize
-elif _is_cpu and _is_cpu_amx_available:
-    pass
-elif _is_hip:
-    from sglang.kernels.ops.quantization.awq_triton import (
-        awq_dequantize_triton as awq_dequantize,
-    )
-elif not (_is_cpu and _is_cpu_amx_available):
-    from vllm._custom_ops import awq_dequantize
 
 
 class LingV3ForCausalLMDSparkMLA(nn.Module):
@@ -508,6 +498,11 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
                 continue
             if hasattr(self_attn.kv_b_proj, "qweight"):
                 # AWQ compatible
+                awq_dequantize = _get_awq_dequantize()
+                if awq_dequantize is None:
+                    raise RuntimeError(
+                        "AWQ dequantization is unavailable on this device"
+                    )
                 if _is_cuda or _is_hip:
                     w = awq_dequantize(
                         self_attn.kv_b_proj.qweight,
