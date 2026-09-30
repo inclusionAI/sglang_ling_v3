@@ -131,29 +131,29 @@ def silu_and_mul_block_quant_two_group(
         torch.float16,
     ), f"expected BF16 or FP16 input, got {x.dtype}"
     assert x.shape[-1] % 2 == 0, "the gate/up width must be even"
-    assert (
-        group_size == _SUPPORTED_GROUP_SIZE
-    ), f"only group_size={_SUPPORTED_GROUP_SIZE} is supported, got {group_size}"
+    assert group_size == _SUPPORTED_GROUP_SIZE, (
+        f"only group_size={_SUPPORTED_GROUP_SIZE} is supported, got {group_size}"
+    )
 
     output_k = x.shape[-1] // 2
     assert group_size < output_k < 2 * group_size, (
         "the optimized kernel requires exactly two quantization groups with a "
         f"partial final group, got K={output_k}, group_size={group_size}"
     )
-    assert (
-        output_k % _ROW_ALIGNMENT == 0
-    ), f"K must be {_ROW_ALIGNMENT}-element aligned, got {output_k}"
+    assert output_k % _ROW_ALIGNMENT == 0, (
+        f"K must be {_ROW_ALIGNMENT}-element aligned, got {output_k}"
+    )
     assert expert_step > 0, f"expert_step must be positive, got {expert_step}"
     if num_routed_experts is not None:
         assert expert_ids is not None, "num_routed_experts requires expert_ids"
-        assert (
-            num_routed_experts is not None and num_routed_experts > 0
-        ), "num_routed_experts must be positive"
+        assert num_routed_experts is not None and num_routed_experts > 0, (
+            "num_routed_experts must be positive"
+        )
     if expert_ids is not None:
         assert expert_ids.is_cuda, "expert_ids must be on CUDA"
-        assert (
-            expert_ids.dtype == torch.int32
-        ), f"expert_ids must be int32, got {expert_ids.dtype}"
+        assert expert_ids.dtype == torch.int32, (
+            f"expert_ids must be int32, got {expert_ids.dtype}"
+        )
         assert expert_ids.is_contiguous(), "expert_ids must be contiguous"
         assert expert_ids.numel() * expert_step >= x.shape[0], (
             "expert_ids does not cover every activation row: "
