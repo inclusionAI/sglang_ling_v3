@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Iterable, Optional, Tuple
 
 import torch
@@ -72,6 +73,13 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
         self.config = config
         self.quant_config = quant_config
         self.is_bundled = is_namespaced_dspark_bundle(config)
+        draft_path = getattr(config, "_name_or_path", "")
+        if (
+            draft_path
+            and not self.is_bundled
+            and os.path.isfile(os.path.join(draft_path, "draft_model.safetensors"))
+        ):
+            self.allow_patterns_overrides = ["draft_model.safetensors"]
         self.num_context_features = len(config.target_layer_ids)
         self.block_size = int(config.block_size)
         self.gamma = self.block_size

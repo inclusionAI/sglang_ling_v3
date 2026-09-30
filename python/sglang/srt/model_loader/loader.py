@@ -514,6 +514,8 @@ class DefaultModelLoader(BaseModelLoader):
 
         if allow_patterns_overrides is not None:
             allow_patterns = allow_patterns_overrides
+            if allow_patterns_overrides == ["draft_model.safetensors"]:
+                index_file = "draft_model.safetensors.index.json"
 
         if not is_local:
             hf_folder = download_weights_from_hf(
