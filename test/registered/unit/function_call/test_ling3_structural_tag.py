@@ -462,6 +462,9 @@ class TestLing3StructuralTag(CustomTestCase):
         chat = OpenAIServingChat.__new__(OpenAIServingChat)
         chat.tool_call_parser = "ling3"
         chat.reasoning_parser = None
+        chat.template_manager = SimpleNamespace(
+            reasoning_config=None, chat_template_name=None
+        )
         chat.chat_encoding_spec = None
         chat.default_chat_template_kwargs = {}
         chat.is_gpt_oss = chat.is_gemma4 = False
@@ -493,7 +496,6 @@ class TestLing3StructuralTag(CustomTestCase):
                             return_value=False,
                         ),
                         patch.object(chat, "_validate_request", return_value=None),
-                        patch.object(chat, "set_trace_id"),
                         patch.object(chat, "_handle_streaming_request") as streaming,
                         patch.object(
                             chat, "_handle_non_streaming_request"

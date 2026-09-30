@@ -308,6 +308,8 @@ import sglang.srt.arg_groups.model_overrides  # noqa: F401
 def _bailing_moe_v3_overrides(server_args: Any, hf_config: Any) -> dict:
     """Select Ling3 parsers when the Bailing V3 parser setting is automatic."""
     cfg = resolving_view(server_args)
+    if not hasattr(cfg, "tool_call_parser"):
+        return {}
     overrides = {}
     if cfg.tool_call_parser in (None, "auto"):
         logger.info("Use ling3 as tool-call parser for %s.", hf_config.architectures[0])
