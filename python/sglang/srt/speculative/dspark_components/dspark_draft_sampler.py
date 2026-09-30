@@ -27,7 +27,7 @@ def _base_logits_dtype(model) -> torch.dtype:
     Under the DSpark FP32 lm-head path the head, and the markov-corrected
     block logits, are emitted in FP32."""
     weight = model.lm_head.weight
-    if model._use_fp32_lm_head and weight.is_floating_point():
+    if getattr(model, "_use_fp32_lm_head", False) and weight.is_floating_point():
         return torch.float32
     if weight.is_floating_point():
         return weight.dtype
@@ -50,7 +50,7 @@ class DsparkDraftSampler:
         gamma,
         max_bs,
         device,
-        tp_sync: SpecTpSync,
+        tp_sync: Optional[SpecTpSync] = None,
         confidence_fn=None,
         out=None,
         folded_sampling: bool = True,
@@ -147,22 +147,26 @@ class DsparkDraftSampler:
                     # In-graph philox noise: each replay advances the generator
                     # and redraws.
                     noise = self.exp_noise[:bs].exponential_()
-                    return self._tp_sync.sync(
-                        SpecTpSyncSite.DSPARK_GRAPH_SAMPLE,
-                        SampleStepTokens.execute(
-                            step_logits=step_logits,
-                            temperatures=self.temperatures[:bs],
-                            greedy_mask=self.greedy_mask[:bs],
-                            exp_noise=noise,
-                        ),
+                    tokens = SampleStepTokens.execute(
+                        step_logits=step_logits,
+                        temperatures=self.temperatures[:bs],
+                        greedy_mask=self.greedy_mask[:bs],
+                        exp_noise=noise,
+                    )
+                    return (
+                        self._tp_sync.sync(SpecTpSyncSite.DSPARK_GRAPH_SAMPLE, tokens)
+                        if self._tp_sync is not None
+                        else tokens
                     )
 
             else:
 
                 def sampler(step_logits: torch.Tensor, step_idx: int) -> torch.Tensor:
-                    return self._tp_sync.sync(
-                        SpecTpSyncSite.DSPARK_GRAPH_GREEDY,
-                        greedy_step_sampler(step_logits, step_idx),
+                    tokens = greedy_step_sampler(step_logits, step_idx)
+                    return (
+                        self._tp_sync.sync(SpecTpSyncSite.DSPARK_GRAPH_GREEDY, tokens)
+                        if self._tp_sync is not None
+                        else tokens
                     )
 
             draft_tokens, corrected_logits = self.markov_head.sample_block(

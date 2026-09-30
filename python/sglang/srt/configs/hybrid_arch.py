@@ -110,6 +110,13 @@ def mamba2_config(model_config: ModelConfig):
 
 def kimi_linear_config(model_config: ModelConfig):
     config = model_config.hf_config
+    # The native MLA DSpark draft has no linear layers when every layer is MLA.
+    if (
+        isinstance(config, BailingHybridConfig)
+        and "LingV3ForCausalLMDSparkMLA" in getattr(config, "architectures", [])
+        and not config.linear_layer_ids
+    ):
+        return None
     if isinstance(config, KimiLinearConfig):
         return config
     if (

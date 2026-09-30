@@ -141,6 +141,7 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
         cache_loc: torch.Tensor,
         cache_loc_2d=None,
         commit_lens=None,
+        target_hidden_is_projected: bool = False,
     ) -> None:
         if (cache_loc_2d is None) != (commit_lens is None):
             raise ValueError(
@@ -160,6 +161,7 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
             pool=pool,
             positions=positions,
             cache_loc=cache_loc,
+            target_hidden_is_projected=target_hidden_is_projected,
         )
 
     @torch.inference_mode()
@@ -208,8 +210,13 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
         pool,
         positions: torch.Tensor,
         cache_loc: torch.Tensor,
+        target_hidden_is_projected: bool = False,
     ) -> None:
-        context = self.project_target_hidden(target_hidden)
+        context = (
+            target_hidden
+            if target_hidden_is_projected
+            else self.project_target_hidden(target_hidden)
+        )
         for layer in self.layers:
             attn = layer.attention
             if hasattr(attn, "fused_qkv_a_proj_with_mqa"):

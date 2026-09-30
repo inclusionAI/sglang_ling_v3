@@ -136,12 +136,14 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
             )
         )
         verify_input = SimpleNamespace(
+            live_seq_lens_cpu=None,
             prepare_for_verify=lambda batch, worker: (
                 order.append("prepare") or Mock(),
                 None,
-            )
+            ),
         )
         batch = SimpleNamespace(seq_lens_cpu=torch.tensor([8]), seq_lens_sum=8)
+        executor._target_is_dsv41 = False
 
         executor._forward_prepared_verify(
             batch=batch,
@@ -341,25 +343,25 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         torch.testing.assert_close(accepted.new_seq_lens, torch.tensor([101, 202]))
 
     def test_capture_completes_pending_mlp_allreduce(self):
-        class FakeCommunicator:
-            def __init__(self):
-                self.postprocess_calls = 0
+        # On the current stage-boundary API, the next attention boundary
+        # completes the preceding FFN contribution before capturing it.
+        captured = []
 
-            def prepare_attn(self, hidden, residual, forward_batch):
-                return hidden, residual
+        class FakeAttnBoundary:
+            def prepare(self, hidden, forward_batch, *, capture=None):
+                if capture is not None:
+                    capture(hidden + 10, owned=True)
+                return hidden
 
-            def prepare_mlp(self, hidden, residual, forward_batch):
-                return hidden, residual
+            def finish(self, hidden, forward_batch, *, already_reduced=False):
+                return hidden
 
-            def should_fuse_mlp_allreduce_with_next_layer(self, forward_batch):
-                return True
+        class FakeFfnBoundary:
+            def prepare(self, hidden, forward_batch):
+                return hidden
 
-            def should_use_reduce_scatter(self, forward_batch):
-                return False
-
-            def postprocess_layer(self, hidden, residual, forward_batch):
-                self.postprocess_calls += 1
-                return hidden + 10, residual
+            def exit(self, forward_batch):
+                return nullcontext(SimpleNamespace(finish=lambda hidden: hidden))
 
         class FakeMlp(nn.Module):
             def forward(self, hidden, forward_batch):
@@ -367,7 +369,8 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
 
         layer = BailingMoELinearDecoderLayer.__new__(BailingMoELinearDecoderLayer)
         nn.Module.__init__(layer)
-        layer.layer_communicator = FakeCommunicator()
+        layer.attn_boundary = FakeAttnBoundary()
+        layer.ffn_boundary = FakeFfnBoundary()
         layer.mlp = FakeMlp()
         layer.attention_type = 1
         layer.use_mla = True
@@ -375,37 +378,20 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         forward_batch = SimpleNamespace(
             forward_mode=SimpleNamespace(is_idle=lambda: True)
         )
-        fake_forward = SimpleNamespace(scoped=lambda **kwargs: nullcontext())
-
-        with (
-            patch(
-                "sglang.srt.models.bailing_moe_v3.get_forward",
-                return_value=fake_forward,
-            ),
-            patch(
-                "sglang.srt.models.bailing_moe_v3.enable_moe_dense_fully_dp",
-                return_value=False,
-            ),
+        with patch(
+            "sglang.srt.models.bailing_moe_v3.is_dense_ffn_fully_dp",
+            return_value=False,
         ):
-            fused, _ = layer(
+            completed = layer(
                 hidden_states=torch.ones((1, 2)),
                 positions=torch.zeros(1, dtype=torch.long),
                 forward_batch=forward_batch,
-                residual=torch.zeros((1, 2)),
                 zero_allocator=None,
-            )
-            completed, _ = layer(
-                hidden_states=torch.ones((1, 2)),
-                positions=torch.zeros(1, dtype=torch.long),
-                forward_batch=forward_batch,
-                residual=torch.zeros((1, 2)),
-                zero_allocator=None,
-                capture_after_layer=True,
+                capture_output=lambda value, **kwargs: captured.append(value),
             )
 
-        self.assertTrue(fused._sglang_needs_allreduce_fusion)
-        self.assertEqual(layer.layer_communicator.postprocess_calls, 1)
-        torch.testing.assert_close(completed, torch.full((1, 2), 12.0))
+        torch.testing.assert_close(captured[0], torch.full((1, 2), 11.0))
+        torch.testing.assert_close(completed, torch.full((1, 2), 2.0))
 
     def test_capture_skips_dp_scattered_empty_output(self):
         # Regression: under DP attention a captured layer's input (attention
@@ -428,13 +414,14 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
                 hidden_states,
                 positions,
                 forward_batch,
-                residual,
                 zero_allocator,
-                capture_after_layer,
+                capture_output,
             ):
-                self.capture_after_layer_seen = capture_after_layer
+                self.capture_after_layer_seen = capture_output is not None
                 out = hidden_states.new_zeros((self.out_rows, hidden_states.shape[-1]))
-                return out, None
+                if capture_output is not None:
+                    capture_output(out)
+                return out
 
         passthrough = _ProjectionStub(out_rows=4)  # layer 0, non-captured
         captured = _ProjectionStub(out_rows=0)  # layer 1, captured, empty output
@@ -444,7 +431,7 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         model.start_layer = 0
         model.end_layer = 2
         model.layers = nn.ModuleList([passthrough, captured])
-        model.layers_to_capture = [1]
+        model.layers_to_capture = [0]
         model.capture_aux_hidden_states = True
         model.pp_group = SimpleNamespace(is_first_rank=True, is_last_rank=True)
         model.norm = nn.Identity()
@@ -454,12 +441,17 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
             capture_hidden_mode=CaptureHiddenMode.FULL,
             forward_mode=SimpleNamespace(is_idle=lambda: False),
         )
-        result = model.forward(
-            input_ids=None,
-            positions=torch.zeros(4, dtype=torch.long),
-            forward_batch=forward_batch,
-            inputs_embeds=torch.zeros((4, 3)),
-        )
+        with patch("sglang.srt.models.bailing_moe_v3.residual_batch") as residual:
+            residual.complete_output.side_effect = lambda hidden, batch: hidden
+            residual.final_norm.side_effect = lambda hidden, batch, norm, capture=None: (
+                hidden
+            )
+            result = model.forward(
+                input_ids=None,
+                positions=torch.zeros(4, dtype=torch.long),
+                forward_batch=forward_batch,
+                input_embeds=torch.zeros((4, 3)),
+            )
 
         # No 0-row capture appended: the aux list is empty, so forward returns
         # the plain hidden state rather than a (hidden, aux) tuple.
