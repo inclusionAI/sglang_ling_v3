@@ -3912,6 +3912,20 @@ class TestLing3Detector(unittest.TestCase):
                 ),
             )
         )
+        self.tools.append(
+            Tool(
+                type="function",
+                function=Function(
+                    name="submit",
+                    description="Submit a structured payload",
+                    parameters={
+                        "type": "object",
+                        "properties": {"payload": {"type": "object"}},
+                        "required": ["payload"],
+                    },
+                ),
+            )
+        )
         self.detector = Ling3Detector()
 
     def _collect_streaming_tool_calls(self, chunks):

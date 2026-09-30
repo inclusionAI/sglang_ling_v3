@@ -304,6 +304,20 @@ def collect_model_override_declarations(
 import sglang.srt.arg_groups.model_overrides  # noqa: F401
 
 
+@_register_for("BailingMoeV3ForCausalLM")
+def _bailing_moe_v3_overrides(server_args: Any, hf_config: Any) -> dict:
+    """Select Ling3 parsers when the Bailing V3 parser setting is automatic."""
+    cfg = resolving_view(server_args)
+    overrides = {}
+    if cfg.tool_call_parser in (None, "auto"):
+        logger.info("Use ling3 as tool-call parser for %s.", hf_config.architectures[0])
+        overrides["tool_call_parser"] = "ling3"
+    if getattr(cfg, "reasoning_parser", None) == "auto":
+        logger.info("Use ling3 as reasoning parser for %s.", hf_config.architectures[0])
+        overrides["reasoning_parser"] = "ling3"
+    return overrides
+
+
 @register_model_override_predicate(
     lambda arch: (
         "Step3p5ForCausalLM" in arch or "Step3p7ForConditionalGeneration" in arch

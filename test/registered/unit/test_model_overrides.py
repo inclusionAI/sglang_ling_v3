@@ -1609,7 +1609,7 @@ class TestGoldenModelOverrides(_IsolatedPublish):
 
         declarations = collect_model_override_declarations(
             "BailingMoeV3ForCausalLM",
-            SimpleNamespace(tool_call_parser=None),
+            SimpleNamespace(tool_call_parser=None, moe_runner_backend="triton"),
             SimpleNamespace(architectures=["BailingMoeV3ForCausalLM"]),
         )
         self.assertIn(

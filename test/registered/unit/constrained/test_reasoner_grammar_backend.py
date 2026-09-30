@@ -639,7 +639,9 @@ class TestImplicitToolReasoningBoundary(CustomTestCase):
         )
         tokenizer = _DummyTokenizer({"</think>": [7, 8], "<tool_call>": list(tool_ids)})
         reasoner = ReasonerGrammarBackend(backend, parser, tokenizer)
-        return reasoner._init_value_dispatch(("structural_tag", "test"), reasoning)
+        return reasoner._init_value_dispatch(
+            ("structural_tag", json.dumps({"type": "test"})), reasoning
+        )
 
     def test_tool_start_enables_inner_grammar_without_think_end(self):
         for tool_ids in ((3,), (3, 4)):
