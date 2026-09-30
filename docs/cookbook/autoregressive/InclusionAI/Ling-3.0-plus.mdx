@@ -7,7 +7,7 @@ description: "Deploy Ling-3.0-plus with SGLang using FP8 on eight GPUs, MXFP4 on
 
 Use an SGLang source build that includes Ling-3.0-plus support, then replace the checkpoint paths in the command panel with your local paths or published model IDs. The panel emits a Python command so it works with a source install. See the [installation guide](/docs/get-started/install) for source setup.
 
-Choose **FP8** for tensor and expert parallelism across eight H20-class GPUs, or **MXFP4** for tensor parallelism across four H20-class GPUs. Select **DSPARK** to add an external draft checkpoint to either target. The DSPARK combinations are awaiting end-to-end validation.
+Choose **FP8** for tensor parallelism across eight H20-class GPUs, or **MXFP4** for tensor parallelism across four H20-class GPUs. Leave expert parallelism at its default of one for the FP8 checkpoint's shared expert layout. The FP8 recipe with built-in **NEXTN** and the MXFP4 recipe without speculative decoding were tested. Select **DSPARK** to add an external draft checkpoint to either target. The DSPARK combinations are awaiting end-to-end validation.
 
 import { Deployment } from "/src/snippets/_deployment.jsx";
 import { config } from "/src/snippets/configs/inclusionAI/ling-3.0-plus.jsx";
@@ -28,8 +28,9 @@ Ling-3.0-plus is a BailingMoeV3 hybrid KDA and MLA MoE model with 72 decoder lay
 
 | Selection | Checkpoint path to supply | Serving topology |
 | --- | --- | --- |
-| FP8 | Blockwise FP8 target | `--tp 8 --ep-size 8` |
+| FP8 | Blockwise FP8 target | `--tp 8` |
 | MXFP4 | Mixed MXFP4 and FP8 target | `--tp 4 --moe-runner-backend humming` |
+| NEXTN | Built-in Plus draft, validated with FP8 | `--speculative-algorithm NEXTN` |
 | DSPARK | Separate Ling-3.0-plus draft, paired with either target | `--speculative-algorithm DSPARK` |
 
 The Plus DSpark draft configuration uses a block size of 7, so each target verification window contains 8 tokens. The command sets `--enable-linear-replayssm-spec` and a 32-slot ReplaySSM ring. The draft block size is inferred from the checkpoint. A standalone draft file named `draft_model.safetensors` can share its directory with full BF16 target shards; SGLang selects the draft file and its own index for this layout.
@@ -55,6 +56,6 @@ Disable thinking for an individual request with `"chat_template_kwargs": {"enabl
 
 ## Validation status
 
-On the local Plus checkpoints, Chat Completions with thinking and the Ling3 parser scored **1283/1319 (97.27%)** on GSM8K for FP8 TP8 and **1280/1319 (97.04%)** for MXFP4 TP4. The MXFP4 run used the Humming backend. DSpark startup and accuracy with the external Plus draft are still being validated; the panel marks those cells unverified.
+On the local Plus checkpoints, Chat Completions with thinking and the Ling3 parser scored **1283/1319 (97.27%)** on GSM8K for FP8 TP8 with NEXTN and **1280/1319 (97.04%)** for MXFP4 TP4 with the Humming backend. DSpark startup and accuracy with the external Plus draft are still being validated; the panel marks those cells unverified.
 
 For the smaller model and its published checkpoints, see the [Ling-3.0-flash cookbook](/cookbook/autoregressive/InclusionAI/Ling-3.0-flash).

@@ -43,6 +43,7 @@ export const config = {
       options: [
         { id: "current", label: "Inherited from base" },
         { id: "off", label: "Off" },
+        { id: "nextn", label: "NEXTN (built-in MTP)", flags: ["--speculative-algorithm NEXTN"] },
         {
           id: "dspark",
           label: "DSPARK (draft model)",
@@ -70,6 +71,7 @@ export const config = {
       id: "spec",
       title: "Spec Decode",
       options: [
+        { id: "nextn", label: "NEXTN (built-in MTP)" },
         { id: "off", label: "Off" },
         { id: "dspark", label: "DSPARK" },
       ],
@@ -97,7 +99,6 @@ export const config = {
         flags: [
           "--model-path {{FP8_MODEL_PATH}}",
           "--tp 8",
-          "--ep-size 8",
           "--mem-fraction-static 0.8",
         ],
       },
@@ -114,8 +115,13 @@ export const config = {
     return recipes.flatMap(({ quant, flags }) => [
       {
         match: { hw: "h20-3e", quant, spec: "off", nodes: "single" },
-        verified: true,
+        verified: quant === "mxfp4",
         flags: [...flags, ...common],
+      },
+      {
+        match: { hw: "h20-3e", quant, spec: "nextn", nodes: "single" },
+        verified: quant === "fp8",
+        flags: [...flags, "--speculative-algorithm NEXTN", ...common],
       },
       {
         match: { hw: "h20-3e", quant, spec: "dspark", nodes: "single" },
