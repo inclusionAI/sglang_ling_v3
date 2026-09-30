@@ -18,10 +18,11 @@ import json
 import jsonschema
 import requests
 import xgrammar as xgr
-from sglang.srt.entrypoints.openai.protocol import Function, Tool, ToolChoice
-from sglang.srt.function_call.function_call_parser import FunctionCallParser
 from transformers import AutoTokenizer
 from xgrammar.testing import _is_grammar_accept_string
+
+from sglang.srt.entrypoints.openai.protocol import Function, Tool, ToolChoice
+from sglang.srt.function_call.function_call_parser import FunctionCallParser
 
 
 def make_tools():

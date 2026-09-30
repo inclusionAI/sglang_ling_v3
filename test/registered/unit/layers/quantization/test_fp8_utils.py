@@ -97,18 +97,19 @@ class TestPrequantizedBlockFp8Routing(unittest.TestCase):
 
         hopper_output = torch.full((m, n), 1.0, dtype=torch.bfloat16)
         deepgemm_output = torch.full((m, n), 2.0, dtype=torch.bfloat16)
-        with patch.object(
-            fp8_utils, "_use_fp8_block_gemv", return_value=True
-        ), patch.object(
-            fp8_utils,
-            "_hopper_fp8_block_gemv",
-            return_value=hopper_output,
-        ) as hopper, patch.object(
-            fp8_utils,
-            "w8a8_block_fp8_matmul_deepgemm",
-            return_value=deepgemm_output,
-        ) as deepgemm, patch.object(
-            fp8_utils.deep_gemm_wrapper, "DEEPGEMM_SCALE_UE8M0", False
+        with (
+            patch.object(fp8_utils, "_use_fp8_block_gemv", return_value=True),
+            patch.object(
+                fp8_utils,
+                "_hopper_fp8_block_gemv",
+                return_value=hopper_output,
+            ) as hopper,
+            patch.object(
+                fp8_utils,
+                "w8a8_block_fp8_matmul_deepgemm",
+                return_value=deepgemm_output,
+            ) as deepgemm,
+            patch.object(fp8_utils.deep_gemm_wrapper, "DEEPGEMM_SCALE_UE8M0", False),
         ):
             row_major_output = fp8_utils.deepgemm_w8a8_block_fp8_linear_with_fallback(
                 qinput,
