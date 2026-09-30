@@ -13,6 +13,7 @@ from torch import nn
 from sglang.kernels.ops.quantization.fp8_kernel import is_fp8_fnuz
 from sglang.srt.environ import envs
 from sglang.srt.layers import deep_gemm_wrapper
+from sglang.srt.layers.layer_boundary.residual import batch as residual_batch
 from sglang.srt.layers.layernorm import RMSNorm
 from sglang.srt.layers.logits_processor import LogitsProcessorOutput
 from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
@@ -245,26 +246,25 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
         hidden_states = (
             self.forward_embed(input_ids) if input_embeds is None else input_embeds
         )
-        residual = None
+        residual_batch.start(forward_batch)
         allocator = BumpAllocator(
-            buffer_size=max(1, len(self.layers) * 2),
+            buffer_size=max(
+                1, len(self.layers) * 2 * (2 if forward_batch.can_run_tbo else 1)
+            ),
             dtype=torch.float32,
             device=hidden_states.device,
         )
         for layer in self.layers:
-            hidden_states, residual = layer(
+            hidden_states = layer(
                 hidden_states=hidden_states,
                 positions=positions,
                 forward_batch=forward_batch,
-                residual=residual,
                 zero_allocator=allocator,
             )
-        if hidden_states.numel() != 0:
-            hidden_states = (
-                self.norm(hidden_states)
-                if residual is None
-                else self.norm(hidden_states, residual)[0]
-            )
+        hidden_states = residual_batch.complete_output(hidden_states, forward_batch)
+        hidden_states = residual_batch.final_norm(
+            hidden_states, forward_batch, self.norm, skip_empty=True
+        )
         return LogitsProcessorOutput(
             next_token_logits=None, hidden_states=hidden_states
         )
