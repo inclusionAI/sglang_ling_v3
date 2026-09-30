@@ -462,6 +462,7 @@ class TestLing3StructuralTag(CustomTestCase):
         chat = OpenAIServingChat.__new__(OpenAIServingChat)
         chat.tool_call_parser = "ling3"
         chat.reasoning_parser = None
+        chat._reasoning_detector = None
         chat.template_manager = SimpleNamespace(
             reasoning_config=None, chat_template_name=None
         )
