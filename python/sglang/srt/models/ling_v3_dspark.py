@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from typing import Iterable, Optional, Tuple
 
 import torch
@@ -50,6 +49,7 @@ from sglang.srt.models.dspark import (
 )
 from sglang.srt.speculative.dspark_components.dspark_config import (
     get_dspark_sample_from_anchor,
+    has_standalone_dspark_weights,
     is_namespaced_dspark_bundle,
 )
 from sglang.srt.utils import BumpAllocator, add_prefix, bind_or_assign
@@ -74,12 +74,7 @@ class LingV3ForCausalLMDSparkMLA(nn.Module):
         self.config = config
         self.quant_config = quant_config
         self.is_bundled = is_namespaced_dspark_bundle(config)
-        draft_path = getattr(config, "_name_or_path", "")
-        if (
-            draft_path
-            and not self.is_bundled
-            and os.path.isfile(os.path.join(draft_path, "draft_model.safetensors"))
-        ):
+        if not self.is_bundled and has_standalone_dspark_weights(config):
             self.allow_patterns_overrides = ["draft_model.safetensors"]
         self.num_context_features = len(config.target_layer_ids)
         self.block_size = int(config.block_size)

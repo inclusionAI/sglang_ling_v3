@@ -1,5 +1,7 @@
 import unittest
 from contextlib import nullcontext
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -665,6 +667,36 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         )
         self.assertEqual(model_config.hf_config.num_hidden_layers, 3)
 
+    def test_standalone_draft_uses_nested_arch_in_model_config(self):
+        with TemporaryDirectory() as draft_path:
+            (Path(draft_path) / "draft_model.safetensors").touch()
+            config = BailingHybridConfig(
+                num_hidden_layers=72,
+                dspark_config={
+                    "architectures": ["LingV3ForCausalLMDSparkMLA"],
+                    "attention_type": "mla",
+                    "num_hidden_layers": 3,
+                    "target_layer_ids": [69, 70, 71],
+                    "block_size": 7,
+                },
+            )
+            config.architectures = ["BailingMoeV3ForCausalLM"]
+            config._name_or_path = draft_path
+            model_config = object.__new__(ModelConfig)
+            model_config.is_draft_model = True
+            model_config.speculative_algorithm = "DSPARK"
+            model_config.hf_config = config
+            model_config.hf_text_config = config
+
+            model_config._config_draft_model()
+
+            self.assertEqual(
+                model_config.hf_config.architectures,
+                ["LingV3ForCausalLMDSparkMLA"],
+            )
+            self.assertEqual(model_config.hf_config.num_hidden_layers, 3)
+            self.assertEqual(model_config.hf_config.target_layer_ids, [69, 70, 71])
+
     def test_namespaced_bundle_requires_draft_architecture(self):
         config = SimpleNamespace(
             dspark_bundle_format="namespaced_safetensors",
@@ -1042,10 +1074,13 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
         draft = FakeDraft()
         injector = self._compact_commit_injector(draft, FakePool(), "cpu")
 
-        with envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.override(False), patch(
-            "sglang.srt.speculative.dspark_components.dspark_kv_inject."
-            "is_unified_kv_triton",
-            return_value=False,
+        with (
+            envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.override(False),
+            patch(
+                "sglang.srt.speculative.dspark_components.dspark_kv_inject."
+                "is_unified_kv_triton",
+                return_value=False,
+            ),
         ):
             injector.inject_ragged(
                 batch=fx.batch,
@@ -1122,9 +1157,11 @@ class TestLingDsparkMlaProtocol(CustomTestCase):
                 commit()
             # Harness self-check: the masked path this test guards against
             # does synchronize, so a silent no-op debug mode cannot pass above.
-            with unified_patch, envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.override(
-                False
-            ), self.assertRaisesRegex(RuntimeError, "synchroniz"):
+            with (
+                unified_patch,
+                envs.SGLANG_DSPARK_ENABLE_STATIC_COMMIT.override(False),
+                self.assertRaisesRegex(RuntimeError, "synchroniz"),
+            ):
                 commit()
         finally:
             torch.cuda.set_sync_debug_mode("default")

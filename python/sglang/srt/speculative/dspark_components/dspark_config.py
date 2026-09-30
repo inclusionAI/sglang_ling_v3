@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from typing import TYPE_CHECKING, Any, List, Optional
 
 import msgspec
@@ -222,9 +223,16 @@ def is_namespaced_dspark_bundle(config: Any) -> bool:
     )
 
 
+def has_standalone_dspark_weights(config: Any) -> bool:
+    path = _cfg_get(config, "_name_or_path", "")
+    return bool(path) and os.path.isfile(os.path.join(path, "draft_model.safetensors"))
+
+
 def apply_namespaced_dspark_draft_config(config: Any) -> bool:
-    """Project a bundled draft sub-config onto a draft ModelConfig copy."""
-    if not is_namespaced_dspark_bundle(config):
+    """Project a bundled or standalone draft sub-config onto ModelConfig."""
+    if not (
+        is_namespaced_dspark_bundle(config) or has_standalone_dspark_weights(config)
+    ):
         return False
 
     dspark_config = _get_dspark_config(config)
