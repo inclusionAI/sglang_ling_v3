@@ -1388,6 +1388,9 @@ class Fp8LinearMethod(LinearMethodBase):
             and not self.use_marlin
             and not self.use_mxfp8
             and not isinstance(x, tuple)
+            # apply() pads online blockwise FP8 K tails before GEMM. The
+            # caller-owned output path accepts only an already aligned input.
+            and not getattr(layer, "_online_blockwise_fp8_input_padding", 0)
             and self.w8a8_block_fp8_linear
             is deepgemm_w8a8_block_fp8_linear_with_fallback
             and not use_intel_amx_backend(layer)

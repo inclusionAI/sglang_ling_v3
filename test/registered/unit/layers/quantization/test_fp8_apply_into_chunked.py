@@ -80,6 +80,16 @@ class TestFp8ApplyIntoChunked(CustomTestCase):
         self.method.apply_into(self.layer, x, out, bias=bias)
         self.assertTrue(torch.equal(ref, out))
 
+    def test_online_blockwise_k_tail_uses_padded_apply(self):
+        layer = _make_layer(self.device)
+        layer._online_blockwise_fp8_input_padding = BLOCK
+        x = self._x(64)[:, :BLOCK].contiguous()
+        ref = self.method.apply(layer, x)
+        out = torch.empty_like(ref)
+        ret = self.method.apply_into(layer, x, out)
+        self.assertEqual(ret.data_ptr(), out.data_ptr())
+        self.assertTrue(torch.equal(ref, out))
+
     def _run_chunked(self, m, plan):
         x = self._x(m)
         ref = self.method.apply(self.layer, x)
