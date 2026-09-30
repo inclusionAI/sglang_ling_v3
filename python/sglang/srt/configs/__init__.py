@@ -1,4 +1,8 @@
 from sglang.srt.configs.afmoe import AfmoeConfig
+from sglang.srt.configs.bailing_audio_v3 import (
+    BailingMoeV3AudioConfig,
+    BailingWhisperAudioConfig,
+)
 from sglang.srt.configs.bailing_hybrid import BailingHybridConfig, BailingMoeV3VLConfig
 from sglang.srt.configs.bailing_moe_v2 import BailingMM2Config
 from sglang.srt.configs.chatglm import ChatGLMConfig
@@ -88,6 +92,8 @@ from sglang.srt.configs.zaya import ZayaConfig
 __all__ = [
     "AfmoeConfig",
     "BailingHybridConfig",
+    "BailingMoeV3AudioConfig",
+    "BailingWhisperAudioConfig",
     "BailingMM2Config",
     "BailingMoeV3VLConfig",
     "ExaoneConfig",

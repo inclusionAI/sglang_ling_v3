@@ -26,7 +26,14 @@ from sglang.srt.configs.mamba_utils import (
     Mamba2CacheParams,
     Mamba2StateShape,
 )
+from sglang.srt.configs.ming_audio_processing import (
+    SGLangBailingProcessorFactory,
+    is_ming_audio_checkpoint,
+)
 from sglang.srt.configs.qwen3_vl import Qwen3VLMoeVisionConfig
+from sglang.srt.multimodal.customized_mm_processor_utils import (
+    register_customized_processor,
+)
 from sglang.srt.runtime_context import get_parallel
 
 logger = logging.get_logger(__name__)
@@ -236,8 +243,17 @@ class BailingHybridConfig(PretrainedConfig):
         return Mamba2CacheParams(shape=shape, layers=self.linear_layer_ids)
 
 
+@register_customized_processor(SGLangBailingProcessorFactory)
 class BailingMoeV3VLConfig(PretrainedConfig):
     model_type = "bailing_moe_v3_vl"
+
+    @classmethod
+    def from_dict(cls, config_dict, **kwargs):
+        if is_ming_audio_checkpoint(config_dict):
+            from sglang.srt.configs.bailing_audio_v3 import BailingMoeV3AudioConfig
+
+            return BailingMoeV3AudioConfig.from_dict(config_dict, **kwargs)
+        return super().from_dict(config_dict, **kwargs)
 
     def __init__(
         self,

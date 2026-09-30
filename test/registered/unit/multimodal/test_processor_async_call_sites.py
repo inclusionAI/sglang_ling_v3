@@ -166,6 +166,7 @@ _NO_WORKER_POOL_ROUTE = {
     "minicpmv4_6.py",
     "moss_vl.py",
     "nano_nemotron_vl.py",
+    "bailing_audio.py",  # local Bailing audio frontend owns preprocessing
     "voxtral.py",
     "whisper.py",
 }

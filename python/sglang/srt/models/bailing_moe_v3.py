@@ -68,6 +68,7 @@ from sglang.srt.layers.quantization.int8_utils import (
 )
 from sglang.srt.layers.radix_attention import RadixAttention
 from sglang.srt.layers.rotary_embedding import get_rope
+from sglang.srt.layers.rotary_embedding.bailing_mrope import BailingMlaRotaryEmbedding
 from sglang.srt.layers.utils import PPMissingLayer
 from sglang.srt.layers.vocab_parallel_embedding import (
     ParallelLMHead,
@@ -102,6 +103,34 @@ from sglang.srt.utils import (
 )
 
 _is_fp8_fnuz = is_fp8_fnuz()
+
+
+def _resolve_optional_dtype(value, field_name: str) -> Optional[torch.dtype]:
+    """Resolve a JSON-friendly dtype name without silently accepting bad values."""
+    if value is None or isinstance(value, torch.dtype):
+        return value
+    dtype = getattr(torch, str(value), None)
+    if not isinstance(dtype, torch.dtype):
+        raise ValueError(
+            f"{field_name} must be a torch dtype or dtype name, got {value!r}"
+        )
+    return dtype
+
+
+def _get_lm_head_params_dtype(config) -> torch.dtype:
+    # Keep the generic Bailing V3 path unchanged. Ming audio checkpoints opt in
+    # through their composite config to preserve the old checked-out runtime.
+    return _resolve_optional_dtype(
+        getattr(config, "lm_head_params_dtype", torch.bfloat16),
+        "lm_head_params_dtype",
+    )
+
+
+def _get_lm_head_input_dtype(config) -> Optional[torch.dtype]:
+    """Return the optional dtype used for hidden states passed to the LM head."""
+    return _resolve_optional_dtype(
+        getattr(config, "lm_head_input_dtype", None), "lm_head_input_dtype"
+    )
 
 
 def _get_awq_dequantize():
@@ -193,16 +222,27 @@ class DsV3MLA(DeepseekV2AttentionMLA):
         else:
             self.g_proj = None
 
-        if "mrope_section" in rope_scaling and rope_scaling.get("video_rope", False):
+        # The DeepSeek parent selects YaRN; Bailing's sectioned rotary applies
+        # to audio/text as well as vision, with the factory choosing the kernel.
+        if rope_scaling and "mrope_section" in rope_scaling:
             rope_scaling["rope_type"] = "default"
-            self.rotary_emb = get_rope(
-                qk_rope_head_dim,
-                rotary_dim=qk_rope_head_dim,
-                max_position=max_position_embeddings,
-                base=rope_theta,
-                rope_scaling=rope_scaling,
-                is_neox_style=not getattr(config, "rope_interleave", True),
-            )
+            if rope_scaling.get("video_rope", False):
+                self.rotary_emb = get_rope(
+                    qk_rope_head_dim,
+                    rotary_dim=qk_rope_head_dim,
+                    max_position=max_position_embeddings,
+                    base=rope_theta,
+                    rope_scaling=rope_scaling,
+                    is_neox_style=not getattr(config, "rope_interleave", True),
+                )
+            else:
+                self.rotary_emb = BailingMlaRotaryEmbedding.get_cached(
+                    qk_rope_head_dim,
+                    max_position_embeddings,
+                    rope_theta,
+                    not getattr(config, "rope_interleave", True),
+                    rope_scaling,
+                )
 
     def forward(
         self,
@@ -1444,10 +1484,7 @@ class BailingMoeV3ForCausalLM(nn.Module):
                 else ParallelLMHead(
                     config.vocab_size,
                     config.hidden_size,
-                    # bf16 lm_head (was fp32): fp32 vocab GEMM uses a slow sm80
-                    # path on Hopper; logits are still cast to fp32 for sampling
-                    # in the logits processor. Accuracy-neutral on ling-v3.
-                    params_dtype=torch.bfloat16,
+                    params_dtype=_get_lm_head_params_dtype(config),
                     quant_config=quant_config,
                     use_attn_tp_group=get_parallel().enable_dp_lm_head,
                 )
@@ -1809,11 +1846,13 @@ class BailingMoeV3ForCausalLM(nn.Module):
             aux_hidden_states = None
             if self.capture_aux_hidden_states and isinstance(hidden_states, tuple):
                 hidden_states, aux_hidden_states = hidden_states
+            lm_head_hidden_states = hidden_states
+            lm_head_input_dtype = _get_lm_head_input_dtype(self.config)
+            if lm_head_input_dtype is not None:
+                lm_head_hidden_states = lm_head_hidden_states.to(lm_head_input_dtype)
             return self.logits_processor(
                 input_ids,
-                # keep hidden_states in bf16 so the lm_head matmul runs in bf16
-                # (logits are cast to fp32 inside the logits processor)
-                hidden_states,
+                lm_head_hidden_states,
                 self.lm_head,
                 forward_batch,
                 aux_hidden_states=aux_hidden_states,

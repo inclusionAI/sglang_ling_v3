@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @_register_for(
     "BailingMoeV3ForCausalLM",
     "BailingMoeV3VLForConditionalGeneration",
+    "BailingMoeV3AudioForConditionalGeneration",
 )
 def _bailing_moe_v3_overrides(server_args: Any, hf_config: Any) -> dict:
     cfg = resolving_view(server_args)

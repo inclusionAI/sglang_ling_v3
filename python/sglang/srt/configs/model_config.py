@@ -80,6 +80,7 @@ BAILING_MULTI_GATE_MM_ARCHS = frozenset(
         "BailingMMNativeForConditionalGeneration",
         "BailingMM2NativeForConditionalGeneration",
         "BailingMoeV3VLForConditionalGeneration",
+        "BailingMoeV3AudioForConditionalGeneration",
     }
 )
 
@@ -1300,6 +1301,8 @@ class ModelConfig:
         elif (
             "BailingMoeV3ForCausalLM" in self.hf_config.architectures
             or "BailingMoeV3VLForConditionalGeneration" in self.hf_config.architectures
+            or "BailingMoeV3AudioForConditionalGeneration"
+            in self.hf_config.architectures
         ):
             self.head_dim = 128
             self.attention_arch = AttentionArch.MLA
@@ -2274,6 +2277,7 @@ multimodal_model_archs = [
     "BailingMMNativeForConditionalGeneration",
     "BailingMM2NativeForConditionalGeneration",
     "BailingMoeV3VLForConditionalGeneration",
+    "BailingMoeV3AudioForConditionalGeneration",
 ]
 
 piecewise_cuda_graph_disabled_model_archs = [

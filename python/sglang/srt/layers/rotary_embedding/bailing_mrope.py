@@ -8,6 +8,7 @@ from sglang.kernels.ops.attention.rotary_triton import (
 )
 from sglang.srt.environ import envs
 from sglang.srt.layers.rotary_embedding.base import RotaryEmbedding
+from sglang.srt.layers.rotary_embedding.mrope import MRotaryEmbedding
 from sglang.srt.layers.rotary_embedding.yarn import (
     yarn_find_correction_range,
     yarn_get_mscale_simple,
@@ -364,3 +365,65 @@ class BailingMRotaryEmbedding(RotaryEmbedding):
             .to(dtype=input_ids.dtype)
         )
         return positions.unsqueeze(1).to(dtype=input_ids.dtype), position_delta
+
+
+class BailingMlaRotaryEmbedding(MRotaryEmbedding):
+    """Adapt Bailing MLA Q/K views to the shared two-dimensional M-RoPE kernel."""
+
+    @classmethod
+    def get_cached(cls, head_size, max_position, base, is_neox_style, rope_scaling):
+        # Reuse the factory's lifetime checks: model teardown can move shared
+        # buffers to meta or release their storage. A separate key keeps other
+        # models' M-RoPE instances untouched and avoids per-layer cache copies.
+        from sglang.srt.layers.rotary_embedding.factory import (
+            _ROPE_DICT,
+            _get_live_rope_cache_entry,
+        )
+
+        dtype = torch.get_default_dtype()
+        section = tuple(rope_scaling["mrope_section"])
+        interleaved = rope_scaling.get("mrope_interleaved", False)
+        glm = rope_scaling.get("mrope_interleaved_glm", False)
+        key = (
+            cls,
+            head_size,
+            max_position,
+            base,
+            is_neox_style,
+            section,
+            interleaved,
+            glm,
+            dtype,
+        )
+        cached = _get_live_rope_cache_entry(key)
+        if cached is None:
+            cached = cls(
+                head_size,
+                head_size,
+                max_position,
+                base,
+                is_neox_style,
+                dtype,
+                mrope_section=list(section),
+                mrope_interleaved=interleaved,
+                mrope_interleaved_glm=glm,
+            )
+            _ROPE_DICT[key] = cached
+        return cached
+
+    def forward_cuda(self, positions, query, key, fused_set_kv_buffer_arg=None):
+        if query.shape[0] == 0:
+            return query, key
+        if positions.ndim != 2 or not self.mrope_section:
+            return super().forward_cuda(positions, query, key, fused_set_kv_buffer_arg)
+        query_for_rope = query.contiguous().flatten(1) if query.ndim == 3 else query
+        key_for_rope = key.contiguous().flatten(1) if key.ndim == 3 else key
+        super().forward_cuda(
+            positions, query_for_rope, key_for_rope, fused_set_kv_buffer_arg
+        )
+        # Contiguous copies of sliced MLA tensors must be written back in place.
+        if query_for_rope.data_ptr() != query.data_ptr():
+            query.copy_(query_for_rope.view_as(query))
+        if key_for_rope.data_ptr() != key.data_ptr():
+            key.copy_(key_for_rope.view_as(key))
+        return query, key
