@@ -1909,7 +1909,21 @@ class Fp8MoEMethod(FusedMoEMethodBase):
 
             # AMD FP4 experts: use aiter's native MXFP4 MoE path.
             elif not self.dequant_fp4_to_fp8:
-                gu_intv = envs.SGLANG_USE_AITER_MOE_GU_ITLV.get()
+                # AITER's native FP4 interleaved gate/up kernels are selected by
+                # the clamped SwiGLU path. Its ordinary SiLU path consumes the
+                # separated layout, so do not let the global interleave default
+                # silently shuffle those checkpoints into an incompatible form.
+                swiglu_limit = (
+                    getattr(
+                        getattr(self, "moe_runner_config", None),
+                        "swiglu_limit",
+                        0.0,
+                    )
+                    or 0.0
+                )
+                gu_intv = envs.SGLANG_USE_AITER_MOE_GU_ITLV.get() and swiglu_limit > 0
+                # Keep the runner's gate mode coupled to the layout used below.
+                layer._aiter_gate_up_interleaved = gu_intv
                 fp4_weight_dtype = _require_fp4_dtype()
 
                 # DeepSeek V4 MoE is implemented by the FlyDSL kernel, which supports
@@ -3500,9 +3514,8 @@ class Fp8MoEMethod(FusedMoEMethodBase):
 
         fused_moe_kwargs = None
         gate_up_interleaved = getattr(layer, "_aiter_gate_up_interleaved", None)
-        if (
-            gate_up_interleaved is not None
-            and (self.moe_runner_config.swiglu_limit or 0.0) > 0
+        if gate_up_interleaved is not None and (
+            self.is_fp4_expert or (self.moe_runner_config.swiglu_limit or 0.0) > 0
         ):
             from aiter.ops.flydsl.moe_common import GateMode
 

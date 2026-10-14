@@ -161,6 +161,110 @@ class TestFp8MoEAiterQuantInfo(CustomTestCase):
         self.assertEqual(quant_info.fused_moe_kwargs, {"gate_mode": "separated"})
         self.assertIs(quant_info.expert_mask, layer.dispatcher.expert_mask_gpu)
 
+    def test_native_fp4_records_gate_up_layout(self):
+        method = Fp8MoEMethod(
+            Fp8Config(
+                is_checkpoint_fp8_serialized=True,
+                weight_block_size=[1, 32],
+                is_fp4_experts=True,
+            )
+        )
+
+        for configured_interleave, swiglu_limit, expected_interleave in (
+            (False, 0.0, False),
+            (True, 0.0, False),
+            (False, 10.0, False),
+            (True, 10.0, True),
+        ):
+            with self.subTest(
+                configured_interleave=configured_interleave,
+                swiglu_limit=swiglu_limit,
+            ):
+                method.moe_runner_config = MoeRunnerConfig(swiglu_limit=swiglu_limit)
+                layer = SimpleNamespace(
+                    w13_weight=torch.zeros((1, 256, 2), dtype=torch.uint8),
+                    w2_weight=torch.zeros((1, 2, 64), dtype=torch.uint8),
+                    w13_weight_scale_inv=torch.ones((1, 256, 1), dtype=torch.uint8),
+                    w2_weight_scale_inv=torch.ones((1, 2, 4), dtype=torch.uint8),
+                )
+                identity = lambda tensor, *args, **kwargs: tensor
+
+                with (
+                    patch.object(fp8_module, "_use_aiter", True),
+                    patch.object(fp8_module, "_is_gfx1250_supported", False),
+                    patch.object(fp8_module, "_is_shuffle_moe_mxfp4", True),
+                    patch.object(fp8_module, "_use_aiter_a8w4", False),
+                    patch.object(
+                        fp8_module, "_require_fp4_dtype", return_value=torch.uint8
+                    ),
+                    patch.object(
+                        fp8_module,
+                        "get_moe_a2a_backend",
+                        return_value=SimpleNamespace(is_megamoe=lambda: False),
+                    ),
+                    patch.object(
+                        fp8_module.envs.SGLANG_USE_AITER_MOE_GU_ITLV,
+                        "get",
+                        return_value=configured_interleave,
+                    ),
+                    patch.object(fp8_module, "shuffle_scale", side_effect=identity),
+                    patch.object(fp8_module, "shuffle_weight", side_effect=identity),
+                ):
+                    method.process_weights_after_loading_block_quant(layer)
+
+                self.assertIs(layer._aiter_gate_up_interleaved, expected_interleave)
+
+    def test_native_fp4_forwards_layout_without_clamp(self):
+        method = Fp8MoEMethod(
+            Fp8Config(
+                is_checkpoint_fp8_serialized=True,
+                weight_block_size=[1, 32],
+                is_fp4_experts=True,
+            )
+        )
+        method.moe_runner_config = MoeRunnerConfig(swiglu_limit=0.0)
+        fake_moe_common = types.ModuleType("aiter.ops.flydsl.moe_common")
+        fake_moe_common.GateMode = SimpleNamespace(
+            SEPARATED=SimpleNamespace(value="separated"),
+            INTERLEAVE=SimpleNamespace(value="interleave"),
+        )
+
+        for gate_up_interleaved, expected_mode in (
+            (False, "separated"),
+            (True, "interleave"),
+        ):
+            with self.subTest(gate_up_interleaved=gate_up_interleaved):
+                layer = SimpleNamespace(
+                    w13_weight=torch.zeros((1, 4, 2), dtype=torch.uint8),
+                    w2_weight=torch.zeros((1, 2, 2), dtype=torch.uint8),
+                    w13_weight_scale_inv=torch.ones((1, 4, 1), dtype=torch.uint8),
+                    w2_weight_scale_inv=torch.ones((1, 2, 1), dtype=torch.uint8),
+                    hidden_pad=0,
+                    intermediate_pad=0,
+                    _aiter_gate_up_interleaved=gate_up_interleaved,
+                    dispatcher=SimpleNamespace(
+                        expert_mask_gpu=torch.tensor([True, False])
+                    ),
+                )
+
+                with (
+                    patch.dict(
+                        sys.modules,
+                        {"aiter.ops.flydsl.moe_common": fake_moe_common},
+                    ),
+                    patch.object(fp8_module, "_use_aiter", True),
+                    patch.object(
+                        fp8_module, "_require_fp4_dtype", return_value=torch.uint8
+                    ),
+                ):
+                    quant_info = method.maybe_get_hip_aiter_quant_info(layer)
+
+                self.assertEqual(quant_info.quant_type, AiterQuantType.PER_1X32)
+                self.assertEqual(quant_info.swiglu_limit, 0.0)
+                self.assertEqual(
+                    quant_info.fused_moe_kwargs, {"gate_mode": expected_mode}
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
