@@ -1,5 +1,7 @@
 """Local audio/text configuration for Ming-ASR-Tiny checkpoints."""
 
+import copy
+
 from transformers import AutoConfig, PretrainedConfig
 
 from sglang.srt.configs.bailing_hybrid import BailingHybridConfig
@@ -78,6 +80,84 @@ class BailingMoeV3AudioConfig(PretrainedConfig):
         "audio_config": BailingWhisperAudioConfig,
     }
 
+    def update(self, config_dict):
+        """Apply Audio language overrides without replacing its typed config.
+
+        Language overrides accept top-level fields and text_config/llm_config
+        mappings, in increasing precedence. All target the same typed LLM.
+        """
+        updates = copy.deepcopy(config_dict)
+        nested_updates = []
+        for key in ("text_config", "llm_config"):
+            value = updates.pop(key, {})
+            if not isinstance(value, dict):
+                raise TypeError(f"Audio {key} overrides must be a mapping")
+            nested_updates.append(value)
+        top_level_updates = {
+            key: updates[key]
+            for key in (
+                "max_position_embeddings",
+                "rope_theta",
+                "rope_scaling",
+                "rope_parameters",
+            )
+            if key in updates
+        }
+        override_groups = (top_level_updates, *nested_updates)
+        for group in override_groups:
+            for key in ("rope_scaling", "rope_parameters"):
+                value = group.get(key)
+                if value is not None and not isinstance(value, dict):
+                    raise TypeError(f"Audio {key} overrides must be a mapping or null")
+
+        text_config = self.llm_config
+        rope_parameters = copy.deepcopy(text_config.rope_parameters)
+        language_fields = {
+            key: value
+            for group in override_groups
+            for key, value in group.items()
+            if key not in ("rope_scaling", "rope_parameters")
+        }
+        text_config.update(language_fields)
+        text_config._sglang_audio_1d_rope = True
+        for group in override_groups:
+            for key in ("rope_scaling", "rope_parameters"):
+                if key not in group:
+                    continue
+                value = group[key]
+                if value is None:
+                    rope_parameters = {
+                        "rope_theta": rope_parameters["rope_theta"],
+                        "rope_type": "default",
+                    }
+                    if hasattr(text_config, "partial_rotary_factor"):
+                        rope_parameters["partial_rotary_factor"] = (
+                            text_config.partial_rotary_factor
+                        )
+                else:
+                    rope_parameters.update(value)
+                    rope_type = value.get("rope_type", value.get("type"))
+                    if rope_type is not None:
+                        rope_parameters["rope_type"] = rope_type
+                rope_parameters["type"] = rope_parameters["rope_type"]
+            if "rope_theta" in group:
+                rope_parameters["rope_theta"] = group["rope_theta"]
+
+        text_config.rope_theta = rope_parameters["rope_theta"]
+        rope_parameters.pop("mrope_section", None)
+        rope_parameters.pop("video_rope", None)
+        text_config.rope_parameters = rope_parameters
+        text_config.rope_scaling = copy.deepcopy(rope_parameters)
+
+        # Keep typed sub-configs when applying partial nested overrides.
+        for key, value in updates.items():
+            current = getattr(self, key, None)
+            if isinstance(value, dict) and isinstance(current, PretrainedConfig):
+                current.update(value)
+            else:
+                setattr(self, key, value)
+        self.mrope_section = None
+
     def __init__(
         self,
         text_config=None,
@@ -107,7 +187,7 @@ class BailingMoeV3AudioConfig(PretrainedConfig):
         if text_config is None:
             text_config = llm_config
         if isinstance(text_config, dict):
-            text_config = dict(text_config)
+            text_config = copy.deepcopy(text_config)
             for key in (
                 "image_patch_token",
                 "video_patch_token",
@@ -117,6 +197,7 @@ class BailingMoeV3AudioConfig(PretrainedConfig):
                 text_config.pop(key, None)
             text_config = BailingHybridConfig(**text_config)
         self.llm_config = text_config or BailingHybridConfig()
+        self.llm_config._sglang_audio_1d_rope = True
         if isinstance(audio_config, dict):
             audio_config = BailingWhisperAudioConfig.from_checkpoint_config(
                 audio_config
@@ -130,10 +211,9 @@ class BailingMoeV3AudioConfig(PretrainedConfig):
         rope_parameters = self.llm_config.rope_parameters
         rope_parameters.setdefault("rope_theta", self.llm_config.rope_theta)
         rope_parameters.setdefault("rope_type", "default")
-        # The shared language engine consumes three identical sequential axes for
-        # audio/text. Preserve its trained rotary/cache ABI; no image grids exist.
-        rope_parameters.setdefault("mrope_section", [8, 12, 12])
-        # Audio uses sequential positions, never the visual rotary implementation.
+        # Audio/text uses engine-owned 1-D sequence positions. Legacy visual
+        # selectors must not switch this audio-only model back to M-RoPE.
+        rope_parameters.pop("mrope_section", None)
         rope_parameters.pop("video_rope", None)
         if getattr(self.llm_config, "audio_patch_token", None) is None:
             self.llm_config.audio_patch_token = audio_token_id

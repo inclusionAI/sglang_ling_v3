@@ -150,21 +150,14 @@ class BailingAudioProcessor:
                 (mel_length,), (patch_length,)
             ).to_dict()
             items.append(item)
-        # Bailing audio follows Qwen-style ASR M-RoPE: all three axes share
-        # the sequential token index. Keep delta at zero so decode positions
-        # continue normally after the expanded audio placeholder tokens.
-        mrope_positions = (
-            torch.arange(input_ids.numel(), dtype=torch.long)
-            .unsqueeze(0)
-            .expand(3, -1)
-            .clone()
-        )
+        # The engine assigns continuous 1-D positions after placeholder
+        # expansion, including prefill chunks, prefix reuse, and decode.
         return MultimodalProcessorOutput(
             mm_items=items,
             input_ids=input_ids.tolist(),
             audio_token_id=self.audio_token_id,
-            mrope_positions=mrope_positions,
-            mrope_position_delta=torch.tensor([0], dtype=torch.long),
+            mrope_positions=None,
+            mrope_position_delta=None,
         )
 
     def _get_audio_offsets(

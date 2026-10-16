@@ -175,6 +175,16 @@ class DsV3MLA(DeepseekV2AttentionMLA):
         alt_stream: Optional[torch.cuda.Stream] = None,
         skip_rope: bool = False,
     ) -> None:
+        # DeepSeek rewrites every non-empty scaling dict to deepseek_yarn.
+        # Unscaled, single-axis Bailing audio must retain ordinary RoPE.
+        if (
+            getattr(config, "_sglang_audio_1d_rope", False)
+            and isinstance(rope_scaling, dict)
+            and "mrope_section" not in rope_scaling
+            and (rope_scaling.get("rope_type") or rope_scaling.get("type") or "default")
+            == "default"
+        ):
+            rope_scaling = None
         super().__init__(
             config,
             hidden_size,

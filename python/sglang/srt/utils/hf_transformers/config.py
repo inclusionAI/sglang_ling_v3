@@ -19,6 +19,7 @@ from typing import Optional
 from transformers import PretrainedConfig
 from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
 
+from sglang.srt.configs.bailing_audio_v3 import BailingMoeV3AudioConfig
 from sglang.srt.configs.deepseek_v41 import (
     DeepseekV41Config,
     normalize_deepseek_v41_config,
@@ -324,15 +325,18 @@ def get_config(
     if model_override_args:
         if isinstance(config, DeepseekV41Config):
             model_override_args = normalize_deepseek_v41_config(model_override_args)
-        # A plain update() setattrs a dict-valued override straight onto the
-        # config, so '{"text_config": {...}}' on a VLM would replace the whole
-        # sub-config with a dict and break attribute access downstream.
-        for key, value in model_override_args.items():
-            current = getattr(config, key, None)
-            if isinstance(value, dict) and isinstance(current, PretrainedConfig):
-                current.update(value)
-            else:
-                setattr(config, key, value)
+        if isinstance(config, BailingMoeV3AudioConfig):
+            # Audio owns alias merging and propagation into its typed LLM
+            # config. Per-field setattr would bypass that model-specific hook.
+            config.update(model_override_args)
+        else:
+            # Merge nested configs instead of replacing them with plain dicts.
+            for key, value in model_override_args.items():
+                current = getattr(config, key, None)
+                if isinstance(value, dict) and isinstance(current, PretrainedConfig):
+                    current.update(value)
+                else:
+                    setattr(config, key, value)
 
     if is_gguf and not gguf_has_sidecar_config:
         if config.model_type not in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
