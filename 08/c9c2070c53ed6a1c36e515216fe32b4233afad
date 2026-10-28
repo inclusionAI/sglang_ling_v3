@@ -1,0 +1,18 @@
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 30,39,64,81,279,295,299,316-321,325-326,342
+test/registered/unit/mem_cache/test_dsv41_batch_geometry.py
+  h_f252eadf5e9832 1-182
+test/registered/unit/mem_cache/test_dsv41_snapshot_commit_graph.py
+  h_f252eadf5e9832 96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "08c9c2070c53ed6a1c36e515216fe32b4233afad",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
