@@ -1,0 +1,21 @@
+python/sglang/srt/distributed/device_communicators/cp_moe_symm.py
+  s_ab50b354526313::t_807d832d1b4610 272-275,355-371,374-390
+test/manual/test_dsv41_cp_overlap_contract.py
+  s_ab50b354526313::t_807d832d1b4610 54,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "805fd2effd7a21453d0fd52e7e414f6ed7fca321",
+  "prompts": {},
+  "sessions": {
+    "s_ab50b354526313": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181e6-d7e4-75c3-ae67-1f761173ef02",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}
