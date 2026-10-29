@@ -1,0 +1,18 @@
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 171,593-619,664
+python/sglang/srt/mem_cache/unified_radix_cache.py
+  h_f252eadf5e9832 978-981
+test/registered/unit/mem_cache/test_dsv41_full_snapshot_runtime.py
+  h_f252eadf5e9832 156-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "05ec18dcaf8d08add236333362f84cda5cc16e5d",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
