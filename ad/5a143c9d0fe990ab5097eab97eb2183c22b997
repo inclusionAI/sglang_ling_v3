@@ -1,0 +1,18 @@
+python/sglang/jit_kernel/csrc/elementwise/silu_and_mul_post_quant_mxfp4.cuh
+  h_74bbcaa631f805 43,127,159-161,167,212,341,343-361,395,401,404
+python/sglang/jit_kernel/silu_mul_quant.py
+  h_74bbcaa631f805 25,29-30,33,38,47,79-90
+python/sglang/srt/layers/moe/moe_runner/ppu_deepgemm_moe.py
+  h_74bbcaa631f805 1,39-40,1087-1090
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ad5a143c9d0fe990ab5097eab97eb2183c22b997",
+  "prompts": {},
+  "humans": {
+    "h_74bbcaa631f805": {
+      "author": "铭阅 <wangyingjie.wyj@antgroup.com>"
+    }
+  }
+}
