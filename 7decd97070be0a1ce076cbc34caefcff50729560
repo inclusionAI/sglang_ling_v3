@@ -1,0 +1,32 @@
+docs/ppu15/kvpool_1030/README.md
+  h_25b71af7882e89 1-57
+docs/ppu15/kvpool_1030/scripts/check_kvpool.py
+  h_25b71af7882e89 1-9
+docs/ppu15/kvpool_1030/scripts/kvpool_runtime.py
+  h_25b71af7882e89 1-34
+docs/ppu15/kvpool_1030/scripts/start_decode.sh
+  h_25b71af7882e89 1-132
+docs/ppu15/kvpool_1030/scripts/start_decode_reasoning_padding.sh
+  h_25b71af7882e89 1-5
+docs/ppu15/kvpool_1030/scripts/start_kvpool.sh
+  h_25b71af7882e89 1-14
+docs/ppu15/kvpool_1030/scripts/start_prefill.sh
+  h_25b71af7882e89 1-123
+docs/ppu15/kvpool_1030/scripts/start_prefill_kvpool.sh
+  h_25b71af7882e89 1-128
+docs/ppu15/kvpool_1030/scripts/start_router.sh
+  h_25b71af7882e89 1-3
+docs/ppu15/kvpool_1030/validation_summary.json
+  h_25b71af7882e89 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7decd97070be0a1ce076cbc34caefcff50729560",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}
