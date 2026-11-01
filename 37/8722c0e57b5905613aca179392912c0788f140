@@ -1,0 +1,23 @@
+python/sglang/srt/layers/attention/qsa/mqa.py
+  s_44844fb1f654af::t_e96248b7a3f336 293,330-358,362-377,560-561,574-581,586,609,640-641,651
+python/sglang/srt/layers/attention/qsa/qsa_indexer.py
+  s_44844fb1f654af::t_e96248b7a3f336 548,555,557
+test/registered/kernels/ops/attention/test_qsa_decode_skip_scores.py
+  s_44844fb1f654af::t_4354690c772625 1-4,5-41,45-48,51-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "378722c0e57b5905613aca179392912c0788f140",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
