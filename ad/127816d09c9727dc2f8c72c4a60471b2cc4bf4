@@ -1,0 +1,63 @@
+docker_ant/tests/test_image_build_inputs.py
+  s_0a1a5a1e7f1eec::t_09139c4d9e33e0 244,270
+  s_c1e1b25db851cf::t_b5b9456b6448e2 137-139
+  s_0a1a5a1e7f1eec::t_b7dd8d0bfd9e79 118-122,141-145
+docker_ant/prepare_sgl_kernel_source.py
+  s_0a1a5a1e7f1eec::t_de624545fe0637 35-37,41,50-51
+docker_ant/tests/test_prepare_sgl_kernel_source.py
+  s_0a1a5a1e7f1eec::t_c97c0103496c6c 49,53,91-113
+  s_0a1a5a1e7f1eec::t_b7dd8d0bfd9e79 130,143-154
+  s_c1e1b25db851cf::t_b5b9456b6448e2 118-120
+  s_0a1a5a1e7f1eec::t_2f04f80cf4dd16 115-117,121-129
+  s_0a1a5a1e7f1eec::t_c4c1e4b670d8e3 114
+docker_ant/Dockerfile_890p_sglang
+  s_0a1a5a1e7f1eec::t_b2f80bc11ebb2c 232,234-235
+  s_0a1a5a1e7f1eec::t_282734612fdb51 278-280
+  s_0a1a5a1e7f1eec::t_3770dc9be418ef 10,227-231,233,236-273,286-287
+  s_c1e1b25db851cf::t_0dce3627841987 274
+docker_ant/README.md
+  s_0a1a5a1e7f1eec::t_b2f80bc11ebb2c 144-145,148-151,154-157,159-164,170-171
+  s_0a1a5a1e7f1eec::t_906c1ef2a74790 25,152-153
+  s_0a1a5a1e7f1eec::t_282734612fdb51 231-233
+  s_0a1a5a1e7f1eec::t_09139c4d9e33e0 146,158
+  s_0a1a5a1e7f1eec::t_6f88bc2c6ff269 147
+docker_ant/tests/test_ppu_runtime_installer.py
+  s_0a1a5a1e7f1eec::t_0903e2a9ff99a7 1-33,39-40,51-67,69-75
+  s_c1e1b25db851cf::t_b5b9456b6448e2 34-38,41-50
+  s_0a1a5a1e7f1eec::t_09139c4d9e33e0 68
+docker/ant/install_ppu_runtime.sh
+  s_0a1a5a1e7f1eec::t_282734612fdb51 7-12,17,21
+docker_ant/sgl_kernel_artifact.py
+  s_0a1a5a1e7f1eec::t_de624545fe0637 1-88,90-152,154-167,169-174,176-204,206-213,215-220
+  s_0a1a5a1e7f1eec::t_8f4911b2cebf59 89,153,168,175,205,214
+docker_ant/sgl_kernel_source/README.md
+  s_0a1a5a1e7f1eec::t_b2f80bc11ebb2c 3,5-9
+  s_0a1a5a1e7f1eec::t_09139c4d9e33e0 4
+docker_ant/tests/test_sgl_kernel_artifact.py
+  s_0a1a5a1e7f1eec::t_b7dd8d0bfd9e79 1-47,49-58,60-130,132-172
+  s_0a1a5a1e7f1eec::t_f5c1dfcc65ceb4 48,59,131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ad127816d09c9727dc2f8c72c4a60471b2cc4bf4",
+  "prompts": {},
+  "sessions": {
+    "s_0a1a5a1e7f1eec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a176d0-a5cc-7e43-9f4b-1996346ef936",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    },
+    "s_c1e1b25db851cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19797-3d2e-75e2-8c88-b5a1c9b959da",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}
