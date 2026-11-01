@@ -1,0 +1,24 @@
+test/manual/glm53_compile_cache_snapshot.py
+  s_e14fbcb27cf056::t_78b0893852df6e 24
+test/manual/test_glm53_compile_cache_install.py
+  s_e14fbcb27cf056::t_78b0893852df6e 12,90-128
+  s_e14fbcb27cf056::t_5ddf877e18f70b 129
+docker/ant/glm53_compile_cache.py
+  s_e14fbcb27cf056::t_78b0893852df6e 26,270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "956980b1348a7074319a4038331604221707a29c",
+  "prompts": {},
+  "sessions": {
+    "s_e14fbcb27cf056": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18cd6-dd66-7750-b24f-d665e89d6e5d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "昶知 <eric.hc@antgroup.com>"
+    }
+  }
+}

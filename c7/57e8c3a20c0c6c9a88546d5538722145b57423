@@ -1,0 +1,27 @@
+python/sglang/kernels/ops/memory/__init__.py
+  s_44844fb1f654af::t_bd613c5e768fb0 19
+python/sglang/srt/model_executor/runner_utils/buffers.py
+  s_44844fb1f654af::t_9d1db7ab85e13f 52-57
+python/sglang/kernels/ops/memory/small_copy.py
+  s_44844fb1f654af::t_9d1db7ab85e13f 1-136
+python/sglang/srt/model_executor/cuda_graph_buffer_registry.py
+  s_44844fb1f654af::t_9d1db7ab85e13f 60-65
+test/registered/kernels/ops/memory/test_small_copy.py
+  s_44844fb1f654af::t_9d1db7ab85e13f 1-146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c757e8c3a20c0c6c9a88546d5538722145b57423",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
