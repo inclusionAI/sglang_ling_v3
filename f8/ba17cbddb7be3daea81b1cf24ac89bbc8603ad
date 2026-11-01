@@ -1,0 +1,21 @@
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_44844fb1f654af::t_aed9615d71bcee 1039-1042
+test/registered/kernels/ops/speculative/test_draft_extend_inputs.py
+  s_44844fb1f654af::t_aed9615d71bcee 34-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f8ba17cbddb7be3daea81b1cf24ac89bbc8603ad",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
