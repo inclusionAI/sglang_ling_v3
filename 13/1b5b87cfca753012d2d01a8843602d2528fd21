@@ -1,0 +1,24 @@
+python/sglang/srt/arg_groups/overrides.py
+  h_9a65b1f4e8d789 2605
+python/sglang/srt/layers/moe/fused_moe_triton/layer.py
+  h_9a65b1f4e8d789 231-239
+python/sglang/srt/layers/moe/moe_runner/apl_fp4.py
+  h_9a65b1f4e8d789 104-119,214-216,220-221,249-263,278-288,302,305,312-321
+python/sglang/srt/layers/quantization/fp8.py
+  h_9a65b1f4e8d789 1142-1149,1442-1450,1466-1470,2155-2163,2499-2500,2551-2553
+test/registered/kernels/ops/moe/test_apl_mxfp4.py
+  h_9a65b1f4e8d789 42-68,92-103,111-125,132-135,137,143,150-162,186-190,192,201-202,245-304
+test/registered/unit/layers/moe/test_apl_fp4.py
+  h_9a65b1f4e8d789 401,483-625
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "131b5b87cfca753012d2d01a8843602d2528fd21",
+  "prompts": {},
+  "humans": {
+    "h_9a65b1f4e8d789": {
+      "author": "zq398709 <zq398709@antgroup.com>"
+    }
+  }
+}

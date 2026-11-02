@@ -1,0 +1,24 @@
+python/sglang/srt/mem_cache/dsv41_swa_injection.py
+  h_f252eadf5e9832 1-134
+python/sglang/srt/speculative/dspark_components/dspark_kv_inject.py
+  h_f252eadf5e9832 10-14,30-34,40-41,143-153,173-181
+python/sglang/srt/speculative/dspark_components/dspark_verify.py
+  h_f252eadf5e9832 36,454-459,747-752
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  h_f252eadf5e9832 19,687-696,701-702
+test/registered/unit/mem_cache/test_dsv41_swa_injection.py
+  h_f252eadf5e9832 1-84
+test/registered/unit/spec/test_dspark_replay_cohesion.py
+  h_f252eadf5e9832 145-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "53e9e6a3a60361d1fe4c50ebcddd7a79990a6774",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

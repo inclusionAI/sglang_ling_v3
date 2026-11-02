@@ -1,0 +1,21 @@
+test/manual/glm53_base_cache_inventory.py
+  s_e14fbcb27cf056::t_b2eb83e2558b15 1-118
+test/manual/glm53_compile_cache_export.py
+  s_e14fbcb27cf056::t_b2eb83e2558b15 1-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5bf505c63d7f7346fe4427fd62668f8b4a75657f",
+  "prompts": {},
+  "sessions": {
+    "s_e14fbcb27cf056": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18cd6-dd66-7750-b24f-d665e89d6e5d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "昶知 <eric.hc@antgroup.com>"
+    }
+  }
+}

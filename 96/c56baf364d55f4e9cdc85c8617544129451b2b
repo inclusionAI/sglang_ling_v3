@@ -1,0 +1,21 @@
+test/manual/run_qwen38_upstream_20261101.py
+  s_44844fb1f654af::t_b281aa7642bcfb 1-62
+test/manual/qwen38_upstream_20261101_results.json
+  s_44844fb1f654af::t_318ec3c0d069a1 1-561
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "96c56baf364d55f4e9cdc85c8617544129451b2b",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": null
+    }
+  }
+}

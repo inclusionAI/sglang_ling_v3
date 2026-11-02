@@ -1,0 +1,22 @@
+docker/ant/glm53_compile_cache.py
+  s_94c5f1999b2ba9::t_13281f6158e4b8 5
+  s_94c5f1999b2ba9::t_f5c6d9d03badbe 250-263,265
+test/manual/test_glm53_compile_cache_install.py
+  s_94c5f1999b2ba9::t_f90c170d2a646d 178-188
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "66aa54456bcabb2e64c9b6026b54c4f71a717c6c",
+  "prompts": {},
+  "sessions": {
+    "s_94c5f1999b2ba9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2691689c-c21e-471f-9f81-494b95d05e5b",
+        "model": "grok-4.7"
+      },
+      "human_author": "昶知 <eric.hc@antgroup.com>"
+    }
+  }
+}

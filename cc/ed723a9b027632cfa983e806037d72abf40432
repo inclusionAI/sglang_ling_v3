@@ -1,0 +1,25 @@
+python/sglang/kernels/ops/speculative/__init__.py
+  s_44844fb1f654af::t_517be297125c87 16
+python/sglang/kernels/ops/speculative/eagle.py
+  s_44844fb1f654af::t_c47ee30273b8a9 92-137
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_44844fb1f654af::t_972aae6a5a5acf 1002-1026,1031
+test/registered/kernels/ops/speculative/test_draft_extend_inputs.py
+  s_44844fb1f654af::t_462f8923a8e4e5 1-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cced723a9b027632cfa983e806037d72abf40432",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
