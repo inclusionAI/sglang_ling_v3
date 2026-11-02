@@ -1,0 +1,94 @@
+docs/docs/hardware-platforms/plugin.mdx
+  h_1f940cd96f2dab 658-667
+python/sglang/srt/disaggregation/fake/conn.py
+  h_1f940cd96f2dab 81
+python/sglang/srt/disaggregation/prefill.py
+  h_1f940cd96f2dab 13,15,730,870,883,894,907,954,1003,1097,1214,1223,1229,1235-1236,1315,1352,1891
+python/sglang/srt/disaggregation/role_switch.py
+  h_1f940cd96f2dab 250
+python/sglang/srt/disaggregation/utils.py
+  h_1f940cd96f2dab 191
+python/sglang/srt/layers/attention/attention_registry.py
+  h_1f940cd96f2dab 46,58-79,548-550,608-610,613-615,617-619,627-629
+python/sglang/srt/layers/attention/linear/gdn_backend.py
+  h_1f940cd96f2dab 551-553,568
+python/sglang/srt/layers/attention/linear/kda_backend.py
+  h_1f940cd96f2dab 487-489,514
+python/sglang/srt/managers/scheduler.py
+  h_1f940cd96f2dab 239-241,776-777,1554,1683-1684,2497-2502,2509-2511,2727-2728,2773-2779,2782-2784,5366,5530,5555,5617,5627-5628,5671,5680,5964,5994,6086,6088,6192,6462
+python/sglang/srt/managers/scheduler_components/deferred_responses.py
+  h_1f940cd96f2dab 1-91
+python/sglang/srt/managers/scheduler_components/load_inquirer.py
+  h_1f940cd96f2dab 50,192
+python/sglang/srt/managers/scheduler_components/metrics_reporter.py
+  h_1f940cd96f2dab 811,927,1154,1571
+python/sglang/srt/managers/scheduler_pp_mixin.py
+  h_1f940cd96f2dab 347,366,631
+python/sglang/srt/models/deepseek_common/attention_forward_methods/forward_mha.py
+  h_1f940cd96f2dab 747-748
+python/sglang/srt/rust_server/config.py
+  h_1f940cd96f2dab 8,278-300,304,315-320,330-342
+python/sglang/srt/rust_server/server.py
+  h_1f940cd96f2dab 37-42,216,221-236,238,324-326,349-350
+test/registered/kernels/ops/attention/test_concat_mla.py
+  h_1f940cd96f2dab 3-4,95-188
+test/registered/unit/disaggregation/test_prefill_abort_result_cleanup.py
+  h_1f940cd96f2dab 81,295,312,326
+test/registered/unit/disaggregation/test_prefill_complete_integration.py
+  h_1f940cd96f2dab 486,528-529,533,551-552,555-556,559
+test/registered/unit/disaggregation/test_prefill_result_polling.py
+  h_1f940cd96f2dab 34-36,175-179,233,352,457-458,476,701-702,717,767,833,906,947,1046,1127
+test/registered/unit/disaggregation/test_unified_memory_move_gate.py
+  h_1f940cd96f2dab 7,67,105,120,124,128,317
+test/registered/unit/entrypoints/test_rust_server_dp_ports.py
+  h_1f940cd96f2dab 507-509,519,534,537-539
+test/registered/unit/layers/attention/test_linear_backend_registry.py
+  h_1f940cd96f2dab 1-109
+test/registered/unit/layers/quantization/test_quark_config.py
+  h_1f940cd96f2dab 495,502-505
+test/registered/unit/managers/test_auxiliary_output.py
+  h_1f940cd96f2dab 554
+test/registered/unit/managers/test_deferred_output.py
+  h_1f940cd96f2dab 15-17,62,77,81,84-85,89,91,108,133-134,148,177,190,222,231-234,266
+test/registered/unit/managers/test_disagg_idle_step_counters.py
+  h_1f940cd96f2dab 182,571,602,631
+test/registered/unit/managers/test_load_inquirer.py
+  h_1f940cd96f2dab 67
+test/registered/unit/managers/test_multimodal_abort_cleanup.py
+  h_1f940cd96f2dab 27-29,96-100
+test/registered/unit/managers/test_pp_prefill_transfer_outcome.py
+  h_1f940cd96f2dab 23
+test/registered/unit/managers/test_priority_scheduling_disaggregation.py
+  h_1f940cd96f2dab 33-35,498-502,516
+test/registered/unit/managers/test_scheduler_chunked_abort_race.py
+  h_1f940cd96f2dab 18,21-23,71-75
+test/registered/unit/managers/test_scheduler_on_idle_load.py
+  h_1f940cd96f2dab 23-25,43-47,100-104
+test/registered/unit/managers/test_scheduler_pause_generation.py
+  h_1f940cd96f2dab 27-29,34-36,347-352
+test/registered/unit/managers/test_scheduler_running_reqs.py
+  h_1f940cd96f2dab 31-33,114-118
+test/registered/unit/managers/test_scheduler_timeouts.py
+  h_1f940cd96f2dab 30-32,80-84,226
+test/registered/unit/managers/test_scheduler_weight_version_tracking.py
+  h_1f940cd96f2dab 17-19,70-74,160-164
+test/registered/unit/mem_cache/test_unified_dynamic_gate_capacity.py
+  h_1f940cd96f2dab 108
+test/registered/unit/multimodal/rust/shared/test_partition_cores.py
+  h_1f940cd96f2dab 15-18,28-38,67-107
+test/registered/unit/multimodal/rust/shared/test_rust_server_extension.py
+  h_1f940cd96f2dab 956-998
+test/registered/unit/utils/test_weight_versions.py
+  h_1f940cd96f2dab 7,10-12,325-329
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1b85e4ae459132ba63a532b7836669bce6c630cd",
+  "prompts": {},
+  "humans": {
+    "h_1f940cd96f2dab": {
+      "author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

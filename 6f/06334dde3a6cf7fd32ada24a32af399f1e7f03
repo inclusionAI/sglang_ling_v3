@@ -1,0 +1,29 @@
+python/sglang/srt/models/deepseek_v4.py
+  s_8b0ece6132ddff::t_ad3d2adb5b927e 2517-2518
+  s_8b0ece6132ddff::t_a59f8af712aa39 2349-2400
+  s_8b0ece6132ddff::t_abd0d2973d8e46 2685-2686
+  s_8b0ece6132ddff::t_57a9c450f6fb3c 2418-2421,2423-2434,2448-2451
+  s_8b0ece6132ddff::t_8bc0f422870aa2 1552
+  s_8b0ece6132ddff::t_51e32c7bfd7ec0 1426
+  s_8b0ece6132ddff::t_e19ea5588f2114 2783-2787
+  s_8b0ece6132ddff::t_57da2affc679ba 2422
+  s_8b0ece6132ddff::t_bdd5074f455195 2452
+test/registered/unit/models/test_deepseek_v41_sm90_early_sources.py
+  s_8b0ece6132ddff::t_8b36b52cb867fd 1-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6f06334dde3a6cf7fd32ada24a32af399f1e7f03",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
