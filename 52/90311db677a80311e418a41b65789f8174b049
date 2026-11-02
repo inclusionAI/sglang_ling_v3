@@ -1,0 +1,45 @@
+python/sglang/srt/disaggregation/encoder/receiver.py
+  s_8b0ece6132ddff::t_bde128656e81e9 43,82-128,1588-1591,1607,1662-1663,2660,3628-3629
+  s_8b0ece6132ddff::t_427fd8bbcfb4a8 1584-1587,1596-1598,1603,1613-1615
+  s_8b0ece6132ddff::t_269167bc714776 43,82-128,1588-1591,1607,1662-1663,2660,3628-3629
+test/registered/unit/disaggregation/test_encoder_meta_retry.py
+  s_8b0ece6132ddff::t_bde128656e81e9 1-241
+  s_8b0ece6132ddff::t_36120ba59377b1 1-241
+python/sglang/srt/managers/long_prompt_tokenizer.py
+  s_8b0ece6132ddff::t_60039cc4bf8872 1-267
+  s_8b0ece6132ddff::t_781684f82d4f1e 268-269
+python/sglang/srt/entrypoints/openai/chat_encoding_adapters.py
+  s_8b0ece6132ddff::t_3cd4b50081ff6a 231-232,245,285
+python/sglang/srt/entrypoints/openai/serving_chat.py
+  s_8b0ece6132ddff::t_f67323e8cc4604 639
+python/sglang/srt/entrypoints/openai/serving_deepseek_recipe.py
+  s_8b0ece6132ddff::t_fd1cd30ec30b51 65,69
+python/sglang/srt/managers/tokenizer_manager.py
+  s_8b0ece6132ddff::t_9a3c47bfb7d97a 80,129,621-622,842-851,1276-1286
+python/sglang/srt/parser/deepseek_recipe_renderer.py
+  s_8b0ece6132ddff::t_a950216e10f8e1 9,13-14,40-42,113-128,131-133,135-141,159-165,169-173,180-202,205,206,226-228,231-236,238-241,254-265,267-268
+test/registered/unit/entrypoints/openai/test_serving_deepseek_recipe.py
+  s_8b0ece6132ddff::t_3b318a7ebd8964 45
+test/registered/unit/entrypoints/openai/utils.py
+  s_8b0ece6132ddff::t_6f59b3c76f9d01 57
+test/registered/unit/managers/test_long_prompt_tokenizer.py
+  s_8b0ece6132ddff::t_0453f5dec1e464 1-242
+test/registered/unit/parser/test_deepseek_recipe_renderer.py
+  s_8b0ece6132ddff::t_fd84167756aa37 2,208-237,246-251,253,258,260-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5290311db677a80311e418a41b65789f8174b049",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "unknown"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
