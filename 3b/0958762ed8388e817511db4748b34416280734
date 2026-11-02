@@ -1,0 +1,26 @@
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_fe92d796c96f00::t_2b36cfa4096cab 5170-5186
+python/sglang/srt/debug_utils/dsv41_graph_attention_probe.py
+  s_fe92d796c96f00::t_cb2f2a8f0c4661 1-121
+test/registered/kernel/attention/dsv4/test_dsv41_graph_attention_probe.py
+  s_fe92d796c96f00::t_06ecff8d4b5b35 1-96
+python/sglang/srt/model_executor/runner/decode_cuda_graph_runner.py
+  s_fe92d796c96f00::t_2b36cfa4096cab 1545-1551
+  s_fe92d796c96f00::t_a65c8ec73db47d 1552
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3b0958762ed8388e817511db4748b34416280734",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
