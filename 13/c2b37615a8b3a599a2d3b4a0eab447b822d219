@@ -1,0 +1,78 @@
+python/sglang/srt/batch_overlap/two_batch_overlap.py
+  h_1f940cd96f2dab 783
+python/sglang/srt/managers/io_struct.py
+  h_1f940cd96f2dab 574-585
+python/sglang/srt/managers/overlap_utils.py
+  h_1f940cd96f2dab 113,118-119,156
+python/sglang/srt/managers/schedule_policy.py
+  h_1f940cd96f2dab 1386-1398
+python/sglang/srt/managers/scheduler.py
+  h_1f940cd96f2dab 320,324-325,488-489,732,2009-2011,2230,2232,2515,2532,2537,2539-2540,2550,2553-2561,2757,2856,3674,3676-3678,3750-3751,4340-4349,4355,4516,4538-4539,4782,4784,4885-4889,4891,4987-4988,5011-5012,5019,5087,5133,5179,5192,5194,5219,5230,5301,5303,5597,5670-5672,5710-5712,5865,5868,6047,6050,6541-6542
+python/sglang/srt/managers/scheduler_components/batch_result_processor.py
+  h_1f940cd96f2dab 89-91,180,528-529
+python/sglang/srt/managers/scheduler_components/output_streamer.py
+  h_1f940cd96f2dab 57-59,108,299,513,711-712,940-941
+python/sglang/srt/managers/scheduler_components/pool_stats_observer.py
+  h_1f940cd96f2dab 202,209,213
+python/sglang/srt/managers/scheduler_components/request_receiver.py
+  h_1f940cd96f2dab 82-91,102,104
+python/sglang/srt/managers/tp_worker.py
+  h_1f940cd96f2dab 637,664
+python/sglang/srt/mem_cache/base_prefix_cache.py
+  h_1f940cd96f2dab 724-731
+python/sglang/srt/mem_cache/unified_radix_cache.py
+  h_1f940cd96f2dab 4867-4874
+python/sglang/srt/model_executor/forward_batch_info.py
+  h_1f940cd96f2dab 624-625,1015,1138,1275
+python/sglang/srt/models/unlimited_ocr_v2_support/admission.py
+  h_1f940cd96f2dab 1-24
+python/sglang/srt/models/unlimited_ocr_v2_support/decode_graph_io.py
+  h_1f940cd96f2dab 89
+python/sglang/srt/models/unlimited_ocr_v2_support/greedy_graph.py
+  h_1f940cd96f2dab 73
+python/sglang/srt/models/unlimited_ocr_v2_support/request_receiver.py
+  h_1f940cd96f2dab 1-80
+python/sglang/srt/models/unlimited_ocr_v2_support/scheduler_runtime.py
+  h_1f940cd96f2dab 1,8-11,21-26,58,75-76,78-79,162,176-178,223-261
+python/sglang/srt/observability/cpu_monitor.py
+  h_1f940cd96f2dab 26-29
+test/registered/unit/disaggregation/test_admission_abort_not_enqueued.py
+  h_1f940cd96f2dab 284
+test/registered/unit/disaggregation/test_prefill_result_polling.py
+  h_1f940cd96f2dab 178
+test/registered/unit/managers/test_async_shm_materializer.py
+  h_1f940cd96f2dab 15-17,249-263,268
+test/registered/unit/managers/test_deferred_output.py
+  h_1f940cd96f2dab 18-20,205
+test/registered/unit/managers/test_io_struct.py
+  h_1f940cd96f2dab 729-773
+test/registered/unit/managers/test_output_streamer_customized_info.py
+  h_1f940cd96f2dab 43-45,1334
+test/registered/unit/managers/test_overlap_uocr_decode.py
+  h_1f940cd96f2dab 17-19,48,60,68-69,137,193,197,248-249,274,281,316
+test/registered/unit/managers/test_scheduler_flush_cache_after_retract.py
+  h_1f940cd96f2dab 12-14,40
+test/registered/unit/managers/test_scheduler_held_row_admission.py
+  h_1f940cd96f2dab 14,35
+test/registered/unit/managers/test_scheduler_on_idle_load.py
+  h_1f940cd96f2dab 23-25,27-29,51,114-116
+test/registered/unit/managers/test_scheduler_pause_generation.py
+  h_1f940cd96f2dab 27-29,32,315-351
+test/registered/unit/managers/test_scheduler_running_reqs.py
+  h_1f940cd96f2dab 29,325
+test/registered/unit/observability/test_cpu_monitor.py
+  h_1f940cd96f2dab 1-106
+test/registered/unit/session/test_uocr_doc_reuse_unit.py
+  h_1f940cd96f2dab 24-33,35,445-479,576-607
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "13c2b37615a8b3a599a2d3b4a0eab447b822d219",
+  "prompts": {},
+  "humans": {
+    "h_1f940cd96f2dab": {
+      "author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
