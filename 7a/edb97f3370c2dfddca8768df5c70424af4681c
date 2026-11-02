@@ -1,0 +1,48 @@
+test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py
+  s_d74c8d4c4bcb09::t_6c473a440f6f5d 212-214
+  s_d74c8d4c4bcb09::t_f515cdd8c36579 262
+test/registered/kernels/ops/speculative/test_block_verification.py
+  s_d74c8d4c4bcb09::t_f515cdd8c36579 18,50,59-60,64-67,80-87,91-92,96-97,101,115-124,136-137,140-141,144-157,160-161,164-169,334-335,351,356
+  s_d74c8d4c4bcb09::t_6c473a440f6f5d 23-25,61-63,68-79,88-90,93-95,98-100,102-114,125-135,138-139,142-143,158-159,162-163,182-184,186-193,198-202
+  s_d74c8d4c4bcb09::t_c7f1febfd90baa 170-181,185,194-197,203-208
+test/registered/unit/spec/test_eagle_draft_sampling.py
+  s_d74c8d4c4bcb09::t_6c473a440f6f5d 233-235
+  s_d74c8d4c4bcb09::t_c7f1febfd90baa 268-271
+  s_d74c8d4c4bcb09::t_f515cdd8c36579 176-182,222-230,236-242,275,286-295
+python/sglang/kernels/ops/speculative/reject_sampling.py
+  s_d74c8d4c4bcb09::t_ca933f314329f6 259,261-284
+python/sglang/srt/speculative/eagle_info.py
+  s_d74c8d4c4bcb09::t_76509885aa028c 69-80,92
+  s_d74c8d4c4bcb09::t_935d31f6951192 38-40,82
+test/registered/kernels/benchmark/speculative/bench_compact_rejection_sampling.py
+  s_d74c8d4c4bcb09::t_6c473a440f6f5d 16-18,22-35,43-56,73-75,84-86,93-105
+  s_d74c8d4c4bcb09::t_2e5e51f43075a5 1-15,19-21,36-42,57-72,76-83,87-92,106-120
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_d74c8d4c4bcb09::t_935d31f6951192 259,281-288
+  s_d74c8d4c4bcb09::t_f515cdd8c36579 748
+python/sglang/srt/speculative/eagle_worker_common.py
+  s_d74c8d4c4bcb09::t_935d31f6951192 392,490
+python/sglang/srt/speculative/eagle_utils.py
+  s_d74c8d4c4bcb09::t_76509885aa028c 752
+  s_d74c8d4c4bcb09::t_935d31f6951192 34,52,747-751,753-759
+python/sglang/kernels/ops/speculative/_reject_sampling_compact.py
+  s_d74c8d4c4bcb09::t_6c473a440f6f5d 90,127,183-185
+  s_d74c8d4c4bcb09::t_5d0bc555b660b4 70,72,102,141,145-146,148-149,152,157,178,180-181,186,192,195,216,252,281
+  s_d74c8d4c4bcb09::t_ca933f314329f6 1-69,71,73-89,91-101,103-126,128-140,142-144,147,150-151,153-156,158-177,179,182,187-191,193-194,196-215,217-251,253-280,282-364
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7aedb97f3370c2dfddca8768df5c70424af4681c",
+  "prompts": {},
+  "sessions": {
+    "s_d74c8d4c4bcb09": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19aea-88c5-7833-8c0c-59774e3fa280",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}
