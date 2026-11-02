@@ -1,0 +1,38 @@
+test/registered/spec/dspark/test_dspark_deep_backend_contracts.py
+  s_fa9a3ca613e2ab::t_3d60a0b67ddec7 1,4,9-15,20-21,53,89,95-111,119-124,148,160-161,168-169,172-174,183,188,190-199,203-207,213-216
+  s_fa9a3ca613e2ab::t_d40c3620c1bc31 5,17-19,42-46,54-59,61-67,69-79,82-86,90-93,112-118,125-127,132-134,136-147,150-152,163-167,175-180,200-202,208-212
+  s_fa9a3ca613e2ab::t_bab1d02ce2a56f 16,27-29,37,48-49
+  s_fa9a3ca613e2ab::t_9a8e6d22333e39 24
+test/registered/spec/dspark/test_dspark_sampling_distribution_cuda.py
+  s_fa9a3ca613e2ab::t_da62f3a0a18e76 50,52-53,127
+  s_fa9a3ca613e2ab::t_0b75b6296e360b 55
+  s_fa9a3ca613e2ab::t_d40c3620c1bc31 9,14-22,24-26,30-33,36-37,40-42,44,56-61,73,80,92-100,166,169,176,181,186,191,200-201,207,220,235-239,242,250-252,255,258,260,264-283,308,310,322,327
+  s_fa9a3ca613e2ab::t_c3559fd3a0dd94 101-102
+test/registered/spec/dspark/test_dspark_model_contracts.py
+  s_fa9a3ca613e2ab::t_d40c3620c1bc31 23-27,44-48,69-72,84-86,94-97,99-103,106-108,110-111,155-157,162-167,171,180-183
+  s_fa9a3ca613e2ab::t_0b75b6296e360b 10
+  s_fa9a3ca613e2ab::t_872446d585559e 1,12-19,22,31-33,36-38,40-43,49,53,62,93,104-105,109,114,148,150-154,158-161,176-177,179,184,189,220,237-238,242
+  s_fa9a3ca613e2ab::t_bab1d02ce2a56f 82-83,88-89
+  s_fa9a3ca613e2ab::t_d948230d2d938d 11
+test/registered/unit/managers/test_prefill_hidden_chunks.py
+  s_fa9a3ca613e2ab::t_da62f3a0a18e76 39-40,45,113
+  s_fa9a3ca613e2ab::t_d40c3620c1bc31 16,18,30-33,41-44,55,62-63,98-100,109-112,114,204-206
+  s_fa9a3ca613e2ab::t_a0e88cca06fcfc 29,34-36,49,54,66,78,108,200,202-203,207-208,210-212,214
+  s_fa9a3ca613e2ab::t_0b75b6296e360b 12,115-116,218-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cb5755172e65b8bb99bc016e0d46cce13537c4d6",
+  "prompts": {},
+  "sessions": {
+    "s_fa9a3ca613e2ab": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a96-1bfe-7920-8247-8e2810d52cfb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "hx555990 <hx555990@antgroup.com>"
+    }
+  }
+}
