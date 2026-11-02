@@ -1,0 +1,23 @@
+python/sglang/kernels/ops/attention/dsv4/decode_glue.py
+  s_8b0ece6132ddff::t_d9630e584c8b78 1-2,48-59
+python/sglang/srt/models/deepseek_v4_dspark.py
+  s_8b0ece6132ddff::t_cd94b8fcfc8c2f 14,869,982-983
+test/registered/unit/models/test_deepseek_v4_boundary.py
+  s_8b0ece6132ddff::t_79d2340cb26bbf 11,199-230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c7a6182d6e0d33aa9fea5be3faab5d925b2ad5bc",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
