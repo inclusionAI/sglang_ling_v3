@@ -1,0 +1,22 @@
+python/sglang/srt/model_executor/model_runner_components/spec_aux_hidden_state.py
+  h_f252eadf5e9832 9,200-209
+python/sglang/srt/models/deepseek_v4_dspark.py
+  h_f252eadf5e9832 57,61,120-122,228,944
+python/sglang/srt/speculative/dspark_components/dspark_config.py
+  h_f252eadf5e9832 10,314-331
+test/registered/unit/model_executor/model_runner_components/test_spec_aux_hidden_state.py
+  h_f252eadf5e9832 6,10-12,41-88
+test/registered/unit/model_executor/test_dsv41_snapshot_budget.py
+  h_f252eadf5e9832 12,31,63,88-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1678fde621636be2eef6dff852475bf6ec44823b",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

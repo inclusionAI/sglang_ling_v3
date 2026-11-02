@@ -1,0 +1,25 @@
+python/sglang/srt/models/glm5_next_nextn.py
+  s_3e85a9fd64137a::t_b5d71db9c92fbe 24-30,43,68-69,89
+test/registered/unit/models/test_glm5_next_nextn_weight_loading.py
+  s_3e85a9fd64137a::t_cb555133bdad61 70-72
+  s_3e85a9fd64137a::t_93aade13a77597 1-68,73,87-88,90-198
+  s_3e85a9fd64137a::t_cd0a56d10a74ce 89
+  s_3e85a9fd64137a::t_373b630aeae58d 74-86
+  s_3e85a9fd64137a::t_c4ce07d67b0d24 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0bc21c4fe5340e4fd93254d684c009428158878e",
+  "prompts": {},
+  "sessions": {
+    "s_3e85a9fd64137a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a40-5fd8-73c0-a6c0-1584a0bf318f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "克终 <dingningyuan.dny@antgroup.com>"
+    }
+  }
+}

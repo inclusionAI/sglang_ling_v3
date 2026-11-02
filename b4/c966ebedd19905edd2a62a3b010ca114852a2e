@@ -1,0 +1,23 @@
+test/registered/unit/layers/test_glm53_query_sharing_dispatch.py
+  s_964db4a4eef22f::t_e9bed3b82f786b 60,62-63
+test/registered/unit/layers/test_glm53_mqa_dispatch.py
+  s_964db4a4eef22f::t_e9bed3b82f786b 73
+python/sglang/kernels/ops/attention/dsa/tilelang_kernel.py
+  s_964db4a4eef22f::t_e9bed3b82f786b 1765-1767
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b4c966ebedd19905edd2a62a3b010ca114852a2e",
+  "prompts": {},
+  "sessions": {
+    "s_964db4a4eef22f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d8c-9a66-71a1-96f5-e4e0a72a5254",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

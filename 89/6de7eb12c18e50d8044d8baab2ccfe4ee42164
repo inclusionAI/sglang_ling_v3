@@ -1,0 +1,16 @@
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 72,167,219-222,292-296,325-326,342-347,350,369,375-376,430-431,435-437,445,453,512-513,607-613
+test/registered/unit/mem_cache/test_dsv41_snapshot_prefill_reuse.py
+  h_f252eadf5e9832 1-277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "896de7eb12c18e50d8044d8baab2ccfe4ee42164",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

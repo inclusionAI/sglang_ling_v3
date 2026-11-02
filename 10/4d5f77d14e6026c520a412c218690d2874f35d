@@ -1,0 +1,30 @@
+python/sglang/srt/environ.py
+  s_ab50b354526313::t_ea8cce3225098c 1966-1969
+python/sglang/srt/models/deepseek_v4_cp_moe.py
+  s_ab50b354526313::t_ea8cce3225098c 69-71,76-81,84,242-255,258-264
+test/manual/dsv41_ep8_moe_layer.py
+  s_ab50b354526313::t_560dfb7fb8c2cf 425,558-559,561-580,629-631
+test/manual/test_dsv41_cp_overlap_contract.py
+  s_ab50b354526313::t_654d37c56e3207 50
+  s_ab50b354526313::t_10bebd92880164 1-49,51-130
+python/sglang/srt/models/deepseek_v2.py
+  s_ab50b354526313::t_ea8cce3225098c 320,350-356,1673,1676-1680
+python/sglang/srt/distributed/device_communicators/cp_moe_symm.py
+  s_ab50b354526313::t_ea8cce3225098c 316,347-351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "104d5f77d14e6026c520a412c218690d2874f35d",
+  "prompts": {},
+  "sessions": {
+    "s_ab50b354526313": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181e6-d7e4-75c3-ae67-1f761173ef02",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}
