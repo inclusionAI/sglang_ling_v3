@@ -1,0 +1,63 @@
+test/registered/unit/disaggregation/pd_test_utils.py
+  s_b14c5864faf74b::t_6c1dfa7c7d34a5 14-16,38,51-155
+test/registered/unit/disaggregation/test_common_sender_lifecycle.py
+  s_b14c5864faf74b::t_07f8b1330fa8e0 30
+test/registered/unit/disaggregation/test_dcp_pack.py
+  s_b14c5864faf74b::t_cd87235a11419a 36
+test/registered/unit/disaggregation/test_deferred_decode_backend_gate.py
+  s_b14c5864faf74b::t_8b33c5add6abec 33-36,90-99,101,141-146,160-162,170-172,179-180,189-190,204,212-215,218,222,224,226,229
+test/registered/unit/disaggregation/test_dsa_sharded_pd_transfer.py
+  s_b14c5864faf74b::t_4782ac795eaafd 44,182
+test/registered/unit/disaggregation/test_mooncake_abort_drain.py
+  s_b14c5864faf74b::t_c3355fc2bd3b2c 13,19-20,22-31,40,53-54,58-63,69-75,80-84,91-98,105-111,113,121-126,132-133,146,150,155,159,180,183,192-197,199,202,205
+test/registered/unit/disaggregation/test_mooncake_transfer_batching.py
+  s_b14c5864faf74b::t_7d76207c71a9f7 45
+test/registered/unit/disaggregation/test_pd_cpu_backup_budget.py
+  s_b14c5864faf74b::t_a6f7acf732fbc8 93,99,104,119,127,139-142,160,165,174,181,184,189
+test/registered/unit/disaggregation/test_pd_drain_protocol.py
+  s_b14c5864faf74b::t_27f17848eb8a1a 11-19,27-53,61,81-82,108-132,134-135,137-140,145-148,150,153-154,159,161-162,164,184-188,209-221,231-235,238-241,266-269,272,284-287,289,292-299,308-311,314,328,337-338,342,350-351,366-372,377,381-382,385-388,390
+test/registered/unit/disaggregation/test_pd_graceful_exit.py
+  s_b14c5864faf74b::t_b8a1b257aa6086 4,21,24-31
+test/registered/unit/disaggregation/test_pd_health_metrics.py
+  s_b14c5864faf74b::t_6cc13262c2a198 18,23,59-62
+test/registered/unit/disaggregation/test_pd_intake_contract.py
+  s_b14c5864faf74b::t_95687649b11b25 19,23-28,30-31,33,54-71,73-78
+test/registered/unit/disaggregation/test_pd_queued_abort.py
+  s_b14c5864faf74b::t_0440398badeb35 14,17,51,70,78-79,83-85,95-96
+test/registered/unit/disaggregation/test_pd_retraction_progress.py
+  s_b14c5864faf74b::t_a9362de44b256e 21,26,38
+test/registered/unit/disaggregation/test_pd_session_recovery.py
+  s_b14c5864faf74b::t_0561b96a9d7c54 18-19,30-35
+test/registered/unit/disaggregation/test_pd_terminal_status.py
+  s_b14c5864faf74b::t_f8eed80666c177 4,11,31-32
+test/registered/unit/disaggregation/test_pd_tp_release_consensus.py
+  s_b14c5864faf74b::t_3edba2911360ae 12,27,35-37,39-40,42,46,52,54
+test/registered/unit/disaggregation/test_pd_transfer_health.py
+  s_b14c5864faf74b::t_f7a24ec1651de1 5-8,13-19,22,25,28,31,34-35,39-43
+test/registered/unit/disaggregation/test_qwen_hicache_early_send.py
+  s_b14c5864faf74b::t_b1cd2c491085db 21-24,28-30,59,69-70
+test/registered/unit/disaggregation/test_qwen_pd_spec_retraction.py
+  s_b14c5864faf74b::t_5ac08c03ea9c5a 19-20,48-51,57,60,63,70,79-85,106
+test/registered/unit/managers/test_scheduler_weight_version_tracking.py
+  s_b14c5864faf74b::t_8179fcfbd04eee 256-258
+test/registered/unit/observability/test_forward_pass_metrics.py
+  s_b14c5864faf74b::t_ef847a4152aef4 1024
+test/registered/unit/observability/test_stat_loggers_di.py
+  s_b14c5864faf74b::t_e55a525416fa17 310,401
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e47d45bc9ab7424e6c596aa47d77674a49375e6f",
+  "prompts": {},
+  "sessions": {
+    "s_b14c5864faf74b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f2d80beb-b1f7-4844-b010-4d95995c96b0",
+        "model": "unknown"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
