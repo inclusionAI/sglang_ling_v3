@@ -1,0 +1,26 @@
+python/sglang/srt/disaggregation/mooncake/conn.py
+  h_f252eadf5e9832 1521-1523,1549-1557,1559-1579,2308-2310,2708-2717
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 363-365,485-499,539-545,572-574,596-598,618-621,629-631,634-640,647-656,664-666,668-673,743-745,752-758,770-784,805-821,992-996,1232,1242-1245,1250,1252-1253,1274,1282,1286,1318,1361-1365,1369-1382,1645-1651,1836-1844
+python/sglang/srt/mem_cache/dsv41_swa_transfer.py
+  h_f252eadf5e9832 57,59-60,80-97
+test/registered/unit/disaggregation/test_dsv41_native_bank_pd.py
+  h_f252eadf5e9832 1-235
+test/registered/unit/disaggregation/test_dsv41_request_window_pd_cuda_handoff.py
+  h_f252eadf5e9832 54-57,59-61
+test/registered/unit/disaggregation/test_dsv41_request_window_pd_receive.py
+  h_f252eadf5e9832 24-26
+test/registered/unit/disaggregation/test_dsv41_request_window_pd_wire.py
+  h_f252eadf5e9832 11-14,21-24,39-46,48-50,67-77,98-100,125-145,156-161,168-173,178-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1ae697293699118cd9ad5b358e08cadb334536d7",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

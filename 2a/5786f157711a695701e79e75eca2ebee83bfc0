@@ -1,0 +1,18 @@
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 272-289
+python/sglang/srt/models/deepseek_v4_dspark.py
+  h_f252eadf5e9832 308-310
+test/registered/unit/spec/test_dsv41_dspark_empty_attention.py
+  h_f252eadf5e9832 31,34,65-66,70-80,85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2a5786f157711a695701e79e75eca2ebee83bfc0",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
