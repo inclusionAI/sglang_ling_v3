@@ -1,0 +1,24 @@
+python/sglang/srt/layers/attention/qwen_sparse_attn_backend.py
+  s_44844fb1f654af::t_dd478c701b4066 1324,1370,2013,2102,2108,2110-2111,2129-2171,2173-2195
+test/registered/kernels/test_qsa.py
+  s_44844fb1f654af::t_dd478c701b4066 2097-2100,2116,2118-2120,2122,2150,2235,2241,2244,2265-2268,2345,2353,2392-2400,2406,2413-2490
+  s_44844fb1f654af::t_eef316bd6aa731 2491-2492
+python/sglang/srt/layers/attention/qsa/graph_metadata.py
+  s_44844fb1f654af::t_dd478c701b4066 3-11,39-42,51-56,59-60,88-95,98-115,117-136,144-147,171,180-197,212-305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "13af1f7770238d6ed1ad2966f6e5dc833ac48858",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

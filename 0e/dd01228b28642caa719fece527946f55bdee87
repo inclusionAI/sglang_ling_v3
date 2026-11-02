@@ -1,0 +1,41 @@
+test/registered/kernels/ops/speculative/test_spec_topk1.py
+  s_44844fb1f654af::t_7ea106ed2fb5da 106-107
+  s_44844fb1f654af::t_32788504fbfac5 9-12,36-43,47-60,66-72,77-78,88-97,101-105
+  s_44844fb1f654af::t_6a5b371fb4149f 44-46,61-65,73-76,79-87,98-100
+python/sglang/kernels/ops/speculative/draft_argmax.py
+  s_44844fb1f654af::t_6a5b371fb4149f 9-18,59-61,64-72,85-87
+  s_44844fb1f654af::t_85b63a6f974544 34
+  s_44844fb1f654af::t_005245e4bbec57 1-8,19-33,35-42,46-58,62-63,73-76,78-84,88
+  s_44844fb1f654af::t_7ca5f052cc1bb8 43-45,77
+python/sglang/kernels/ops/speculative/__init__.py
+  s_44844fb1f654af::t_05a3e4e75d545f 47
+  s_44844fb1f654af::t_60094e4108f105 9,37-46
+test/manual/kernels/benchmark/bench_qwen_draft_argmax_tp.py
+  s_44844fb1f654af::t_c23999cf3311b0 1-32,34,43,48-55,57,60-72,74-87,91-92,94,99-103,110,117-118,120,122-126,128
+  s_44844fb1f654af::t_a2053edbaaee0a 33,35-42,44-47,56,58-59,73,88-90,93,95-98,104-109,111-116,119,121,127
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_44844fb1f654af::t_005245e4bbec57 772-778,807-811,815-816
+python/sglang/srt/models/qwen4_exp_mtp.py
+  s_44844fb1f654af::t_005245e4bbec57 12,16,22,72,78-79,81-108,259-264,268-272,274-279
+  s_44844fb1f654af::t_2ba8312b15e9d6 265-267
+  s_44844fb1f654af::t_7ca5f052cc1bb8 73-76
+  s_44844fb1f654af::t_2c4216edbbeda2 77,80,273
+python/sglang/srt/layers/logits_processor.py
+  s_44844fb1f654af::t_005245e4bbec57 157-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0edd01228b28642caa719fece527946f55bdee87",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

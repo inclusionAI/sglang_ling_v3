@@ -1,0 +1,24 @@
+python/sglang/srt/layers/quantization/mxfp4.py
+  h_9a65b1f4e8d789 554,556,559
+python/sglang/srt/layers/moe/moe_runner/apl_fp4.py
+  h_9a65b1f4e8d789 211,218-219,221-222
+test/registered/unit/layers/moe/test_apl_fp4.py
+  h_9a65b1f4e8d789 392-393,395,398-399,401-405,436-437,440,456-457,460-465,472-476
+python/sglang/srt/layers/quantization/modelopt_quant.py
+  h_9a65b1f4e8d789 2391,2393,2396
+python/sglang/srt/model_executor/model_runner_components/weight_updater.py
+  h_9a65b1f4e8d789 36,39-40,42-60,64,73-86,88,204,255
+test/registered/unit/model_executor/model_runner_components/test_weight_update_quant_restore.py
+  h_9a65b1f4e8d789 5-7,10,12,14-15,93-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4d3e729c6c89fa156bf9a20fc3d1827c69313a7d",
+  "prompts": {},
+  "humans": {
+    "h_9a65b1f4e8d789": {
+      "author": "zq398709 <zq398709@antgroup.com>"
+    }
+  }
+}
