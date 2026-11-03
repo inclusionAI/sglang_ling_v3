@@ -1,0 +1,49 @@
+test/manual/disaggregation_csa/test_ling_csa_pd_parity.py
+  s_643826788d9a1c::t_3c8163d552887f 1-171
+python/sglang/srt/mem_cache/memory_pool.py
+  s_643826788d9a1c::t_b8b89fb772649e 4666-4675
+  s_643826788d9a1c::t_7475e17504a569 3881-3883
+  s_643826788d9a1c::t_2f733ae412b3c5 3897-3904
+python/sglang/srt/configs/ling_csa_runtime.py
+  s_643826788d9a1c::t_0f2f7ffc9a379b 70-74
+test/registered/unit/mem_cache/test_ling_csa_pd_state_transfer.py
+  s_643826788d9a1c::t_687f8b04d0a098 1-195
+python/sglang/srt/disaggregation/base/conn.py
+  s_643826788d9a1c::t_77122bd380cfdb 27-29
+python/sglang/srt/disaggregation/utils.py
+  s_643826788d9a1c::t_f1ed3a46a3d9f3 1105-1140
+python/sglang/srt/mem_cache/ling_csa_cache.py
+  s_643826788d9a1c::t_2719efa1c26c84 313-337
+  s_643826788d9a1c::t_8ce1f952235d17 36-46,54-56
+  s_643826788d9a1c::t_e0028fb0b490c0 57-58
+python/sglang/srt/disaggregation/mooncake/conn.py
+  s_643826788d9a1c::t_68a3f90355e181 1231,1236
+  s_643826788d9a1c::t_1bf7217f55af84 630
+  s_643826788d9a1c::t_07d1a007a52803 669-682
+  s_643826788d9a1c::t_b80e399187eab2 1363-1371,1407-1409
+python/sglang/srt/disaggregation/decode.py
+  s_643826788d9a1c::t_57e1cffc6f1b1f 1431-1433,1441-1448,1458
+python/sglang/srt/disaggregation/nixl/conn.py
+  s_643826788d9a1c::t_720a664ff08714 1458-1460
+  s_643826788d9a1c::t_cac776910dbdde 1521-1549
+  s_643826788d9a1c::t_8ffc11db70a5ef 2345,2351-2357,2379-2381
+python/sglang/srt/disaggregation/prefill.py
+  s_643826788d9a1c::t_710a473bfd944c 1268
+  s_643826788d9a1c::t_7a5055e25496ab 1251-1255
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8573e8a62f5d74030ac7f7801feb3ce9b64a52c6",
+  "prompts": {},
+  "sessions": {
+    "s_643826788d9a1c": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "c050a087-1d2f-4ee6-8d52-7c744868df44",
+        "model": "antchat/GLM-5.3"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}
