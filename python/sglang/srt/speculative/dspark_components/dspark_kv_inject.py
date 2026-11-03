@@ -10,7 +10,10 @@ from sglang.kernels.ops.speculative.dspark.dspark_verify_window import (
 from sglang.srt.managers.schedule_batch import ScheduleBatch
 from sglang.srt.mem_cache.kv.alloc.id_space import IdSpaceKind
 from sglang.srt.mem_cache.kv.alloc.iteration_ids import Cols, IterationIds
-from sglang.srt.model_executor.forward_batch_info import compute_position
+from sglang.srt.model_executor.forward_batch_info import (
+    compute_position,
+    compute_spec_mrope_positions,
+)
 from sglang.srt.speculative.ragged_verify import RaggedVerifyLayout
 from sglang.srt.utils import is_pin_memory_available
 
@@ -23,10 +26,20 @@ class PrefillPlacement(NamedTuple):
     state_slot: Optional[torch.Tensor]  # draft req slot, for a SWA ring
     final_pos: Optional[torch.Tensor]  # the request's last position, for a ring
     swa_loc: Optional[torch.Tensor]  # SWA rows, for a pool that takes them
+    mrope_positions: Optional[torch.Tensor] = (
+        None  # rotary axes, separate from cache ids
+    )
 
     def select(self, token_indices: torch.Tensor) -> "PrefillPlacement":
         return PrefillPlacement(
-            *(None if t is None else t[token_indices] for t in self)
+            *(
+                None
+                if tensor is None
+                else tensor[..., token_indices]
+                if name == "mrope_positions"
+                else tensor[token_indices]
+                for name, tensor in zip(self._fields, self)
+            )
         )
 
 
@@ -117,7 +130,45 @@ class TargetHiddenKvInjector:
                 state_slot=state_slot,
                 final_pos=final_pos,
             )
-        return PrefillPlacement(cache_loc, positions, state_slot, final_pos, swa_loc)
+        mrope_positions = None
+        if getattr(self.draft_model, "is_mrope_enabled", False):
+            rows = []
+            mm_inputs = batch.multimodal_inputs
+            for index, (prefix, length) in enumerate(
+                zip(batch.prefix_lens, batch.extend_lens)
+            ):
+                mm = None if mm_inputs is None else mm_inputs[index]
+                linear = torch.arange(
+                    prefix, prefix + length, device=device, dtype=torch.int64
+                )
+                if mm is None:
+                    row = linear.expand(3, -1)
+                else:
+                    delta = mm.mrope_position_delta.to(
+                        device=device, dtype=torch.int64
+                    ).reshape(1)
+                    saved = getattr(mm, "mrope_positions", None)
+                    covered = (
+                        0
+                        if saved is None
+                        else max(0, min(length, saved.shape[-1] - prefix))
+                    )
+                    row = (linear + delta).expand(3, -1)
+                    if covered:
+                        row = torch.cat(
+                            (
+                                saved[:, prefix : prefix + covered].to(
+                                    device=device, dtype=torch.int64
+                                ),
+                                row[:, covered:],
+                            ),
+                            dim=1,
+                        )
+                rows.append(row)
+            mrope_positions = torch.cat(rows, dim=1)
+        return PrefillPlacement(
+            cache_loc, positions, state_slot, final_pos, swa_loc, mrope_positions
+        )
 
     def inject_prefill(
         self,
@@ -132,7 +183,11 @@ class TargetHiddenKvInjector:
         self._inject(
             target_hidden=target_hidden,
             cache_loc=placement.cache_loc,
-            positions=placement.positions,
+            positions=(
+                placement.positions
+                if placement.mrope_positions is None
+                else placement.mrope_positions
+            ),
             state_slot=placement.state_slot,
             final_pos=placement.final_pos,
             target_hidden_is_projected=target_hidden_is_projected,
@@ -150,7 +205,15 @@ class TargetHiddenKvInjector:
         state_slot: Optional[torch.Tensor] = None,
         final_pos: Optional[torch.Tensor] = None,
         target_hidden_is_projected: bool = False,
+        batch: Optional[ScheduleBatch] = None,
     ) -> None:
+        if batch is not None and getattr(self.draft_model, "is_mrope_enabled", False):
+            positions = compute_spec_mrope_positions(
+                positions,
+                batch.multimodal_inputs,
+                batch.seq_lens.shape[0],
+                self.model_runner.device,
+            )
         self._inject(
             target_hidden=target_hidden,
             cache_loc=cache_loc,
@@ -181,7 +244,7 @@ class TargetHiddenKvInjector:
         cache_loc = cache_loc.to(device=device, dtype=torch.int64, non_blocking=True)
         positions = positions.to(device=device, dtype=torch.int64, non_blocking=True)
         target_hidden = target_hidden.to(device=device, non_blocking=True)
-        n_real = positions.shape[0]
+        n_real = positions.shape[-1]
         if target_hidden.shape[0] > n_real:
             target_hidden = target_hidden[:n_real]
         if cache_loc_2d is not None:
@@ -411,4 +474,5 @@ class TargetHiddenKvInjector:
             cache_loc_2d=verify_cache_loc_2d,
             positions=positions_2d.reshape(-1),
             commit_lens=commit_lens,
+            batch=batch,
         )

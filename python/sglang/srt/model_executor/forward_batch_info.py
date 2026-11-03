@@ -32,6 +32,7 @@ import warnings
 from dataclasses import dataclass
 from enum import IntEnum, auto
 from functools import lru_cache, total_ordering
+from math import lcm
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
 
 import torch
@@ -1529,37 +1530,14 @@ class ForwardBatch(ForwardBatchDeepSeekMHAMixin):
     def compute_spec_mrope_positions(
         self, model_runner: ModelRunner, batch: ScheduleBatch, seq_positions=None
     ):
-        # TODO support batched deltas
-        batch_size = self.seq_lens.shape[0]
-        device = model_runner.device
-        mm_inputs = batch.multimodal_inputs
-
-        # target_verify / draft_decode read spec_info.positions; draft_extend
-        # passes its own positions (uniform num_draft_tokens per request).
         if seq_positions is None:
             seq_positions = batch.spec_info.positions
-        seq_positions = seq_positions.view(batch_size, -1)
-        # Split text-only and mixed batches here because SpecV2 text-only batches can avoid an extra D2H.
-        if all(mm_input is None for mm_input in mm_inputs):
-            self.mrope_positions = (
-                seq_positions.to(torch.int64).flatten().unsqueeze(0).repeat(3, 1)
-            )
-            return
-        else:
-            mrope_deltas = [
-                (
-                    torch.zeros(1, dtype=torch.int64)
-                    if mm_inputs[i] is None
-                    else mm_inputs[i].mrope_position_delta.squeeze(0)
-                )
-                for i in range(batch_size)
-            ]
-            mrope_delta_tensor = torch.stack(mrope_deltas, dim=0).to(device=device)
-        next_input_positions = (
-            (seq_positions + mrope_delta_tensor).flatten().unsqueeze(0).repeat(3, 1)
+        self.mrope_positions = compute_spec_mrope_positions(
+            seq_positions,
+            batch.multimodal_inputs,
+            self.seq_lens.shape[0],
+            model_runner.device,
         )
-
-        self.mrope_positions = next_input_positions
 
     def _expand_mrope_from_input(
         self,
@@ -1776,10 +1754,24 @@ class ForwardBatch(ForwardBatchDeepSeekMHAMixin):
         sync_group_size = len(global_num_tokens)
         attn_tp_size = get_parallel().attn_tp_size
 
+        # Fixed-width DSpark verification, including idle participants, must
+        # preserve complete request blocks. Ragged verification indexes rows.
+        fixed_dspark_verify = (
+            self.spec_algorithm is not None
+            and self.spec_algorithm.is_dspark()
+            and self.spec_info is not None
+            and (self.forward_mode.is_target_verify() or self.forward_mode.is_idle())
+            and self.spec_info.num_tokens_per_req > 1
+            and getattr(self.spec_info, "ragged_verify_layout", None) is None
+        )
+        token_alignment = attn_tp_size
+        if fixed_dspark_verify:
+            token_alignment = lcm(token_alignment, self.spec_info.num_tokens_per_req)
+
         for i in range(sync_group_size):
             # make sure that the padded length is divisible by attn_tp_size because we may need reduce-scatter across attn_tp dim.
             # there is no reduce-scatter in LM logprob, so we do not need to adjust the padded length for logprob
-            global_num_tokens[i] = ceil_align(global_num_tokens[i], attn_tp_size)
+            global_num_tokens[i] = ceil_align(global_num_tokens[i], token_alignment)
 
         dp_padding_mode = DpPaddingMode.get_dp_padding_mode(
             self.is_extend_in_batch, global_num_tokens
@@ -2384,6 +2376,25 @@ class PPProxyTensors:
 
     def __repr__(self) -> str:
         return f"PPProxyTensors(tensors={self.tensors})"
+
+
+def compute_spec_mrope_positions(
+    seq_positions: torch.Tensor, multimodal_inputs, batch_size: int, device
+) -> torch.Tensor:
+    """Build rotary axes without changing the linear positions used for KV ids."""
+    seq_positions = seq_positions.view(batch_size, -1)
+    if multimodal_inputs is None or all(mm is None for mm in multimodal_inputs):
+        return seq_positions.to(torch.int64).flatten().unsqueeze(0).repeat(3, 1)
+    deltas = torch.stack(
+        [
+            torch.zeros(1, dtype=torch.int64)
+            if multimodal_inputs[i] is None
+            else multimodal_inputs[i].mrope_position_delta.reshape(1)
+            for i in range(batch_size)
+        ],
+        dim=0,
+    ).to(device=device)
+    return (seq_positions + deltas).flatten().unsqueeze(0).repeat(3, 1)
 
 
 def compute_position(

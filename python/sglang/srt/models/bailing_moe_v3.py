@@ -24,6 +24,7 @@ from sglang.srt.eplb.expert_distribution import get_global_expert_distribution_r
 from sglang.srt.layers import deep_gemm_wrapper
 from sglang.srt.layers.activation import SiluAndMul
 from sglang.srt.layers.aux_hidden_states import AuxHiddenStateList
+from sglang.srt.layers.dcp.planner import prepare_decode_context_parallel_metadata
 from sglang.srt.layers.dp_attention import is_dp_attention_enabled
 from sglang.srt.layers.layer_boundary import (
     append_stages,
@@ -47,12 +48,16 @@ from sglang.srt.layers.moe import (
 from sglang.srt.layers.moe.ep_moe.layer import get_moe_impl_class
 from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
 from sglang.srt.layers.moe.topk import TopK, is_routed_scaling_factor_fused_in_topk
-from sglang.srt.layers.moe.utils import get_num_fused_shared_experts
+from sglang.srt.layers.moe.utils import (
+    get_moe_runner_backend,
+    get_num_fused_shared_experts,
+)
 from sglang.srt.layers.multi_gate import (
     create_multi_gate_mm_indices,
     multi_gate_triton_kernel,
 )
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
+from sglang.srt.layers.quantization.fp8 import Fp8Config
 from sglang.srt.layers.quantization.fp8_utils import (
     block_quant_dequant,
     block_quant_to_tensor_quant,
@@ -74,6 +79,10 @@ from sglang.srt.model_executor.runner import get_is_capture_mode
 from sglang.srt.model_loader.weight_utils import (
     default_weight_loader,
 )
+from sglang.srt.models.bailing_fp8_tp_padding import (
+    BailingFp8TPPadding,
+    padded_bailing_fp8_intermediate_size,
+)
 from sglang.srt.models.deepseek_common.utils import (
     _is_cpu,
     _is_cpu_amx_available,
@@ -83,6 +92,7 @@ from sglang.srt.models.deepseek_common.utils import (
 from sglang.srt.models.deepseek_v2 import DeepseekV2AttentionMLA
 from sglang.srt.models.kimi_linear import KimiDeltaAttention
 from sglang.srt.runtime_context import (
+    get_exec,
     get_parallel,
     get_platform,
     get_stream,
@@ -211,8 +221,9 @@ class DsV3MLA(DeepseekV2AttentionMLA):
             zero_allocator=zero_allocator,
             llama_4_scaling=llama_4_scaling,
         )
-        gate = self._forward_gated(hidden_states)
-        s = (s[0], s[1], s[2], s[3] + (gate,))
+        if s[3] is not None:
+            gate = self._forward_gated(hidden_states)
+            s = (s[0], s[1], s[2], s[3] + (gate,))
         return self.forward_core(s)
 
     def _forward_gated(self, hidden_states: torch.Tensor):
@@ -344,6 +355,24 @@ class BailingMLP(nn.Module):
             self.pad_size_per_partition = None
 
         self.act_fn = SiluAndMul()
+        self._fp8_tp_padding = None
+        if (
+            padded_bailing_fp8_intermediate_size(
+                quant_config, intermediate_size, tp_size
+            )
+            is not None
+        ):
+            if (
+                self.gate_up_proj.weight.dtype != torch.float8_e4m3fn
+                or self.down_proj.weight.dtype != torch.float8_e4m3fn
+            ):
+                raise NotImplementedError(
+                    "Bailing shared-expert FP8 TP padding requires serialized FP8 projections"
+                )
+            rank = group.rank_in_group if group is not None else 0
+            self._fp8_tp_padding = BailingFp8TPPadding(
+                self, intermediate_size, rank, tp_size, 128
+            )
 
     def forward(
         self,
@@ -555,6 +584,33 @@ class BailingMoE(nn.Module):
             )
 
         self._enable_a2a_moe = not get_moe_a2a_backend().is_none()
+        self._fp8_tp_padding = None
+        padded_intermediate_size = padded_bailing_fp8_intermediate_size(
+            quant_config, self.intermediate_size, self.moe_tp_size
+        )
+        if padded_intermediate_size is not None:
+            parallel = get_parallel()
+            runtime = get_exec()
+            runner = get_moe_runner_backend()
+            if not (
+                _is_cuda
+                and not _is_hip
+                and self.moe_ep_size == 1
+                and parallel.moe_dp_size == 1
+                and self.moe_tp_size == self.tp_size
+                and not self._enable_a2a_moe
+                and not self.num_fused_shared_experts
+                and not runtime.moe.enable_eplb
+                and runtime.moe.ep_num_redundant_experts == 0
+                and runtime.moe.init_expert_location == "trivial"
+                and runtime.offload.cpu_offload_gb == 0
+                and runtime.offload.offload_group_size <= 0
+                and (runner.is_triton() or runner.is_deep_gemm() or runner.is_auto())
+            ):
+                raise NotImplementedError(
+                    "Bailing serialized FP8 TP padding requires pure CUDA TP, "
+                    "standalone shared experts, Triton/DeepGEMM, and no weight offload or EPLB"
+                )
 
         # Scaling factor for fused shared experts in EP mode.
         # Non-A2A EP (standard): each GPU computes shared expert, outputs are summed
@@ -571,12 +627,34 @@ class BailingMoE(nn.Module):
             num_fused_shared_experts=self.num_fused_shared_experts,
             layer_id=self.layer_id,
             hidden_size=self.hidden_size,
-            intermediate_size=self.intermediate_size,
+            intermediate_size=padded_intermediate_size or self.intermediate_size,
             quant_config=quant_config,
             routed_scaling_factor=self.routed_scaling_factor,
             prefix=f"{prefix}.experts",
             gemm1_clamp_limit=self.expert_swiglu_limit,
         )
+        if padded_intermediate_size is not None:
+            if not (
+                self.experts.runner_backend.is_triton()
+                or self.experts.runner_backend.is_deep_gemm()
+            ):
+                raise NotImplementedError(
+                    "Bailing FP8 TP padding only supports Triton and DeepGEMM runners"
+                )
+            self._fp8_tp_padding = BailingFp8TPPadding(
+                self.experts,
+                self.intermediate_size,
+                get_parallel().moe_tp_rank,
+                self.moe_tp_size,
+                128,
+                num_experts=self.num_experts,
+            )
+            log_info_on_rank0(
+                logger,
+                f"Bailing layer {layer_id}: logical FP8 TP intermediate "
+                f"{self.intermediate_size // self.moe_tp_size} padded to "
+                f"{padded_intermediate_size // self.moe_tp_size} after checkpoint slicing",
+            )
         self.topk = TopK(
             top_k=self.top_k,
             layer_id=self.layer_id,
@@ -642,6 +720,44 @@ class BailingMoE(nn.Module):
             )
         else:
             self.shared_experts = None
+
+    def load_fp8_tp_padded_weight(self, name, loaded_weight) -> Optional[str]:
+        """Intercept checkpoint-global FP8 tensors before the default TP loader."""
+        if ".mlp." not in name:
+            return None
+        prefix, tail = name.split(".mlp.", 1)
+        parts = tail.split(".")
+        expert_id = None
+        if len(parts) == 4 and parts[0] == "experts":
+            helper = self._fp8_tp_padding
+            if helper is None or not parts[1].isdigit():
+                return None
+            expert_id = int(parts[1])
+            projection, suffix = parts[2:]
+        elif len(parts) == 3 and parts[0] == "shared_experts":
+            helper = getattr(self.shared_experts, "_fp8_tp_padding", None)
+            projection, suffix = parts[1:]
+        else:
+            return None
+        if (
+            helper is None
+            or projection not in ("gate_proj", "up_proj", "down_proj")
+            or suffix not in ("weight", "weight_scale_inv")
+        ):
+            return None
+        helper.load(
+            projection,
+            loaded_weight,
+            is_scale=suffix == "weight_scale_inv",
+            expert_id=expert_id,
+        )
+        if expert_id is not None:
+            runtime_projection = "w2" if projection == "down_proj" else "w13"
+            return f"{prefix}.mlp.experts.{runtime_projection}_{suffix}"
+        runtime_projection = (
+            "down_proj" if projection == "down_proj" else "gate_up_proj"
+        )
+        return f"{prefix}.mlp.shared_experts.{runtime_projection}.{suffix}"
 
     def _compute_padded_intermediate_size(
         self,
@@ -1143,11 +1259,13 @@ class BailingMoELinearDecoderLayer(nn.Module):
         positions: torch.Tensor,
         forward_batch: ForwardBatch,
         zero_allocator: BumpAllocator,
-        capture_output=None,
+        captured_last_layer_outputs: Optional[AuxHiddenStateList] = None,
         **kwargs,
     ) -> torch.Tensor:
         hidden_states = self.attn_boundary.prepare(
-            hidden_states, forward_batch, capture=capture_output
+            hidden_states,
+            forward_batch,
+            capture_gathered=captured_last_layer_outputs,
         )
 
         if not forward_batch.forward_mode.is_idle():
@@ -1347,7 +1465,9 @@ class BailingMoELinearModel(nn.Module):
                     positions=positions,
                     forward_batch=forward_batch,
                     zero_allocator=zero_allocator,
-                    capture_output=capture_output
+                    # Capture on attention input rows: DeepEP may leave the
+                    # previous FFN output scattered over attention TP.
+                    captured_last_layer_outputs=dspark_aux_hidden_states
                     if capture_aux
                     and i > self.start_layer
                     and (i - 1 in self.layers_to_capture)
@@ -1367,12 +1487,69 @@ class BailingMoELinearModel(nn.Module):
                     if capture_aux and self.end_layer - 1 in self.layers_to_capture
                     else None,
                 )
-            if capture_aux and len(dspark_aux_hidden_states) > 0:
+            if (
+                capture_aux
+                and hidden_states.shape[0] > 0
+                and len(dspark_aux_hidden_states) > 0
+            ):
                 return hidden_states, dspark_aux_hidden_states
             return hidden_states
 
 
 class BailingMoeV3ForCausalLM(nn.Module):
+    @staticmethod
+    def get_quantized_moe_intermediate_size(
+        model_config, *, tp_size, moe_ep_size, moe_dp_size
+    ) -> Optional[int]:
+        """Advertise loader geometry; construction still checks backend support."""
+        quantization_config = getattr(
+            model_config.hf_config, "quantization_config", None
+        )
+        if (
+            moe_ep_size != 1
+            or moe_dp_size != 1
+            or getattr(model_config, "is_fp4_experts", False)
+            or not isinstance(quantization_config, dict)
+            or quantization_config.get("quant_method") != "fp8"
+            or quantization_config.get("weight_block_size") != [128, 128]
+            or quantization_config.get("activation_scheme") != "dynamic"
+            or getattr(model_config, "quantization", None) not in (None, "fp8")
+        ):
+            return None
+        return padded_bailing_fp8_intermediate_size(
+            Fp8Config.from_config(quantization_config),
+            model_config.hf_text_config.moe_intermediate_size,
+            tp_size,
+        )
+
+    def prepare_context_parallel_metadata_for_dcp(
+        self,
+        seq_lens,
+        extend_prefix_lens,
+        extend_prefix_lens_cpu,
+        extend_seq_lens,
+        req_pool_indices,
+        req_to_token,
+        seq_lens_sum,
+        kv_buffer_shape,
+        kv_cache_dtype,
+        kv_cache_device,
+        create_chunked_prefix_cache_kv_indices_fn,
+    ):
+        return prepare_decode_context_parallel_metadata(
+            seq_lens=seq_lens,
+            extend_prefix_lens=extend_prefix_lens,
+            extend_prefix_lens_cpu=extend_prefix_lens_cpu,
+            extend_seq_lens=extend_seq_lens,
+            req_pool_indices=req_pool_indices,
+            req_to_token=req_to_token,
+            seq_lens_sum=seq_lens_sum,
+            kv_buffer_shape=kv_buffer_shape,
+            kv_cache_dtype=kv_cache_dtype,
+            kv_cache_device=kv_cache_device,
+            create_chunked_prefix_cache_kv_indices_fn=create_chunked_prefix_cache_kv_indices_fn,
+        )
+
     def __init__(
         self,
         *,
@@ -1889,6 +2066,15 @@ class BailingMoeV3ForCausalLM(nn.Module):
 
             weight_names.append(name)
 
+            if layer_idx is not None:
+                layer = self.model.decoder if is_nextn else self.model.layers[layer_idx]
+                mlp = getattr(layer, "mlp", None)
+                if isinstance(mlp, BailingMoE):
+                    loaded_name = mlp.load_fp8_tp_padded_weight(name, loaded_weight)
+                    if loaded_name is not None:
+                        loaded_params.add(loaded_name)
+                        continue
+
             for param_name, weight_name, shard_id in stacked_params_mapping:
                 if weight_name not in name:
                     continue
@@ -2031,6 +2217,10 @@ class BailingMoeV3ForCausalLM(nn.Module):
                         )
                         weight_loader(param, loaded_weight)
             loaded_params.add(name)
+        for module in self.modules():
+            padding_loader = getattr(module, "_fp8_tp_padding", None)
+            if padding_loader is not None:
+                padding_loader.finalize()
         self.post_load_weights(is_nextn=is_nextn, weight_names=weight_names)
 
         return loaded_params

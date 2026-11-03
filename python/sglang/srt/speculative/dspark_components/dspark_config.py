@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 from typing import TYPE_CHECKING, Any, List, Optional
@@ -164,7 +165,7 @@ def checkpoint_bundles_dspark_draft(hf_config: Any) -> bool:
     """The checkpoint carries a bundled DSpark draft head, marked by the
     prefixed dspark_* keys on the target hf config. Single source of truth
     for the bundling convention (draft-path defaulting, draft-arch remap)."""
-    return any(
+    return is_namespaced_dspark_bundle(hf_config) or any(
         _cfg_get(hf_config, key, None) is not None
         for key in (
             "dspark_block_size",
@@ -212,7 +213,45 @@ def _get_dspark_config(config: Any) -> dict:
     }
 
 
+def is_namespaced_dspark_bundle(config: Any) -> bool:
+    return (
+        _cfg_get(config, "dspark_bundle_format") == "namespaced_safetensors"
+        and _cfg_get(config, "dspark_bundle_version") == 1
+        and bool(_get_nested_config(config, "dspark_config"))
+    )
+
+
+def resolve_namespaced_dspark_draft_config(config: Any) -> Optional[Any]:
+    """Build the draft's language config without mutating the cached target."""
+    if not is_namespaced_dspark_bundle(config):
+        return None
+    from sglang.srt.utils.hf_transformers.common import get_hf_text_config
+
+    isolated = copy.deepcopy(config)
+    draft_fields = _get_nested_config(isolated, "dspark_config")
+    if not draft_fields.get("architectures"):
+        raise ValueError("Namespaced DSpark requires dspark_config.architectures.")
+    text = get_hf_text_config(isolated)
+    # The wrapper can carry the target's quantization metadata while its text
+    # config does not. Keep that provenance until ModelConfig resolves an
+    # explicit draft quantization override.
+    if getattr(text, "quantization_config", None) is None:
+        text.quantization_config = getattr(isolated, "quantization_config", None)
+    for key, value in draft_fields.items():
+        setattr(text, key, value)
+    if isinstance(draft_fields.get("attention_type"), str):
+        text.full_attention_type = draft_fields["attention_type"]
+        text.attention_type = 1
+    text.dspark_bundle_format = isolated.dspark_bundle_format
+    text.dspark_bundle_version = isolated.dspark_bundle_version
+    text.dspark_config = draft_fields
+    return text
+
+
 def parse_dspark_draft_config(*, draft_hf_config: Any) -> DSparkDraftConfig:
+    projected = resolve_namespaced_dspark_draft_config(draft_hf_config)
+    if projected is not None:
+        draft_hf_config = projected
     base = parse_dflash_draft_config(draft_hf_config=draft_hf_config)
 
     dspark_cfg = _get_dspark_config(draft_hf_config)
@@ -320,5 +359,10 @@ def parse_dspark_draft_config(*, draft_hf_config: Any) -> DSparkDraftConfig:
         mask_token_id=mask_token_id,
         markov_rank=markov_rank,
         markov_head_type=markov_head_type,
-        is_mla=base.is_mla,
+        is_mla=base.is_mla
+        or (
+            "LingV3ForCausalLMDSparkMLA"
+            in (_cfg_get(draft_hf_config, "architectures", []) or [])
+            and _cfg_get(draft_hf_config, "full_attention_type") == "mla"
+        ),
     )

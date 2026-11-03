@@ -643,6 +643,10 @@ class DraftBlockProposer:
             ),
             global_num_token_non_padded_cpu=draft_num_tokens,
         )
+        if self.draft_model_runner.model_config.model_is_mrope:
+            draft_forward_batch.compute_spec_mrope_positions(
+                self.draft_model_runner, batch, seq_positions=draft_positions
+            )
         verify_window.iteration_ids.bind(
             draft_forward_batch,
             self.draft_model_runner.runner_ids,

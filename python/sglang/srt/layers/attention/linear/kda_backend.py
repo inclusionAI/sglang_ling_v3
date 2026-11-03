@@ -1247,8 +1247,13 @@ class KDAAttnBackend(MambaAttnBackendBase):
         speculative `intermediate_ssm` scratch so the central post-verify rollback
         (update_mamba_state_after_mtp_verify) can commit the accepted-length state.
         """
-        fm = self.forward_metadata
         seq_len = mixed_qkv.shape[0]
+        # An idle DP rank still joins the MoE collectives, but has no local
+        # attention tokens or state updates. Avoid zero-batch verify kernels
+        # and ambiguous reshapes in the dense convolution path.
+        if seq_len == 0:
+            return mixed_qkv.new_empty((1, 0, layer.num_v_heads, layer.head_v_dim))
+        fm = self.forward_metadata
         query_start_loc = fm.query_start_loc
         cache_indices = fm.mamba_cache_indices
         retrieve_next_token = fm.retrieve_next_token

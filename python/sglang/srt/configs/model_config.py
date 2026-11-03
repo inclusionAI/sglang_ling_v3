@@ -262,7 +262,11 @@ def uses_kda_attention(config) -> bool:
 
 
 def is_dspark_draft(config) -> bool:
-    return _hf_arch(config) in ("DSparkDraftModel", "DSparkMiniMaxDraftModel")
+    return _hf_arch(config) in (
+        "DSparkDraftModel",
+        "DSparkMiniMaxDraftModel",
+        "LingV3ForCausalLMDSparkMLA",
+    )
 
 
 # The decision_config.json attention mode whose full-attention layers read the whole prompt.
@@ -1019,6 +1023,23 @@ class ModelConfig:
     def _config_draft_model(self):
         is_draft_model = self.is_draft_model
 
+        if is_draft_model and self.speculative_algorithm in (None, "DSPARK"):
+            from sglang.srt.speculative.dspark_components.dspark_config import (
+                resolve_namespaced_dspark_draft_config,
+            )
+
+            projected = resolve_namespaced_dspark_draft_config(self.hf_config)
+            if projected is not None:
+                self.hf_config = self.hf_text_config = projected
+                if self.is_draft_quantization_explicit and self.quantization is None:
+                    if projected.dspark_config.get("quantization_config"):
+                        raise ValueError(
+                            "Explicit unquant cannot override a quantized DSpark draft."
+                        )
+                    # Only the inherited target metadata is discarded. The
+                    # target's config remains isolated from this draft copy.
+                    projected.quantization_config = None
+
         from sglang.srt.configs.dots3 import Dots3Config
 
         if is_draft_model and isinstance(self.hf_text_config, Dots3Config):
@@ -1524,6 +1545,7 @@ class ModelConfig:
         elif (
             "BailingMoeV3ForCausalLM" in self.hf_config.architectures
             or "BailingMoeV3VLForConditionalGeneration" in self.hf_config.architectures
+            or "LingV3ForCausalLMDSparkMLA" in self.hf_config.architectures
         ):
             self.head_dim = 128
             self.attention_arch = AttentionArch.MLA

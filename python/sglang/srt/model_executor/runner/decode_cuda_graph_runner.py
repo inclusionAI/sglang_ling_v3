@@ -806,19 +806,27 @@ class DecodeCudaGraphRunner(BaseCudaGraphRunner):
 
     @staticmethod
     def _forward_is_dp_local(model_runner) -> bool:
-        """The DSpark dense draft runs attn-TP-local (draft_tp_context): each
-        DP rank drafts independently with no cross-DP collective, so its
-        hand-built batches carry no dp-global metadata and must key graphs by
-        local batch size. Everything else keeps the dp-global padding path."""
+        """Only attention-local DSpark drafts can omit global DP graph padding.
+
+        A TARGET_LAYOUT draft keeps cross-DP MoE collectives even when it is
+        not a DeepSeek-V4 model, so its capture buffers need global counts.
+        """
         if not model_runner.is_draft_worker:
             return False
         if not model_runner.spec_algorithm.is_dspark():
             return False
+        from sglang.srt.configs.draft_parallel import DraftTPExecution
+        from sglang.srt.speculative.draft_parallel import model_draft_parallel_spec
         from sglang.srt.speculative.dspark_components.dspark_config import (
             draft_is_deepseek_v4,
         )
 
-        return not draft_is_deepseek_v4()
+        draft_spec = model_draft_parallel_spec(
+            getattr(model_runner, "model_config", None),
+            spec_algorithm=model_runner.spec_algorithm,
+            dspark_is_moe=draft_is_deepseek_v4(),
+        )
+        return draft_spec.tp_execution is DraftTPExecution.SINGLE_GROUP
 
     def _ragged_capture_slots(self, num_tokens: int) -> int:
         if envs.SGLANG_TEST_RAGGED_VERIFY_FORCE_UNIFORM_CAPTURE.get():

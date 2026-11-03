@@ -176,13 +176,17 @@ class TestDsparkDpAttentionMoeA2aGate(CustomTestCase):
         server_args.moe_a2a_backend = moe_a2a_backend
         return server_args
 
-    def test_only_megamoe_is_admitted(self):
-        """Both sides of the allowlist: megamoe passes, others raise by name."""
-        with envs.SGLANG_RAGGED_VERIFY_MODE.override("static"):
-            _handle_dspark(self._dp_server_args(moe_a2a_backend="megamoe"))
-            for backend in ("deepep", "pplx"):
-                with self.assertRaisesRegex(ValueError, backend):
+    def test_supported_moe_backends_are_admitted(self):
+        """Preserve megamoe and admit CUDA DeepEP; reject unsupported backends."""
+        with (
+            envs.SGLANG_RAGGED_VERIFY_MODE.override("static"),
+            envs.SGLANG_ENABLE_DP_SPEC_PREFILL_COORDINATION.override(False),
+        ):
+            for backend in ("megamoe", "deepep"):
+                with self.subTest(backend=backend):
                     _handle_dspark(self._dp_server_args(moe_a2a_backend=backend))
+            with self.assertRaisesRegex(ValueError, "pplx"):
+                _handle_dspark(self._dp_server_args(moe_a2a_backend="pplx"))
 
     def test_a2a_backend_with_compact_verify_mode_raises(self):
         server_args = self._dp_server_args(moe_a2a_backend="megamoe")

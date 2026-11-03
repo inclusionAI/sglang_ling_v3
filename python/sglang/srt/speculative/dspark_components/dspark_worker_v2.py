@@ -6,6 +6,7 @@ import torch
 from sglang.kernels.ops.speculative.dspark.blockwise_rejection import (
     make_rejection_noise,
 )
+from sglang.srt.configs.draft_parallel import DraftTPExecution
 from sglang.srt.configs.hybrid_arch import mambaish_config
 from sglang.srt.environ import envs
 from sglang.srt.layers.dp_attention import get_dp_tp_group
@@ -101,6 +102,7 @@ from sglang.srt.utils import (
     is_cuda,
     is_cuda_alike,
     is_npu,
+    require_mlp_sync,
 )
 from sglang.srt.utils.common import async_h2d
 
@@ -197,13 +199,16 @@ class DSparkWorkerV2(BaseSpecWorker):
             return
 
         self._draft_is_moe = draft_is_deepseek_v4()
-        self.draft_parallel_layout = resolve_draft_parallel_layout(
-            model_draft_parallel_spec(
-                target_worker.model_runner.spec_aux_config.draft_model_config,
-                spec_algorithm=target_worker.model_runner.spec_algorithm,
-                dspark_is_moe=self._draft_is_moe,
-            )
+        draft_spec = model_draft_parallel_spec(
+            target_worker.model_runner.spec_aux_config.draft_model_config,
+            spec_algorithm=target_worker.model_runner.spec_algorithm,
+            dspark_is_moe=self._draft_is_moe,
         )
+        self._draft_requires_dp_sync = (
+            require_mlp_sync()
+            and draft_spec.tp_execution is DraftTPExecution.TARGET_LAYOUT
+        )
+        self.draft_parallel_layout = resolve_draft_parallel_layout(draft_spec)
         self._is_pd_prefill = get_disagg().disaggregation_mode == "prefill"
         self._decode_graph_allowed = (
             get_exec().graph.cuda_graph_config.decode.backend != Backend.DISABLED
@@ -385,7 +390,7 @@ class DSparkWorkerV2(BaseSpecWorker):
             random_seed=target_worker.random_seed,
             greedy_draft=self._greedy_draft,
             sharded_accept=self._sharded_accept,
-            dp_moe_sync=self._draft_is_moe and get_parallel().attn_dp_enabled,
+            dp_moe_sync=self._draft_requires_dp_sync,
         )
         self._verify_epilogue = None
         self._sampling_accept_graph: Optional[DsparkSamplingAcceptGraph] = None
@@ -1004,7 +1009,7 @@ class DSparkWorkerV2(BaseSpecWorker):
         if batch.forward_mode.is_idle():
             self._observers.note_idle_decode_step()
             if get_parallel().attn_dp_enabled:
-                if self._draft_is_moe:
+                if self._draft_requires_dp_sync:
                     self._proposer.run_idle_participation(batch)
                 if coordination_plan is not None:
                     coordination_plan.apply(

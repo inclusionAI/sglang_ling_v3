@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import logging
+from contextlib import nullcontext
 from typing import Callable, Optional
 
 import torch
 
+from sglang.srt.configs.draft_parallel import DraftParallelSpec, DraftTPExecution
 from sglang.srt.environ import envs
 from sglang.srt.kernel_plugins.nvidia.binding import (
     megakernel_agree,
     megakernel_draft_sampler,
 )
 from sglang.srt.layers.dp_attention import get_dp_tp_group
+from sglang.srt.runtime_context import get_parallel
+from sglang.srt.speculative.draft_parallel import resolve_draft_parallel_layout
 from sglang.srt.speculative.dspark_components.dspark_draft import (
     DraftNoise,
     DraftParams,
@@ -20,6 +24,7 @@ from sglang.srt.speculative.dspark_components.dspark_draft import (
     step_logits_width,
 )
 from sglang.srt.speculative.spec_tp_sync import SpecTpSync
+from sglang.srt.speculative.spec_utils import draft_tp_context
 from sglang.srt.utils import is_xpu
 
 logger = logging.getLogger(__name__)
@@ -182,7 +187,22 @@ class DsparkDraftSampler:
             )
 
     def _markov_block(self, model_hidden, sample_hidden, anchor, bs: int):
-        base_logits, confidence_features = self.model.compute_base_logits(model_hidden)
+        # A TARGET_LAYOUT draft keeps global MoE participation, but its DP
+        # LM-head gather must stay within attention TP. Resolving at the call
+        # site also leaves an already narrowed dense draft's scope unchanged.
+        logits_layout = resolve_draft_parallel_layout(
+            DraftParallelSpec(tp_execution=DraftTPExecution.SINGLE_GROUP)
+        )
+        logits_context = (
+            nullcontext()
+            if logits_layout.tp_group is None
+            or logits_layout.tp_group is get_parallel().tp_group
+            else draft_tp_context(logits_layout)
+        )
+        with logits_context:
+            base_logits, confidence_features = self.model.compute_base_logits(
+                model_hidden
+            )
         base_logits = base_logits.view(bs, self.gamma, -1)
         draft_tokens, _ = draft_markov_block(
             markov_head=self.markov_head,

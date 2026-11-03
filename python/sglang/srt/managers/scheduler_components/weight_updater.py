@@ -44,6 +44,9 @@ from sglang.srt.managers.io_struct import (
     UpdateWeightsFromTensorReqInput,
     UpdateWeightsFromTensorReqOutput,
 )
+from sglang.srt.model_executor.model_runner_components.weight_updater import (
+    _unsupported_derived_weight_cache_error,
+)
 from sglang.srt.runtime_context import get_model, get_parallel
 from sglang.srt.utils.weight_checker import overall_checksum
 
@@ -137,6 +140,10 @@ class SchedulerWeightUpdaterManager:
 
     def update_weights_from_disk(self, recv_req: UpdateWeightFromDiskReqInput):
         """In-place update of the weights from disk."""
+        if error := self._weight_update_error():
+            return UpdateWeightFromDiskReqOutput(
+                success=False, message=error, num_paused_requests=0
+            )
         with self._observe_weight_load("disk"):
             success, message = True, "Succeeded to update model weights."
             target_updated = False
@@ -184,6 +191,17 @@ class SchedulerWeightUpdaterManager:
             runners += self.draft_worker.weight_update_runners()
         return runners
 
+    def _weight_update_error(self, selector: str = "all") -> Optional[str]:
+        # Validate every selected runner before the first restore or write.
+        # Shared modules carry their dependent model's constraints as well.
+        for _, runner in self._select_runners(selector):
+            error = _unsupported_derived_weight_cache_error(
+                runner.weight_updater.get_model()
+            )
+            if error is not None:
+                return error
+        return None
+
     def update_weights_from_distributed(
         self,
         recv_req: UpdateWeightsFromDistributedReqInput,
@@ -195,6 +213,8 @@ class SchedulerWeightUpdaterManager:
                 message="update_weights_from_distributed must run between "
                 "begin_weight_update() and end_weight_update()",
             )
+        if error := self._weight_update_error(recv_req.selector):
+            return UpdateWeightsFromDistributedReqOutput(success=False, message=error)
         with self._observe_weight_load("distributed"):
             # only the target runner joined the update group; drafts load its receive
             target = self.tp_worker.model_runner.weight_updater
@@ -237,6 +257,8 @@ class SchedulerWeightUpdaterManager:
                 message="update_weights_from_tensor must run between "
                 "begin_weight_update() and end_weight_update()",
             )
+        if error := self._weight_update_error(recv_req.selector):
+            return UpdateWeightsFromTensorReqOutput(success=False, message=error)
         with self._observe_weight_load("tensor"):
             named_tensors = self.tp_worker.deserialize_own_rank(
                 recv_req.serialized_named_tensors
@@ -264,6 +286,8 @@ class SchedulerWeightUpdaterManager:
 
     def update_weights_from_ipc(self, recv_req: UpdateWeightsFromIPCReqInput):
         """Update the online model parameter from IPC for checkpoint-engine integration."""
+        if error := self._weight_update_error():
+            return UpdateWeightsFromIPCReqOutput(success=False, message=error)
         with self._observe_weight_load("ipc"):
             success, message = True, "Succeeded to update model weights."
             target_updated = False
@@ -314,6 +338,8 @@ class SchedulerWeightUpdaterManager:
                 message="a weight-update session is already open; "
                 "call end_weight_update() first",
             )
+        if error := self._weight_update_error(recv_req.selector):
+            return BeginWeightUpdateReqOutput(success=False, message=error)
         for _, runner in self._select_runners(recv_req.selector):
             runner.weight_updater.begin_weight_update()
         self._session = _WeightUpdateSession(selector=recv_req.selector)

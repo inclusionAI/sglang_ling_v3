@@ -60,6 +60,7 @@ class TestFlashAttentionGraphMetadata(CustomTestCase):
 
     def test_empty_cpu_sequence_lengths_use_static_bound(self):
         backend = FlashAttentionBackend.__new__(FlashAttentionBackend)
+        backend.use_mla = False
         backend.max_context_len = 16
         backend.req_to_token_pool = SimpleNamespace(
             req_to_token=torch.zeros((1, 16), dtype=torch.int32)
@@ -167,6 +168,7 @@ class TestUnifiedVerifyGraphMetadata(CustomTestCase):
         bs, pages, delta = 3, 6, 3
         b = FlashAttentionBackend.__new__(FlashAttentionBackend)
         b.fa_impl_ver = 4
+        b.use_mla = False
         b.topk = 1
         b.page_size = ps
         b.max_num_pages = pages

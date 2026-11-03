@@ -677,10 +677,15 @@ def _handle_dspark(server_args: ServerArgs) -> None:
     if cfg.attn_dp_size > 1:
         if not cfg.enable_dp_lm_head:
             raise ValueError("DSpark with dp attention requires --enable-dp-lm-head.")
-        if not _is_npu and cfg.moe_a2a_backend not in ("none", "megamoe", "mori"):
+        cuda_deepep = cfg.device.startswith("cuda") and cfg.moe_a2a_backend == "deepep"
+        if (
+            not _is_npu
+            and cfg.moe_a2a_backend not in ("none", "megamoe", "mori")
+            and not cuda_deepep
+        ):
             raise ValueError(
                 "DSpark with dp attention supports moe_a2a_backend 'none' "
-                "(built-in TP MoE), 'megamoe', or 'mori', got "
+                "(built-in TP MoE), 'megamoe', 'mori', or CUDA 'deepep', got "
                 f"{cfg.moe_a2a_backend!r}."
             )
         if not _is_npu and (
@@ -697,6 +702,11 @@ def _handle_dspark(server_args: ServerArgs) -> None:
                     "DSpark DP MoE or prefill coordination requires "
                     "SGLANG_RAGGED_VERIFY_MODE=static."
                 )
+        if cuda_deepep and envs.SGLANG_ENABLE_DP_SPEC_PREFILL_COORDINATION.get():
+            raise ValueError(
+                "DSpark DP with CUDA DeepEP requires "
+                "SGLANG_ENABLE_DP_SPEC_PREFILL_COORDINATION to remain disabled."
+            )
         if cfg.attn_cp_size > 1:
             raise ValueError(
                 "DSpark with dp attention does not support context parallel "

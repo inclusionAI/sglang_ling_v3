@@ -169,6 +169,39 @@ def check_quantized_moe_compatibility(
             and (moe_intermediate_size // moe_tp_size) % weight_block_size_n != 0
             and not _use_aiter
         ):
+            # Some model loaders slice the logical checkpoint dimension first,
+            # then reblock into explicitly padded runtime weights. Ask the
+            # resolved implementation for that geometry; keep the checkpoint
+            # config unchanged and retain the default rejection for all models
+            # without this capability.
+            from sglang.srt.model_loader.utils import get_model_architecture
+
+            architectures = getattr(model_config.hf_config, "architectures", None)
+            if architectures:
+                model_cls, _ = get_model_architecture(model_config)
+                runtime_size_fn = getattr(
+                    model_cls, "get_quantized_moe_intermediate_size", None
+                )
+                if callable(runtime_size_fn):
+                    runtime_size = runtime_size_fn(
+                        model_config,
+                        tp_size=tp_size,
+                        moe_ep_size=moe_ep_size,
+                        moe_dp_size=moe_dp_size,
+                    )
+                    if runtime_size is not None:
+                        if (
+                            type(runtime_size) is not int
+                            or runtime_size < moe_intermediate_size
+                            or runtime_size % moe_tp_size != 0
+                        ):
+                            raise ValueError(
+                                "Model-reported quantized MoE runtime intermediate "
+                                "size must be an integer at least as large as the "
+                                "checkpoint dimension and divisible by moe_tp_size."
+                            )
+                        if (runtime_size // moe_tp_size) % weight_block_size_n == 0:
+                            return
             raise ValueError(
                 f"For quantized MoE models, please make sure ({moe_intermediate_size=} / {moe_tp_size=}) % {weight_block_size_n=} == 0 "
                 f"where moe_tp_size is equal to tp_size ({tp_size}) divided by ep_size ({moe_ep_size}). "
