@@ -1,0 +1,18 @@
+python/sglang/srt/managers/schedule_batch.py
+  h_f252eadf5e9832 2872-2878,2883-2884
+python/sglang/srt/managers/tokenizer_manager.py
+  h_f252eadf5e9832 1474-1475
+test/registered/unit/managers/test_encoder_swa_image_admission.py
+  h_f252eadf5e9832 1-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "534b9de92769dd0e28e670ef8c86959d008ca980",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

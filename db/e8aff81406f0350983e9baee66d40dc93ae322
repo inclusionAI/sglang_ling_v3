@@ -1,0 +1,14 @@
+python/sglang/srt/layers/moe/moe_runner/humming.py
+  h_f252eadf5e9832 43,868-873
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "dbe8aff81406f0350983e9baee66d40dc93ae322",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

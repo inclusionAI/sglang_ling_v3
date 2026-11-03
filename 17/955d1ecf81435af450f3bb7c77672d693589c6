@@ -1,0 +1,35 @@
+test/registered/unit/spec/test_dspark_draft_block.py
+  s_34a2b2e8aa24cb::t_ddc09a9f126f26 6,8-19,25,27-29,34,37-43,267-585
+  s_c74203c08e32e8::t_55fd7cb74cb262 586-587
+test/registered/unit/layer_boundary/test_aux_capture_deferred_allreduce.py
+  s_34a2b2e8aa24cb::t_ddc09a9f126f26 20-23,255,264
+  s_34a2b2e8aa24cb::t_3fdeaa5edff530 3,204-254,256-263
+python/sglang/srt/model_executor/forward_batch_info.py
+  s_c74203c08e32e8::t_537f412b797105 1535-1539,2381-2399
+test/registered/unit/models/test_bailing_fp8_tp_padding.py
+  s_c74203c08e32e8::t_48fed8ed03c31c 3-4,7,9-10,13,16,18,20-34,36,48,50,71,144,209,225-417
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "17955d1ecf81435af450f3bb7c77672d693589c6",
+  "prompts": {},
+  "sessions": {
+    "s_34a2b2e8aa24cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a16c-5517-7612-ac36-eafbad3b8f5e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    },
+    "s_c74203c08e32e8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19add-9c51-7d52-9798-3abe856a90fd",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

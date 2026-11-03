@@ -1,0 +1,19 @@
+test/registered/unit/layers/attention/test_kda_idle_verify.py
+  s_31943fee543816::t_24cfea60aa6882 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "083266aba7abe13868ddd7e446698f074fa4b2bb",
+  "prompts": {},
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": null
+    }
+  }
+}

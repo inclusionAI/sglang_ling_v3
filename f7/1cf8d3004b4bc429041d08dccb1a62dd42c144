@@ -1,0 +1,33 @@
+python/sglang/srt/constrained/grammar_manager.py
+  s_c513f36a11cc6f::t_18fe4bed35872a 14-17,83-89,101-132,170-180
+test/registered/unit/sampling/test_sampling_params.py
+  s_c513f36a11cc6f::t_36354713dd52fe 87-100
+test/registered/unit/constrained/test_reasoner_grammar_backend.py
+  s_c513f36a11cc6f::t_36354713dd52fe 123,454-630
+  s_c513f36a11cc6f::t_4729ab2ff37d95 631-632
+test/registered/unit/constrained/test_grammar_manager.py
+  s_c513f36a11cc6f::t_b03b6945301f96 27-30,44,76,292-294,677-679,692-694,753-873
+  s_c513f36a11cc6f::t_aeffdbaaf5d231 874-875
+python/sglang/srt/constrained/reasoner_grammar_backend.py
+  s_c513f36a11cc6f::t_3a39c164043859 43-46,60,65-69,77-78,84-87,104-106,117-119,121,126-129,155,157,159,161,198,203,281-283,285-293,329,335,337-339,341-351
+python/sglang/srt/sampling/sampling_params.py
+  s_c513f36a11cc6f::t_18fe4bed35872a 121-128
+python/sglang/srt/constrained/base_grammar_backend.py
+  s_c513f36a11cc6f::t_3242ff7e17867e 156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f71cf8d3004b4bc429041d08dccb1a62dd42c144",
+  "prompts": {},
+  "sessions": {
+    "s_c513f36a11cc6f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19c75-e689-7ab3-bc7a-43291337c79f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "chenmu.my <chenmu.my@antgroup.com>"
+    }
+  }
+}

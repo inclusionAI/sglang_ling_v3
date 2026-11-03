@@ -1,0 +1,23 @@
+python/sglang/kernels/ops/attention/dsv4/dequant_k_cache.py
+  s_8b0ece6132ddff::t_ffd15271831ffa 33,45,80-81,100
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_8b0ece6132ddff::t_2cf9a4d9f9b1fa 4976,4984
+test/registered/unit/mem_cache/test_dsv4_compressed_pools.py
+  s_8b0ece6132ddff::t_19b51f95c433cf 9,1101-1122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "638bd7979273d13d8877fbbe4af529be51621617",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

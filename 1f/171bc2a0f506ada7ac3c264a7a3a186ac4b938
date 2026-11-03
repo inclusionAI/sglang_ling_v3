@@ -1,0 +1,22 @@
+test/manual/glm53_compile_cache_coverage.py
+  s_e14fbcb27cf056::t_d6a0d2275e957f 1-120
+test/manual/glm53_compile_cache_snapshot.py
+  s_e14fbcb27cf056::t_e1176ebe7d17d0 1-82,84-104
+  s_e14fbcb27cf056::t_d6a0d2275e957f 83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1f171bc2a0f506ada7ac3c264a7a3a186ac4b938",
+  "prompts": {},
+  "sessions": {
+    "s_e14fbcb27cf056": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18cd6-dd66-7750-b24f-d665e89d6e5d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "昶知 <eric.hc@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py
+  s_964db4a4eef22f::t_f2a59d70ad6902 203
+python/sglang/srt/speculative/eagle_draft_cuda_graph_runner.py
+  s_964db4a4eef22f::t_4fac3b42ddbd7b 401-405
+python/sglang/srt/utils/common.py
+  s_964db4a4eef22f::t_4fac3b42ddbd7b 4136-4142
+test/registered/unit/spec/test_eagle_draft_cuda_graph_runner.py
+  s_964db4a4eef22f::t_f0914e556def4a 197-204
+  s_964db4a4eef22f::t_01ca10627e3899 205-213,217-232
+  s_964db4a4eef22f::t_2f9bfdf6069a97 214-216
+python/sglang/srt/layers/cp/padding.py
+  s_964db4a4eef22f::t_4fac3b42ddbd7b 17,23-38
+test/registered/unit/model_executor/runner/test_glm53_c1_moe_padding.py
+  s_964db4a4eef22f::t_eba2e0264c237e 101-106
+test/registered/unit/model_executor/runner/test_cp_decode_cuda_graph_padding.py
+  s_964db4a4eef22f::t_f0914e556def4a 1-130
+python/sglang/srt/model_executor/forward_batch_info.py
+  s_964db4a4eef22f::t_4fac3b42ddbd7b 1324,1342,1351-1353
+test/registered/unit/model_executor/test_hybrid_verify_group_padding.py
+  s_964db4a4eef22f::t_f0914e556def4a 26,85,124-129,131-149,171-216
+  s_964db4a4eef22f::t_eba2e0264c237e 83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "355cb78a6463641684664b0d03a4aad785dbca64",
+  "prompts": {},
+  "sessions": {
+    "s_964db4a4eef22f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d8c-9a66-71a1-96f5-e4e0a72a5254",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

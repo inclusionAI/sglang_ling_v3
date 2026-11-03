@@ -1,0 +1,30 @@
+test/registered/kernels/ops/moe/test_bailing_deep_gemm_clamp.py
+  s_34a2b2e8aa24cb::t_929ee9ff568bfd 14,20,32-37,128,146,156,166
+test/registered/unit/layers/quantization/test_fp8_moe_runner_fallback.py
+  s_34a2b2e8aa24cb::t_41b91acc965899 43-62,69-72,88-90,92,94,108,111,115
+  s_34a2b2e8aa24cb::t_c244182b63e2e0 1,12,15
+  s_34a2b2e8aa24cb::t_16d1efb0e593d9 4,7-9,39-42,63-68,73-86,91,93,95-107,109-110,112-114
+  s_34a2b2e8aa24cb::t_82c850972dc747 16
+  s_34a2b2e8aa24cb::t_aed5ca1a06d1a8 87
+  s_34a2b2e8aa24cb::t_2b63555d153672 116-117
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  s_34a2b2e8aa24cb::t_2a1c07e0f5c4c6 475,479,497-499,515
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  s_34a2b2e8aa24cb::t_2a1c07e0f5c4c6 371-375,548
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "abac3e8e98d507bb1d93c0dce40660de6b756338",
+  "prompts": {},
+  "sessions": {
+    "s_34a2b2e8aa24cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a16c-5517-7612-ac36-eafbad3b8f5e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+python/sglang/srt/arg_groups/deepseek_v4_hook.py
+  h_f252eadf5e9832 254-283
+python/sglang/srt/arg_groups/fields/exec_.py
+  h_f252eadf5e9832 103-108
+python/sglang/srt/arg_groups/fields/schedule.py
+  h_f252eadf5e9832 175-182
+python/sglang/srt/managers/scheduler.py
+  h_f252eadf5e9832 624-625,1123-1137,2564,5199-5200
+python/sglang/srt/managers/scheduler_components/batch_result_processor.py
+  h_f252eadf5e9832 77,135,885-889,894-895,907-911
+python/sglang/srt/managers/tp_worker.py
+  h_f252eadf5e9832 623,650-653,668
+python/sglang/srt/managers/utils.py
+  h_f252eadf5e9832 127-130
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 20-21,30,38,44-48,64,79,86,107,139,152,158-159,169-172,190,234,241-245,293-299,301-351,363,367-374,729,753,756,802,807-814,818,826-829,1112,1554-1560
+python/sglang/srt/mem_cache/dsv41_swa_snapshot.py
+  h_f252eadf5e9832 1-387
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_pool.py
+  h_f252eadf5e9832 1-238
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 1-431
+python/sglang/srt/mem_cache/unified_cache/unified_tree_core.py
+  h_f252eadf5e9832 415,463-464,637-638,641-644,759-767
+python/sglang/srt/mem_cache/unified_cache/unified_tree_core_interface.py
+  h_f252eadf5e9832 158-171
+python/sglang/srt/mem_cache/unified_radix_cache.py
+  h_f252eadf5e9832 156,942-971,1057-1063,1166-1167
+python/sglang/srt/model_executor/encoder_swa_replay.py
+  h_f252eadf5e9832 113-115,122-156,167-186
+python/sglang/srt/model_executor/pool_configurator.py
+  h_f252eadf5e9832 1089-1118
+python/sglang/srt/speculative/dspark_components/dspark_verify.py
+  h_f252eadf5e9832 90,424
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  h_f252eadf5e9832 903-907,1056
+test/registered/kernel/attention/dsv4/test_dsv41_swa_snapshot.py
+  h_f252eadf5e9832 1-310
+test/registered/unit/mem_cache/test_dsv41_snapshot_decode.py
+  h_f252eadf5e9832 1-172
+test/registered/unit/mem_cache/test_dsv41_snapshot_execution.py
+  h_f252eadf5e9832 1-187
+test/registered/unit/mem_cache/test_dsv41_snapshot_radix.py
+  h_f252eadf5e9832 1-155
+test/registered/unit/mem_cache/test_dsv41_snapshot_runtime.py
+  h_f252eadf5e9832 1-141
+test/registered/unit/mem_cache/test_dsv41_swa_snapshot.py
+  h_f252eadf5e9832 1-398
+test/registered/unit/mem_cache/test_dsv41_window_metadata_dynamic.py
+  h_f252eadf5e9832 1-95
+test/registered/unit/model_executor/test_dsv41_snapshot_budget.py
+  h_f252eadf5e9832 1-74
+test/registered/unit/spec/test_dspark_verify_tensor_lifetime.py
+  h_f252eadf5e9832 23,164-191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "19870fa60f8c5d86f54bb61eba1e38bcf2eb0cb9",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

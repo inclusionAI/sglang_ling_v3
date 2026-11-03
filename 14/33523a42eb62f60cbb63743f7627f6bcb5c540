@@ -1,0 +1,38 @@
+python/sglang/srt/model_executor/forward_context.py
+  s_19c693a0fa03b5::t_00b66e143a0aed 10-11,30,51-55,113-114
+test/registered/unit/layers/test_kpool_stream_scheduling.py
+  s_19c693a0fa03b5::t_356cba9b9b9512 328-330
+python/sglang/srt/layers/attention/dsa/dsa_indexer_kpool.py
+  s_19c693a0fa03b5::t_00b66e143a0aed 27,106-107
+test/registered/unit/layers/attention/test_mqa_logits_forward_budget.py
+  s_19c693a0fa03b5::t_ddeacf08538512 1,3-5,7,9,11-12,14,20-22,33-34,36-37,39-43,121-175,180-212,214-215,217-223,225-227,229-242,244-251,253-261,265-270,272-273,285-290,294-299,301,314-315,319
+  s_19c693a0fa03b5::t_b11a84dcb10048 2,8,15-19,23-32,35,38,44,176-179,213,216,224,228,243,252,262-264,271,274-284,291-293,300,302-313,316-318
+  s_19c693a0fa03b5::t_5960032fe74417 6,13,45-64,85-86,90,94-95,99-103,108,113-115,119-120
+  s_19c693a0fa03b5::t_88a49d4b37cb01 65-84,87-89,91-93,96-98,104-107,109-112,116-118
+  s_19c693a0fa03b5::t_356cba9b9b9512 10
+python/sglang/srt/utils/allocator_memory.py
+  s_19c693a0fa03b5::t_00b66e143a0aed 1-34
+test/registered/unit/utils/test_allocator_memory.py
+  s_19c693a0fa03b5::t_356cba9b9b9512 8
+  s_19c693a0fa03b5::t_b11a84dcb10048 2,6,11-12,14,16-17,20-50,62-78,86-94,99,101-106,110-112
+  s_19c693a0fa03b5::t_ddeacf08538512 1,3-5,7,9-10,13,15,18-19,51-61,79-85,95-98,100,107-109,113
+python/sglang/srt/layers/attention/mqa_logits_utils.py
+  s_19c693a0fa03b5::t_00b66e143a0aed 16-19,21-22,76-106
+  s_19c693a0fa03b5::t_98be807c3015bc 107-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1433523a42eb62f60cbb63743f7627f6bcb5c540",
+  "prompts": {},
+  "sessions": {
+    "s_19c693a0fa03b5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18e04-2f99-73f0-aa92-e177a8943f62",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

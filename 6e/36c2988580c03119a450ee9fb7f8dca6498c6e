@@ -1,0 +1,35 @@
+test/registered/unit/mem_cache/test_hicache_controller_request_id_unit.py
+  s_9ab456955bad17::t_cc4a20d128a770 327,342-347,350-352,366-368,375-379,391-398,401-406
+  s_9ab456955bad17::t_6cd733d4e334ed 9-326,328-341,348,353-365,369-374,380-390,399-400,407-429
+  s_9ab456955bad17::t_5023a177ff13ee 6-8
+  s_9ab456955bad17::t_029e84955491e5 349
+  s_9ab456955bad17::t_861dc7403afcfc 430-432
+python/sglang/srt/observability/trace.py
+  s_9ab456955bad17::t_461b0eafbe7200 27
+  s_9ab456955bad17::t_b3d6970388e862 216
+python/sglang/srt/mem_cache/hybrid_cache/hybrid_cache_controller.py
+  s_9ab456955bad17::t_b3d6970388e862 163,267-311,315-335,414-423,1596-1597,1600,1673-1682,1688,1789-1818,1861-1862,1905-1909,1923
+  s_9ab456955bad17::t_61edd828d4f12a 1942-1944
+  s_9ab456955bad17::t_1151fe21101348 160-162
+  s_9ab456955bad17::t_43b9980cdd7473 164
+  s_9ab456955bad17::t_e5b1d984d51fc9 264-266
+  s_9ab456955bad17::t_d063341d6b1ae1 1910-1912,1920-1922
+  s_9ab456955bad17::t_abbd9c48989070 1924-1926
+  s_9ab456955bad17::t_29c4d3a83d2ea9 1945-1947
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6e36c2988580c03119a450ee9fb7f8dca6498c6e",
+  "prompts": {},
+  "sessions": {
+    "s_9ab456955bad17": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a199e5-5d99-7860-8964-e32f60f7c153",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

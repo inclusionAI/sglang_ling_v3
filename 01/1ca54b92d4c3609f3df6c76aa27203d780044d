@@ -1,0 +1,24 @@
+python/sglang/srt/layers/attention/qsa/sparse_decode.py
+  s_44844fb1f654af::t_41e348c7c662ca 614-624,664
+  s_44844fb1f654af::t_10679985d78205 605
+test/registered/kernels/test_qsa_fp8_kv.py
+  s_44844fb1f654af::t_41e348c7c662ca 62-66
+test/registered/kernels/test_qwen_decode_capacity.py
+  s_44844fb1f654af::t_7ca5f052cc1bb8 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "011ca54b92d4c3609f3df6c76aa27203d780044d",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

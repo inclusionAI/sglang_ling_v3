@@ -1,0 +1,69 @@
+test/manual/kernels/benchmark/bench_qwen_hopper.py
+  s_b14c5864faf74b::t_251de35ae7d378 21
+test/manual/run_qwen38_fp8_kv_regression.py
+  s_b14c5864faf74b::t_d16211d8252582 18
+test/manual/run_qwen38_profile_0926_regression.py
+  s_b14c5864faf74b::t_fa5a808982b2b9 18-19,47,59-65
+test/manual/run_qwen38_regression.py
+  s_b14c5864faf74b::t_a3ad9d0b26c62b 46-47,49,56,65-66,123-129
+test/manual/run_qwen38_upstream_20261101.py
+  s_b14c5864faf74b::t_8aa9294238bee3 27-28,52-53
+test/registered/kernels/benchmark/embeddings/bench_qwen4_ple_prefetch.py
+  s_b14c5864faf74b::t_2d7cee92c35797 8
+test/registered/kernels/ops/attention/qsa/test_qsa_indexer.py
+  s_b14c5864faf74b::t_5154f8996c6eac 157-296
+test/registered/kernels/ops/attention/test_qsa_prefill_compressed_pack.py
+  s_b14c5864faf74b::t_a73d7ea271077f 11,24-28,31-37,41-42,56-58,124-125
+test/registered/kernels/ops/embeddings/test_qwen4_ple_offload.py
+  s_b14c5864faf74b::t_a2b6a125295bf2 9,85,367
+test/registered/kernels/ops/embeddings/test_qwen4_ple_offload_tp4.py
+  s_b14c5864faf74b::t_12cabae1bc9fe4 22,47-50,53
+test/registered/kernels/test_qsa_fp8_kv.py
+  s_b14c5864faf74b::t_9fd86e96366f3c 20,151-152,175,301-302
+test/registered/kernels/test_qsa_qwen38.py
+  s_b14c5864faf74b::t_de06025ef8f9d6 1,16,19,159,181,219,222,230,253,267,275,296,311,332,350,366,438-439,453,458,584-586,597,605,629-632
+test/registered/kernels/test_qwen4_ple_fusion.py
+  s_b14c5864faf74b::t_8e047186b4f8cc 4
+test/registered/kernels/test_qwen4_ple_verify_fusion.py
+  s_b14c5864faf74b::t_4807f7ae0cdc19 9,12-14,106-112,114-118,120,130
+test/registered/kernels/test_qwen_hc_prefill_tp.py
+  s_b14c5864faf74b::t_ee86a702636e49 20,22,28,31,39-40,45-66,82-87,89-90,139,148-149,152-153,158
+test/registered/kernels/test_qwen_hopper.py
+  s_b14c5864faf74b::t_9f2edbe79c61f1 324-325
+test/registered/kernels/test_qwen_qsa_short_prefill.py
+  s_b14c5864faf74b::t_96922b70585db0 302,311-317,332
+test/registered/unit/layers/test_qsa_prefill_metadata.py
+  s_b14c5864faf74b::t_9ae3bf93d053b3 58,189-190,206-214,218,225,229-233,235-236,239-241,265-267,271-276
+test/registered/unit/layers/test_qwen_gdn_verify_routing.py
+  s_b14c5864faf74b::t_a786a80c53603a 84-92,106
+test/registered/unit/layers/test_qwen_hopper_dispatch.py
+  s_b14c5864faf74b::t_9197e496fc5aa1 81-83,324,327,343-344,346-348,366-367,377,411-412,425-431
+test/registered/unit/layers/test_qwen_ple_prefetch.py
+  s_b14c5864faf74b::t_22f14052409734 16,19-21,49,102-104
+test/registered/unit/layers/test_qwen_ple_verify_routing.py
+  s_b14c5864faf74b::t_b76ecdcf7b3c3d 50-56,59,79-88,103-104
+test/registered/unit/layers/test_qwen_qsa_stream_order.py
+  s_b14c5864faf74b::t_0c481a06be1502 72-73
+test/registered/unit/layers/test_qwen_upstream_regressions.py
+  s_b14c5864faf74b::t_fd53722e94b82e 85-90,122,173-190
+test/registered/unit/models/test_qwen4_loader_lifetime.py
+  s_b14c5864faf74b::t_fe31c4fc4804c0 27
+test/registered/unit/spec/test_eagle_draft_extend_replay_selection.py
+  s_b14c5864faf74b::t_c007af327b8787 10,48-52,75,96-98,101-102,142-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "eff2461d647573ea1b050888c1425e369a50df2f",
+  "prompts": {},
+  "sessions": {
+    "s_b14c5864faf74b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f2d80beb-b1f7-4844-b010-4d95995c96b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
