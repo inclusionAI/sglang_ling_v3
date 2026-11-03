@@ -1,0 +1,21 @@
+python/sglang/srt/disaggregation/encoder/receiver.py
+  s_8b0ece6132ddff::t_530c784e93222e 2425-2426,3631-3638,3672-3675
+test/registered/unit/disaggregation/test_encoder_meta_retry.py
+  s_8b0ece6132ddff::t_c0c6789d256514 5,12,19,59,118-171,265
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "26bab8889b7bbe0333c56242b053b281e3212bd4",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

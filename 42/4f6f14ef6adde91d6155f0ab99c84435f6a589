@@ -1,0 +1,24 @@
+test/registered/spec/dspark/test_dspark_behavior_scores.py
+  s_fa9a3ca613e2ab::t_6cd1d7effe9659 19-21,23-28,30-36,41-56,58-60,64-71,73,79-91,93-103,106-113
+  s_fa9a3ca613e2ab::t_1b35806ef8c981 16-18,22,29,37-40,57,61-63,72,74-78,92,104-105,114
+python/sglang/srt/layers/sampler.py
+  s_fa9a3ca613e2ab::t_1b35806ef8c981 227,241
+  s_fa9a3ca613e2ab::t_11076357823657 238-240,245
+  s_fa9a3ca613e2ab::t_6cd1d7effe9659 223-226,242-244,246-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "424f6f14ef6adde91d6155f0ab99c84435f6a589",
+  "prompts": {},
+  "sessions": {
+    "s_fa9a3ca613e2ab": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a96-1bfe-7920-8247-8e2810d52cfb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "hx555990 <hx555990@antgroup.com>"
+    }
+  }
+}

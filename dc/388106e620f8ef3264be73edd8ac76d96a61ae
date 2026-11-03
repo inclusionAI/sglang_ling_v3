@@ -1,0 +1,35 @@
+python/sglang/kernels/ops/attention/dsa/tilelang_kernel.py
+  s_964db4a4eef22f::t_fd607006c4c1ee 1598,1743,1774
+  s_964db4a4eef22f::t_f9227a3f7636cf 1766-1767,1771-1773,1789
+python/sglang/srt/layers/attention/dsa/dsa_indexer_kpool.py
+  s_964db4a4eef22f::t_fc5469181d7112 908-913,918-919,922
+  s_964db4a4eef22f::t_f9227a3f7636cf 923-926
+  s_964db4a4eef22f::t_fd607006c4c1ee 903-907,914-917,920-921,927-935,946-947
+test/registered/unit/layers/test_glm53_query_sharing_dispatch.py
+  s_964db4a4eef22f::t_3655ae01d0cce7 26,57,69-82,113,116-117,189-194,224-233,236-241
+  s_964db4a4eef22f::t_4b8d1abd956c1f 245,247
+  s_964db4a4eef22f::t_cf92a2f6b709ea 92-99
+  s_964db4a4eef22f::t_f9227a3f7636cf 83-91,100,112,114-115,196-197,199-205,210,212-214,234-235
+  s_964db4a4eef22f::t_fc5469181d7112 137,178-183,198,215,242-244,246,248-252
+  s_964db4a4eef22f::t_453862430dac1a 253
+test/registered/kernels/test_glm53_query_sharing.py
+  s_964db4a4eef22f::t_f9227a3f7636cf 31
+  s_964db4a4eef22f::t_cf92a2f6b709ea 38
+  s_964db4a4eef22f::t_3655ae01d0cce7 1,32-37,39-44,46,49,69-77,81-83,92-93,97-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "dc388106e620f8ef3264be73edd8ac76d96a61ae",
+  "prompts": {},
+  "sessions": {
+    "s_964db4a4eef22f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d8c-9a66-71a1-96f5-e4e0a72a5254",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

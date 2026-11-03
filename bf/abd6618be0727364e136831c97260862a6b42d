@@ -1,0 +1,22 @@
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  h_f252eadf5e9832 3074,3076-3081,3100
+python/sglang/srt/layers/attention/dsv4/sparse_prefill_utils.py
+  h_f252eadf5e9832 267-269,597,608-610,634-640,686-687
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 10,509-554,572-628
+python/sglang/srt/mem_cache/dsv41_swa_storage.py
+  h_f252eadf5e9832 84,87-88,91-93
+test/registered/unit/layers/test_dsv41_ring_sparse_prefill.py
+  h_f252eadf5e9832 22,25-27,72-75,103-109,111-129,157-164,188-189,202-205,211,214,241,260-261,263,265,269,288-289,297-300,325-334,456,477-489,499
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bfabd6618be0727364e136831c97260862a6b42d",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
