@@ -1,0 +1,66 @@
+test/registered/unit/multimodal/test_gpu_feature_transport.py
+  s_85d9f19f7e19fb::t_26df39ff330433 1200,1230,1267,1304,1325,1351,1375
+  s_85d9f19f7e19fb::t_dacf497e2e3a41 1201,1231,1268,1305,1326,1352,1376
+python/sglang/srt/managers/req_types.py
+  s_85d9f19f7e19fb::t_299e54eb7faaaa 540,546,549-550,553,558,561-562,565,570,573-574,577,582,585-586,589,594,599-600,605-621
+  s_85d9f19f7e19fb::t_b217ad3844adc2 537-539
+  s_85d9f19f7e19fb::t_4efd0b40b3334d 541-545
+  s_85d9f19f7e19fb::t_c90a5b1fa7e8bf 547-548
+  s_85d9f19f7e19fb::t_15041e431e5068 551-552
+  s_85d9f19f7e19fb::t_68c91d45ebb912 554-557
+  s_85d9f19f7e19fb::t_80c4869cdd1066 559-560
+  s_85d9f19f7e19fb::t_f75ce9b0bca683 563-564
+  s_85d9f19f7e19fb::t_207e9ff2339478 566-569
+  s_85d9f19f7e19fb::t_7ec00b009c0dd6 571-572
+  s_85d9f19f7e19fb::t_1ca5542816736a 575-576
+  s_85d9f19f7e19fb::t_45a5730b14306a 578-581
+  s_85d9f19f7e19fb::t_36dbb8c0ff0292 583-584
+  s_85d9f19f7e19fb::t_68a41b8f10deb4 587-588
+  s_85d9f19f7e19fb::t_33190f7fc5e5fb 590-593
+  s_85d9f19f7e19fb::t_54d9a0d28e2da8 595-598
+  s_85d9f19f7e19fb::t_461ea08950615d 601-604
+  s_85d9f19f7e19fb::t_e474d924763146 622-624
+test/registered/unit/test_repetition_detector.py
+  s_85d9f19f7e19fb::t_dacf497e2e3a41 213
+test/registered/unit/observability/test_trace.py
+  s_85d9f19f7e19fb::t_52081b3883e71a 482
+python/sglang/srt/managers/scheduler_components/batch_result_processor.py
+  s_85d9f19f7e19fb::t_26df39ff330433 27,31
+  s_85d9f19f7e19fb::t_c036d96a65d65a 32
+python/sglang/srt/managers/tokenizer_manager.py
+  s_85d9f19f7e19fb::t_299e54eb7faaaa 131
+  s_85d9f19f7e19fb::t_759c02a6b70294 129-130
+  s_85d9f19f7e19fb::t_31ed41b91222cf 132-133
+benchmark/io/bench_mm_token_padding.py
+  s_85d9f19f7e19fb::t_26df39ff330433 27
+test/registered/unit/constrained/test_grammar_manager.py
+  s_85d9f19f7e19fb::t_26df39ff330433 59
+  s_85d9f19f7e19fb::t_95ae01ec9611e3 637-651,657-662
+  s_85d9f19f7e19fb::t_52081b3883e71a 121
+  s_85d9f19f7e19fb::t_82fd8084f51f16 652-656
+test/registered/unit/managers/test_batch_result_processor_hidden_states.py
+  s_85d9f19f7e19fb::t_299e54eb7faaaa 15
+  s_85d9f19f7e19fb::t_40f399cbf29f18 16
+python/sglang/srt/constrained/grammar_manager.py
+  s_85d9f19f7e19fb::t_26df39ff330433 314-316
+test/registered/unit/managers/test_mm_hashes.py
+  s_85d9f19f7e19fb::t_dacf497e2e3a41 36
+test/registered/unit/disaggregation/test_prefill_abort_result_cleanup.py
+  s_85d9f19f7e19fb::t_299e54eb7faaaa 143,193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "abcc1003be9fc4a2d7170d275c1c53979f7b04d1",
+  "prompts": {},
+  "sessions": {
+    "s_85d9f19f7e19fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19fb4-4d6c-7533-9c79-f57ff1f6185d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
