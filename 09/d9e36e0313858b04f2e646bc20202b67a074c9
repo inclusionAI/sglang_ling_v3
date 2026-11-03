@@ -1,0 +1,21 @@
+test/registered/unit/managers/test_io_struct.py
+  s_c513f36a11cc6f::t_10fafaa61a969b 498-532
+python/sglang/srt/managers/io_struct.py
+  s_c513f36a11cc6f::t_10fafaa61a969b 684
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "09d9e36e0313858b04f2e646bc20202b67a074c9",
+  "prompts": {},
+  "sessions": {
+    "s_c513f36a11cc6f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19c75-e689-7ab3-bc7a-43291337c79f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "chenmu.my <chenmu.my@antgroup.com>"
+    }
+  }
+}
