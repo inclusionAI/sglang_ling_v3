@@ -1,0 +1,21 @@
+test/registered/kernels/ops/attention/test_qsa_relative_prefill.py
+  s_44844fb1f654af::t_172f3f22e7111a 50-51,58-66
+test/registered/kernels/test_qsa.py
+  s_44844fb1f654af::t_47a1f0fe5eb26a 1035,1065,1724,1743
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0724ff294f5e1da388426cda094760a4912da3a4",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

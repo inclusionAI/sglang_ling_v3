@@ -1,0 +1,27 @@
+test/registered/unit/layers/test_qwen_hopper_dispatch.py
+  s_44844fb1f654af::t_6a5b371fb4149f 209-223
+  s_44844fb1f654af::t_3cd7ec62f11425 235
+python/sglang/srt/layers/hc_hopper.py
+  s_44844fb1f654af::t_3cd7ec62f11425 230
+test/registered/kernels/test_qwen_hopper.py
+  s_44844fb1f654af::t_3cd7ec62f11425 343,475,493
+python/sglang/srt/layers/hyperconnection.py
+  s_44844fb1f654af::t_3cd7ec62f11425 350
+  s_44844fb1f654af::t_6a5b371fb4149f 335-338
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ec3da025b21432a3c212a6e1300f92675a3291c9",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": null
+    }
+  }
+}

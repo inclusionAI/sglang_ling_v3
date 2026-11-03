@@ -1,0 +1,18 @@
+python/sglang/srt/managers/scheduler_components/output_streamer.py
+  h_1f940cd96f2dab 596
+test/registered/unit/managers/test_output_streamer_customized_info.py
+  h_1f940cd96f2dab 654
+test/registered/unit/managers/test_priority_scheduling_disaggregation.py
+  h_1f940cd96f2dab 35-37,136-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f4d6c8e7a9c12265a3d32c03dbb4dc470763ede6",
+  "prompts": {},
+  "humans": {
+    "h_1f940cd96f2dab": {
+      "author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

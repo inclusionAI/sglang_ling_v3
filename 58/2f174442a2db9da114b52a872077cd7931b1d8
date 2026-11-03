@@ -1,0 +1,19 @@
+test/registered/unit/multimodal/test_media_url_security.py
+  s_2a6bec1354795a::t_ab97d842c60de9 8,168-197
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "582f174442a2db9da114b52a872077cd7931b1d8",
+  "prompts": {},
+  "sessions": {
+    "s_2a6bec1354795a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a196ec-a2ae-7313-8948-4b209793bd67",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

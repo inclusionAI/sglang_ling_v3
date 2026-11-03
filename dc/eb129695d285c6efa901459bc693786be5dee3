@@ -1,0 +1,16 @@
+python/sglang/kernels/ops/attention/dsv4_attn_metadata_kernels.py
+  h_f252eadf5e9832 175,219-246,276-278,284
+test/registered/unit/mem_cache/test_dsv41_prefill_bounds.py
+  h_f252eadf5e9832 11,18-38,91-93,136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "dceb129695d285c6efa901459bc693786be5dee3",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

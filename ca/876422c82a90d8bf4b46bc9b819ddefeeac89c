@@ -1,0 +1,30 @@
+python/sglang/kernels/ops/attention/dsa/tilelang_kernel.py
+  s_964db4a4eef22f::t_5e99795e10af74 1714,1765-1768,1772,1788
+test/registered/unit/layers/test_glm53_mqa_dispatch.py
+  s_964db4a4eef22f::t_2d8d971111a567 82-85
+  s_964db4a4eef22f::t_5e99795e10af74 73-78
+test/registered/unit/layers/test_glm53_query_sharing_dispatch.py
+  s_964db4a4eef22f::t_2d8d971111a567 68-71
+  s_964db4a4eef22f::t_5e99795e10af74 60,97,147-150,162-164
+  s_964db4a4eef22f::t_da19f62ed67a34 64
+test/registered/kernels/test_glm53_query_sharing.py
+  s_964db4a4eef22f::t_2d8d971111a567 109-111,121,137
+  s_964db4a4eef22f::t_5e99795e10af74 31,33
+  s_964db4a4eef22f::t_da19f62ed67a34 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ca876422c82a90d8bf4b46bc9b819ddefeeac89c",
+  "prompts": {},
+  "sessions": {
+    "s_964db4a4eef22f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d8c-9a66-71a1-96f5-e4e0a72a5254",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}
