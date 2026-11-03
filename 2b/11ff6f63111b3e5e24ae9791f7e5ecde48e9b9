@@ -1,0 +1,123 @@
+python/sglang/kernels/jit/csrc/elementwise/hc_combine.cuh
+  s_b14c5864faf74b::t_4cbb285c5f6097 39-42,44,66-68,116-125,135-140,156,162
+python/sglang/kernels/ops/attention/linear/fused_sigmoid_gating_recurrent.py
+  s_b14c5864faf74b::t_9ed22a17fc80a6 8,51
+python/sglang/kernels/ops/elementwise/hc_combine.py
+  s_b14c5864faf74b::t_5ccd3389a0c655 48-72,81,103,117-122
+python/sglang/kernels/ops/mamba/__init__.py
+  s_b14c5864faf74b::t_13115738814fa7 114-121
+python/sglang/kernels/ops/mamba/qwen4_short_conv.py
+  s_b14c5864faf74b::t_c53cdf9d636315 121-395
+python/sglang/kernels/ops/sampling/__init__.py
+  s_b14c5864faf74b::t_1c32f5c9422dd8 52-63
+python/sglang/kernels/ops/sampling/temperature_softmax.py
+  s_b14c5864faf74b::t_59c3b2ebbcb07c 90,93,100-104,112,128
+python/sglang/srt/arg_groups/cuda_graph_hook.py
+  s_b14c5864faf74b::t_7167393e434db0 540-542
+python/sglang/srt/disaggregation/decode.py
+  s_b14c5864faf74b::t_ded4f3a25384a9 480-485
+python/sglang/srt/disaggregation/utils.py
+  s_b14c5864faf74b::t_7742de086c5a05 359-364,366,374,380
+python/sglang/srt/environ.py
+  s_b14c5864faf74b::t_a5c92ed9a200c6 305-335,845-850,869-875,1333-1347,1537-1600,1602-1630,2210-2218
+python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py
+  s_b14c5864faf74b::t_a61f695b17e61a 471-473
+python/sglang/srt/layers/attention/linear/gdn_backend.py
+  s_b14c5864faf74b::t_1e60ae3e8988f8 599-607,1463-1467
+python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py
+  s_b14c5864faf74b::t_98b2b06848b9fe 25,81-93,107-130,568-584,603-626,639-641,658,675-771
+python/sglang/srt/layers/attention/qsa/kernel.py
+  s_b14c5864faf74b::t_df704b5e6f852f 12,27-33,45-48,66-69
+python/sglang/srt/layers/attention/qsa/mqa.py
+  s_b14c5864faf74b::t_b0ac247049c3c5 10,389-488,656-658,675-676,725-752,810-811,822-823
+python/sglang/srt/layers/attention/qsa/order_check.py
+  s_b14c5864faf74b::t_14f2d216d8a3fd 1-118
+python/sglang/srt/layers/attention/qsa/prefill_metadata.py
+  s_b14c5864faf74b::t_a26f806fb056fa 3,10-57,79-88
+python/sglang/srt/layers/attention/qsa/qsa_indexer.py
+  s_b14c5864faf74b::t_b5243f7b8df5e6 5-8,13,25,39,44,46-52,59-147,158-313,738,748-749,752-757,793-794,801-808,822-831,837-887,898-899,901-914,921-922,930-932,950-957,960-968,977-1006,1199-1211,1219,1221-1230,1256-1289
+python/sglang/srt/layers/attention/qsa/sparse_attn.py
+  s_b14c5864faf74b::t_401d57014214ef 3,14-49,103-121,238-339,348-353,385,425,460-463,493-502,527-633,762,771-782,784-803,837
+python/sglang/srt/layers/attention/qsa/sparse_decode.py
+  s_b14c5864faf74b::t_daf77d5e2cf889 13,416-541,709-716,737-778,790-795
+python/sglang/srt/layers/attention/qwen_sparse_attn_backend.py
+  s_b14c5864faf74b::t_914f9e29975dd6 38-41,44,1440-1452,1527-1545,1726-1733,1746,1765-1805,1832-1839,2269-2270,2277-2310
+python/sglang/srt/layers/dp_attention.py
+  s_b14c5864faf74b::t_39193e6f73a4c6 715-719,722-725
+python/sglang/srt/layers/dsv41_sm90.py
+  s_b14c5864faf74b::t_5d9551b12932fa 197-204
+python/sglang/srt/layers/hc_hopper.py
+  s_b14c5864faf74b::t_8d9cb73972a37b 14-15,164-186,209-234,252-254,263
+python/sglang/srt/layers/hc_prefill_tp.py
+  s_b14c5864faf74b::t_d85b883201db98 11,18-76
+python/sglang/srt/layers/hyperconnection.py
+  s_b14c5864faf74b::t_5815c0f1d4fca0 373-380,391-399,521-527,620
+python/sglang/srt/layers/layer_boundary/prepare.py
+  s_b14c5864faf74b::t_ef2e7861781177 163-167
+python/sglang/srt/layers/layer_boundary/residual/gated.py
+  s_b14c5864faf74b::t_5b33618590247d 50-51,60,219-228
+python/sglang/srt/layers/logits_processor.py
+  s_b14c5864faf74b::t_8e49a15b2da4ac 395-397
+python/sglang/srt/layers/moe/moe_runner/hpc_ops.py
+  s_b14c5864faf74b::t_ab8d1afe083600 31-32,50-83,202
+python/sglang/srt/layers/quantization/qwen38_fp8_proj.py
+  s_b14c5864faf74b::t_91f9bdf99fa8e5 1-216
+python/sglang/srt/managers/data_parallel_controller.py
+  s_b14c5864faf74b::t_3c66d896a6759c 42,136-139
+python/sglang/srt/managers/schedule_policy.py
+  s_b14c5864faf74b::t_f28d31a1b9a6ad 43,185-197,228-236,243-246,259,281-282,294-301,303-304,307-309,312-316,484-505,507-512,521-523,528-531,536-537,1758-1760
+python/sglang/srt/managers/scheduler.py
+  s_b14c5864faf74b::t_e2ba9da4a2cafb 123,2678-2680,4639
+python/sglang/srt/managers/scheduler_components/load_publisher.py
+  s_b14c5864faf74b::t_b0b207873e3bd1 45,127-129
+python/sglang/srt/managers/scheduler_components/request_receiver.py
+  s_b14c5864faf74b::t_a6e32d7ce4996e 5,330-336
+python/sglang/srt/mem_cache/ple_state_pool.py
+  s_b14c5864faf74b::t_949207d326b7fe 13,120-125,245-249
+python/sglang/srt/mem_cache/unified_cache/components/mamba.py
+  s_b14c5864faf74b::t_9df2dafe47880c 157-158,162-165,170-183,598-600,1305-1306,1308-1309
+python/sglang/srt/mem_cache/unified_cache/unified_tree_core.py
+  s_b14c5864faf74b::t_411469bb042166 502-505
+python/sglang/srt/model_executor/forward_batch_info.py
+  s_b14c5864faf74b::t_9ced1707f374ea 1631-1637
+python/sglang/srt/models/qwen2_moe.py
+  s_b14c5864faf74b::t_f35f02cd7e5b12 68-74,699-775,788-793
+python/sglang/srt/models/qwen4_exp.py
+  s_b14c5864faf74b::t_4e0dc210af8fba 43,135-197,209-214,266-312,348-349,443,497-498,577,1245,1315-1358,1713-1719,1725-1729,1734,1737-1738,1862-1863,1905-1914,1918,1942-1958,1966-1967,1983-1990,2007-2010,2031-2032,2045-2048,2128-2138,2319,2361-2373,2375-2376,2404-2406,2440,2521-2525,2528,2562,2578-2580,2584-2589,3119-3123
+python/sglang/srt/models/qwen4_exp_mtp.py
+  s_b14c5864faf74b::t_51643972d9e6a3 4,13-17,21,33-50,70-71,99-189,296-300,323-329,352-360
+python/sglang/srt/speculative/eagle_info.py
+  s_b14c5864faf74b::t_cd0531685e0405 381-383
+python/sglang/srt/speculative/eagle_utils.py
+  s_b14c5864faf74b::t_5e156efa7766af 723-764,804-827,830,833-863,865-874
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_b14c5864faf74b::t_5b7a81316ae14d 2,182,293-336,789-790,941-949,1353-1357
+python/sglang/srt/speculative/uno_utils.py
+  s_b14c5864faf74b::t_6ab91f07d9e936 16,506-633
+test/manual/q38p/test_indexer_row_split.py
+  s_b14c5864faf74b::t_35048a83fa1b02 1-302
+test/manual/q38p/test_p_sched.py
+  s_b14c5864faf74b::t_f262f7412ed874 1-147
+test/registered/kernels/test_hc_combine_gate_first.py
+  s_b14c5864faf74b::t_22217b3ae8b363 1-54
+test/registered/radix_cache/unified_radix_tree/test_mamba_slru_logical_clock.py
+  s_b14c5864faf74b::t_2835f31a71b33d 1-53
+test/registered/unit/spec/test_qwen4_mtp_ext_select.py
+  s_b14c5864faf74b::t_36f61ca12ddcfb 1-251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2b11ff6f63111b3e5e24ae9791f7e5ecde48e9b9",
+  "prompts": {},
+  "sessions": {
+    "s_b14c5864faf74b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f2d80beb-b1f7-4844-b010-4d95995c96b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

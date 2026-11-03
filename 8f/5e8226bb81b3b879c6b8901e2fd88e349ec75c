@@ -1,0 +1,19 @@
+test/manual/dsv41_native_service_profile.py
+  s_ab50b354526313::t_7a114e4ac6b8e5 159-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8f5e8226bb81b3b879c6b8901e2fd88e349ec75c",
+  "prompts": {},
+  "sessions": {
+    "s_ab50b354526313": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181e6-d7e4-75c3-ae67-1f761173ef02",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}

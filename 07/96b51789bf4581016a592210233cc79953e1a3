@@ -1,0 +1,16 @@
+python/sglang/srt/model_executor/encoder_swa_replay.py
+  h_f252eadf5e9832 8-28,49,234,282-286
+test/registered/unit/managers/test_encoder_swa_multimodal.py
+  h_f252eadf5e9832 1-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0796b51789bf4581016a592210233cc79953e1a3",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

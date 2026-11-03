@@ -1,0 +1,22 @@
+python/sglang/srt/arg_groups/deepseek_v4_hook.py
+  h_f252eadf5e9832 257-269,294
+python/sglang/srt/arg_groups/fields/schedule.py
+  h_f252eadf5e9832 181,183
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 38
+test/registered/unit/mem_cache/test_dsv41_full_snapshot_runtime.py
+  h_f252eadf5e9832 205-206,213-226,234-236,239,245-250
+test/registered/unit/server_args/test_dsv41_decode_snapshot_disabled.py
+  h_f252eadf5e9832 83-123,158-162,165-167,175-194,200-201,227-230,237-238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "13c35c66ce7dc19541177dd58445b79770eb8aac",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

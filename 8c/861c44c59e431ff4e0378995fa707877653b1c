@@ -1,0 +1,32 @@
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 10,1439-1446,1770-1792,1849-1852,1870-1873,1875,1923-1925,1936,1984
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_pool.py
+  h_f252eadf5e9832 161,206,216
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 146-148,529-535,540
+python/sglang/srt/mem_cache/dsv41_swa_storage.py
+  h_f252eadf5e9832 7,31-42,53-57
+python/sglang/srt/models/deepseek_v4.py
+  h_f252eadf5e9832 160,5557-5572,5869-5881
+python/sglang/srt/models/deepseek_v4_prefill_graph.py
+  h_f252eadf5e9832 415-419,421-422
+test/registered/unit/mem_cache/test_dsv41_batch_geometry.py
+  h_f252eadf5e9832 141,151
+test/registered/unit/mem_cache/test_dsv41_layer_access.py
+  h_f252eadf5e9832 1-248
+test/registered/unit/mem_cache/test_dsv41_snapshot_commit_graph.py
+  h_f252eadf5e9832 76,189
+test/registered/unit/models/test_dsv41_prefill_graph.py
+  h_f252eadf5e9832 50-51,184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8c861c44c59e431ff4e0378995fa707877653b1c",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

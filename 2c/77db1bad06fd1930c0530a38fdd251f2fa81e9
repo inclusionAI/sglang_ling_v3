@@ -1,0 +1,29 @@
+python/sglang/srt/layers/attention/qsa/qsa_indexer.py
+  s_44844fb1f654af::t_e88d26844daa50 5,20-25,471,482-484,486,499-509,701
+python/sglang/srt/layers/attention/qwen_sparse_attn_backend.py
+  s_44844fb1f654af::t_e88d26844daa50 922,951,999
+python/sglang/srt/layers/attention/qsa/metadata.py
+  s_44844fb1f654af::t_e88d26844daa50 100
+python/sglang/srt/layers/attention/qsa/mqa.py
+  s_44844fb1f654af::t_e88d26844daa50 457-458,643,646,649
+  s_44844fb1f654af::t_d4d10dae58327d 8,180-261,427-456,459-549
+  s_44844fb1f654af::t_755c91ea29b12a 550-551
+test/registered/kernels/ops/attention/test_qsa_relative_prefill.py
+  s_44844fb1f654af::t_bd613c5e768fb0 1-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2c77db1bad06fd1930c0530a38fdd251f2fa81e9",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
