@@ -1,0 +1,40 @@
+python/sglang/srt/mem_cache/pool_host/group.py
+  s_9ab456955bad17::t_0a8ce57c57353e 284
+  s_9ab456955bad17::t_ba319a8b13a341 281-283
+  s_9ab456955bad17::t_1279d755b871ea 285-287
+python/sglang/srt/mem_cache/hybrid_cache/hybrid_cache_controller.py
+  s_9ab456955bad17::t_0a8ce57c57353e 559
+  s_9ab456955bad17::t_3570ce4d9ab2c5 556-558
+  s_9ab456955bad17::t_ae54de354e8e86 560-562
+test/registered/unit/mem_cache/test_mem_pool_host.py
+  s_9ab456955bad17::t_55880c4bff165a 840,881,887-889,905-908,910,921,929,939-1000,1002-1004
+  s_9ab456955bad17::t_bc18a26e28f526 837-839
+  s_9ab456955bad17::t_295d4365515f79 841-843,878-880
+  s_9ab456955bad17::t_3cff733a03865b 882-886
+  s_9ab456955bad17::t_14910a977de3b9 890-892,902-904
+  s_9ab456955bad17::t_e5b67a467eff17 909
+  s_9ab456955bad17::t_5aa6a7c894c7b7 911-913,918-920
+  s_9ab456955bad17::t_f559bd73c4d9e3 922-924,926-928
+  s_9ab456955bad17::t_4d186cb483c2cc 930-932,936-938
+  s_9ab456955bad17::t_d950fdbb539828 1001
+  s_9ab456955bad17::t_82e35a40a242e0 1005-1007
+python/sglang/srt/hardware_backend/xpu/graph_runner/xpu_graph_runner.py
+  s_9ab456955bad17::t_e5bfc1e12daf3d 18,31
+  s_9ab456955bad17::t_c5b844357e5a76 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "be486e3682f45732857c1b4d1097c589b05456c8",
+  "prompts": {},
+  "sessions": {
+    "s_9ab456955bad17": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a199e5-5d99-7860-8964-e32f60f7c153",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
