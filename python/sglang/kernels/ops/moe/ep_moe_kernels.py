@@ -1127,9 +1127,10 @@ def _fwd_kernel_ep_scatter_1(
         other=0,
     )
     cumsum = tl.cumsum(tokens_per_expert) - tokens_per_expert
-    tl.store(expert_start_loc + offset_cumsum, cumsum, mask=offset_cumsum < num_experts)
-
-    cur_expert_start = tl.load(expert_start_loc + cur_expert)
+    # Keep this CTA's offset in registers. Reloading the vector-wide global
+    # store can race the writing warp, and other CTAs may still be storing it.
+    cur_expert_start = tl.sum(tl.where(offset_cumsum == cur_expert, cumsum, 0))
+    tl.store(expert_start_loc + cur_expert, cur_expert_start)
     cur_expert_padded_token_num = tl.load(num_recv_tokens_per_expert + cur_expert)
     cur_expert_valid_token_num = tl.load(num_valid_tokens_per_expert + cur_expert)
 
