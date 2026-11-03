@@ -1,0 +1,29 @@
+test/registered/unit/mem_cache/test_shm_embedding_store.py
+  s_8b0ece6132ddff::t_031a571777924a 20,293-304
+  s_8b0ece6132ddff::t_48b4f75c4a031a 305
+python/sglang/srt/mem_cache/storage/shm/shm_embedding_store.py
+  s_8b0ece6132ddff::t_34d1a74a077c32 26,138-143
+python/sglang/srt/disaggregation/encoder/server.py
+  s_8b0ece6132ddff::t_34d1a74a077c32 518-528
+test/registered/unit/disaggregation/test_encode_server.py
+  s_8b0ece6132ddff::t_031a571777924a 3,996-1020
+  s_8b0ece6132ddff::t_bebc32c54ecf2e 1021-1022
+python/sglang/srt/environ.py
+  s_8b0ece6132ddff::t_34d1a74a077c32 1913-1918
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2411aa7a2b17ba0915ab97aa7f8326d7087aafa0",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
