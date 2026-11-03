@@ -1,0 +1,26 @@
+python/sglang/kernels/ops/mamba/causal_conv1d_triton.py
+  h_5f26e3d5eec073 58-59,380-389,394,412,457-459,464-477,519-521,543-547,593,595-596,599-600
+python/sglang/srt/layers/attention/linear/kda_backend.py
+  h_5f26e3d5eec073 653-673,675-717
+python/sglang/srt/models/bailing_moe_v3.py
+  h_5f26e3d5eec073 420-428,430,432-441,443-450,1289-1291
+test/registered/kernels/benchmark/mamba/bench_kda_qkv_prefill_conv.py
+  h_5f26e3d5eec073 1-60
+test/registered/kernels/ops/mamba/test_kda_qkv_prefill_conv.py
+  h_5f26e3d5eec073 1-269
+test/registered/unit/layers/attention/linear/test_kda_qkv_prefill_dispatch.py
+  h_5f26e3d5eec073 1-180
+test/registered/unit/models/test_bailing_moe_v3_shared_padding.py
+  h_5f26e3d5eec073 1-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e7f067f8679993be66710bc552b0c6ef5d1ff6f3",
+  "prompts": {},
+  "humans": {
+    "h_5f26e3d5eec073": {
+      "author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

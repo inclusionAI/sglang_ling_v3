@@ -1,0 +1,20 @@
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  h_f252eadf5e9832 3121-3128,3136,3147-3149
+python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py
+  h_f252eadf5e9832 858,886-906,943-945,1016-1021,1039-1041,1523,1527,1535-1537,1663
+python/sglang/srt/models/deepseek_v4_dspark.py
+  h_f252eadf5e9832 1059-1060
+test/registered/unit/mem_cache/test_dsv41_swa_storage_access.py
+  h_f252eadf5e9832 1-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d684b096cb486c2d98844611fe9be4c5dea51368",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

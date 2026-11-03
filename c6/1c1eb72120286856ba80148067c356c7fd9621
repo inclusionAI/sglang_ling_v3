@@ -1,0 +1,21 @@
+python/sglang/srt/models/deepseek_v4_mhc.py
+  s_8b0ece6132ddff::t_6f87f91091a11f 115,125,129,136,643-664,722-725
+test/registered/unit/models/test_deepseek_v4_boundary.py
+  s_8b0ece6132ddff::t_133b240edc2dbc 198-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c61c1eb72120286856ba80148067c356c7fd9621",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

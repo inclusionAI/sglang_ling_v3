@@ -1,0 +1,32 @@
+test/registered/unit/multimodal/test_mm_worker_failure.py
+  s_51c34f7332cc20::t_e2e579c5a04905 130-135
+  s_51c34f7332cc20::t_34fb10b971d787 1-129,136-167
+python/sglang/srt/managers/mm_data_processor.py
+  s_51c34f7332cc20::t_44a7c4079ab846 15-19,420,503,534-536,569-571,604-614
+python/sglang/srt/multimodal/processors/bailing_mm.py
+  s_51c34f7332cc20::t_44a7c4079ab846 272-279
+python/sglang/srt/managers/mm_utils.py
+  s_51c34f7332cc20::t_97e58a32af3e4a 1474-1477
+test/registered/unit/multimodal/test_bailing_feature_transport.py
+  s_51c34f7332cc20::t_bd4ec881e0ae32 52-54
+  s_51c34f7332cc20::t_34fb10b971d787 1-51,55-95
+test/registered/unit/multimodal/test_mm_pickle_transport.py
+  s_51c34f7332cc20::t_bd4ec881e0ae32 250-254,259-260
+  s_51c34f7332cc20::t_34fb10b971d787 241-249,255-258,261-285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "07cc861c565bd7c1887eed02d348449d2261bb4d",
+  "prompts": {},
+  "sessions": {
+    "s_51c34f7332cc20": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04205-1b6d-74f0-9aa6-e5bd318c5bc3",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

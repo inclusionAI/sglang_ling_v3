@@ -1,0 +1,25 @@
+python/sglang/kernels/ops/attention/dsv4/sparse_prefill_kernels.py
+  s_8b0ece6132ddff::t_379525aa4a6020 174,184,232-234
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_8b0ece6132ddff::t_879d2e81b67479 1327,1428-1429,3320
+python/sglang/srt/layers/attention/dsv4/sparse_prefill_utils.py
+  s_8b0ece6132ddff::t_7d5f38b8a5e9bc 188-189,208,258,279,373,491
+test/registered/unit/mem_cache/test_dsv4_compressed_pools.py
+  s_8b0ece6132ddff::t_838d9534a5357b 9,1025,1051-1060,1069-1101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "19d2eedaf2988a2b96b3aaa5916280a5e4cdd963",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

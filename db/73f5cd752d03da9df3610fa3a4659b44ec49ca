@@ -1,0 +1,16 @@
+python/sglang/srt/arg_groups/deepseek_v4_hook.py
+  h_f252eadf5e9832 257-269
+test/registered/unit/server_args/test_dsv41_decode_snapshot_disabled.py
+  h_f252eadf5e9832 1-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "db73f5cd752d03da9df3610fa3a4659b44ec49ca",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
