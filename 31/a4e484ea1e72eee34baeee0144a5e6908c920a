@@ -1,0 +1,16 @@
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 541,566-569,607,641,665-668
+test/registered/unit/layers/test_dsv41_ring_sparse_prefill.py
+  h_f252eadf5e9832 130-133,267,371-408
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "31a4e484ea1e72eee34baeee0144a5e6908c920a",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+test/registered/unit/models/test_bailing_mla_idle.py
+  h_5b710c0a1cb0fe 46-47,64-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3a7aa4d93abee626510402344fce9cf294ffd6f1",
+  "prompts": {},
+  "humans": {
+    "h_5b710c0a1cb0fe": {
+      "author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

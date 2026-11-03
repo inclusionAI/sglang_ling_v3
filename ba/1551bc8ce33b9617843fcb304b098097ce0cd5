@@ -1,0 +1,22 @@
+python/sglang/srt/models/deepseek_v4.py
+  s_fe92d796c96f00::t_4c214b50c70fea 4418-4420
+python/sglang/kernels/ops/moe/dsv4_dp_route.py
+  s_fe92d796c96f00::t_4c214b50c70fea 9-63
+  s_fe92d796c96f00::t_0d3303c1cda41c 1-8,64-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ba1551bc8ce33b9617843fcb304b098097ce0cd5",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

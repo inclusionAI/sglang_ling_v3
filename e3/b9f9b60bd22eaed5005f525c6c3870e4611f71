@@ -26,6 +26,14 @@ python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
   "base_commit_sha": "e3b9f9b60bd22eaed5005f525c6c3870e4611f71",
   "prompts": {},
   "sessions": {
+    "s_71995c0ff562f5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19f4d-8859-7e42-abdf-61bb0590f38b",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    },
     "s_79427b7b822a1d": {
       "agent_id": {
         "tool": "codex",
