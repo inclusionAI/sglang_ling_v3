@@ -1,0 +1,16 @@
+python/sglang/srt/layers/moe/token_dispatcher/deepep.py
+  h_1d635ecd767a49 5,261-275
+test/registered/unit/layers/moe/test_deepep_capacity.py
+  h_1d635ecd767a49 167-261
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ab69c925f97225e395156e773f8c3857a99eb8a4",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
