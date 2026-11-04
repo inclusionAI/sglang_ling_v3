@@ -1,0 +1,206 @@
+python/sglang/srt/speculative/eagle_utils.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 95
+  s_b5d42d5a9236fe::t_d007d0a45537e7 94
+python/sglang/srt/speculative/eagle_disaggregation.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 97-114
+python/sglang/srt/disaggregation/decode.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1710-1721
+  s_b5d42d5a9236fe::t_2e1bbba43e45ee 1722
+python/sglang/srt/models/deepseek_v2.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 2426-2427,2454-2455
+test/registered/unit/disaggregation/test_draft_dsa_hicache.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-29,31-35,37-38,40-43,51-56,58-61,63-87,89-95,98,104-110,112,115-117,119-126,138-148,150-162,164-166,168
+  s_b5d42d5a9236fe::t_d896351b60cf7a 30
+  s_b5d42d5a9236fe::t_c82b511a17928c 36
+  s_b5d42d5a9236fe::t_e7c6bed56da1c1 39
+  s_b5d42d5a9236fe::t_ed53449ce936c0 44-46,48-50
+  s_b5d42d5a9236fe::t_6b64e18bf7faad 57
+  s_b5d42d5a9236fe::t_41689bdc092c8a 62
+  s_b5d42d5a9236fe::t_dcf27b7151bb3f 88
+  s_b5d42d5a9236fe::t_6a59ac49dcbaa6 96-97
+  s_b5d42d5a9236fe::t_1711c2c4fbae9c 99-103
+  s_b5d42d5a9236fe::t_c86d3ff1859195 111
+  s_b5d42d5a9236fe::t_bda0a133e5ae22 113-114
+  s_b5d42d5a9236fe::t_47414ca0808c41 118
+  s_b5d42d5a9236fe::t_54a1c540b28423 127-129,135-137
+  s_b5d42d5a9236fe::t_a3d2edca035572 149
+  s_b5d42d5a9236fe::t_125eccafd3f27b 163
+  s_b5d42d5a9236fe::t_72bf564294da3c 167
+python/sglang/srt/speculative/eagle_info.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 184-215
+  s_b5d42d5a9236fe::t_57f0ec41c25739 344-346
+test/registered/unit/disaggregation/test_pp_eagle_prefill.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1-165
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1018,1029-1044
+  s_b5d42d5a9236fe::t_57f0ec41c25739 902-913,941,952,968-969,994-997,1475,1481-1487
+  s_b5d42d5a9236fe::t_2a2b9bd52807ed 132,160,1045
+test/registered/unit/disaggregation/test_nonzero_cp_broadcast.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1-16,18-20,23,25,27-29,31-35,38-40,42-46,48,50-52,54
+  s_b5d42d5a9236fe::t_8e630dd9eae512 17
+  s_b5d42d5a9236fe::t_00d86d00282884 21-22
+  s_b5d42d5a9236fe::t_47ad42b6c8e619 24
+  s_b5d42d5a9236fe::t_e971adf300fe45 26
+  s_b5d42d5a9236fe::t_ec9fe51a8d1cd0 30
+  s_b5d42d5a9236fe::t_93b5689a4d24b5 36-37
+  s_b5d42d5a9236fe::t_8af0d7d99135f0 41
+  s_b5d42d5a9236fe::t_99e5d855b1229d 47
+  s_b5d42d5a9236fe::t_d7d72adfdbe731 49
+  s_b5d42d5a9236fe::t_529194cfd8e6e0 53
+python/sglang/kernels/ops/attention/dsa/transform_index.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 73-74
+python/sglang/srt/mem_cache/pool_host/dsa_draft.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-86
+python/sglang/srt/disaggregation/mla_utils.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1-30
+python/sglang/srt/models/deepseek_common/attention_forward_methods/forward_mla.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 814,817
+  s_b5d42d5a9236fe::t_568705b73eeaa1 815-816,818
+python/sglang/srt/models/deepseek_nextn.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 41,277-285,288-291,293-294,321,346-347,495-496
+  s_b5d42d5a9236fe::t_9507dccf2e4ad6 286-287
+python/sglang/srt/distributed/parallel_state.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1246-1248
+test/registered/unit/disaggregation/test_pp_prefill_early_consensus.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-22,24,29-43,45-50,52-56,62-63,65,70-75,81-82,85-87,91,94-99,102-103,105-116,118-129,131-134,137,139,141-142,145,148-161,163-166,168-171,173-178,180-183,187-189,191,194,196-198,201,203-209,211,213-215,219,223,225-227,229-240,242-246,248-251,253,256,258,264
+  s_b5d42d5a9236fe::t_f6e495806cf2c4 23
+  s_b5d42d5a9236fe::t_86509d0e575fdc 25-28
+  s_b5d42d5a9236fe::t_4b88f611d0cc81 44
+  s_b5d42d5a9236fe::t_af89aae374f083 51
+  s_b5d42d5a9236fe::t_49f9e919d77dfa 57-61
+  s_b5d42d5a9236fe::t_235447bcf7555b 64
+  s_b5d42d5a9236fe::t_0de477a6d55c1c 66-69
+  s_b5d42d5a9236fe::t_52f2ff4edcb9fe 76-80
+  s_b5d42d5a9236fe::t_6ae9f09f9aebae 83-84
+  s_b5d42d5a9236fe::t_d0c70d9c903cd1 88-90
+  s_b5d42d5a9236fe::t_c27422002375e9 92-93
+  s_b5d42d5a9236fe::t_b32cb0c22991a4 100-101
+  s_b5d42d5a9236fe::t_5a146852443a1b 104
+  s_b5d42d5a9236fe::t_7a433ef3f4fa10 117
+  s_b5d42d5a9236fe::t_73e927d89f8a46 130
+  s_b5d42d5a9236fe::t_295f4c7ec4c517 135-136
+  s_b5d42d5a9236fe::t_8c99ebcf06ee7a 138
+  s_b5d42d5a9236fe::t_96c9b5749200d3 140
+  s_b5d42d5a9236fe::t_229b8af0895fa8 143-144
+  s_b5d42d5a9236fe::t_15354c3b329eb9 146-147
+  s_b5d42d5a9236fe::t_55dd2d4c6308c6 162
+  s_b5d42d5a9236fe::t_90c27bebac5c73 167
+  s_b5d42d5a9236fe::t_6779a4285220e3 172
+  s_b5d42d5a9236fe::t_eecef9233e23e4 179
+  s_b5d42d5a9236fe::t_06bbf0d55a2afd 184-186
+  s_b5d42d5a9236fe::t_d71fd106ff2dc0 190
+  s_b5d42d5a9236fe::t_1a26e7765e6c24 192-193
+  s_b5d42d5a9236fe::t_183310bbe8ec59 195
+  s_b5d42d5a9236fe::t_98eea4e1d1f1f0 199-200
+  s_b5d42d5a9236fe::t_d035378177880b 202
+  s_b5d42d5a9236fe::t_8f7f6514476b5c 210
+  s_b5d42d5a9236fe::t_5746007c8ed90e 212
+  s_b5d42d5a9236fe::t_7049cb26df570f 216-218
+  s_b5d42d5a9236fe::t_37a26bb4860df2 220-222
+  s_b5d42d5a9236fe::t_577a1e0f7c827f 224
+  s_b5d42d5a9236fe::t_976770c4f4888e 228
+  s_b5d42d5a9236fe::t_71f5761e5bb9f1 241
+  s_b5d42d5a9236fe::t_4a48a0f7b35626 247
+  s_b5d42d5a9236fe::t_ba2cb5cce5cd69 252
+  s_b5d42d5a9236fe::t_b6b1431a8b3f45 254-255
+  s_b5d42d5a9236fe::t_9edd2debd4dba1 257
+  s_b5d42d5a9236fe::t_b7d3b94763f122 259-263
+python/sglang/srt/mem_cache/kv_cache_builder.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 137,161-164
+test/registered/unit/disaggregation/test_pp_prefill_first_output.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-17,20-25,28-32,34,36-41,43-46,48-55,57-59,61-63,65-66,68-74,77-79,81-90,92-96,98-100,102-104,106-108,110
+  s_b5d42d5a9236fe::t_dd0fa10c654223 18-19
+  s_b5d42d5a9236fe::t_31cf832e3944bc 26-27
+  s_b5d42d5a9236fe::t_d7e67f74504d71 33
+  s_b5d42d5a9236fe::t_80ebf1dc06f85e 35
+  s_b5d42d5a9236fe::t_f042942b835a67 42
+  s_b5d42d5a9236fe::t_68a147cb118dac 47
+  s_b5d42d5a9236fe::t_239db5da6af835 56
+  s_b5d42d5a9236fe::t_f812d9b9951856 60
+  s_b5d42d5a9236fe::t_b3cbdf49c4bc40 64
+  s_b5d42d5a9236fe::t_94cd61adde386c 67
+  s_b5d42d5a9236fe::t_b20626e8792a42 75-76
+  s_b5d42d5a9236fe::t_5badfe47d79176 80
+  s_b5d42d5a9236fe::t_94781356af6665 91
+  s_b5d42d5a9236fe::t_30c2b93d6f639e 97
+  s_b5d42d5a9236fe::t_1f9349c45b389d 101
+  s_b5d42d5a9236fe::t_2008fa9cb727a9 105
+  s_b5d42d5a9236fe::t_3e28b2592348c1 109
+test/registered/unit/disaggregation/test_prefill_draft_owner.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1-17,19,21-27,29-50,52-53,60-72,74-76,78
+  s_b5d42d5a9236fe::t_10bfd79078a2bf 18
+  s_b5d42d5a9236fe::t_1e060bf15b4742 20
+  s_b5d42d5a9236fe::t_c9dd687a4ab7b5 28
+  s_b5d42d5a9236fe::t_a6a670567082ac 51
+  s_b5d42d5a9236fe::t_b31f14399cc973 54-59
+  s_b5d42d5a9236fe::t_5ed74d70c14af7 73
+  s_b5d42d5a9236fe::t_1b6f7e84803af4 77
+test/registered/unit/disaggregation/test_prefill_raw_verify.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-12,14-15,17-19,21-27,29-32,34-50,52,54-55,59-67,69-75,77
+  s_b5d42d5a9236fe::t_091dda0fdf814a 13
+  s_b5d42d5a9236fe::t_568f650e5955e5 16
+  s_b5d42d5a9236fe::t_269d7ba489bb16 20
+  s_b5d42d5a9236fe::t_626f994889bc1f 28
+  s_b5d42d5a9236fe::t_c8bdc42545f05f 33
+  s_b5d42d5a9236fe::t_c0580389004a43 51
+  s_b5d42d5a9236fe::t_91b2c5e534790f 53
+  s_b5d42d5a9236fe::t_0573b0adcf8651 56-58
+  s_b5d42d5a9236fe::t_f0f0072d86367e 68
+  s_b5d42d5a9236fe::t_c30c9a12d027f2 76
+python/sglang/srt/disaggregation/prefill.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 705-711
+  s_b5d42d5a9236fe::t_02b58653c3938b 68
+python/sglang/srt/model_executor/forward_batch_info.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1554-1562
+  s_b5d42d5a9236fe::t_073973e6ceedb3 1547
+test/registered/unit/disaggregation/test_prefill_tail_tokens.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-9,11-15,17-18,20,22-31,33-41,43-44,48
+  s_b5d42d5a9236fe::t_ee12fbcd537256 10
+  s_b5d42d5a9236fe::t_28401e959036fa 16
+  s_b5d42d5a9236fe::t_b37aa784b71e2a 19
+  s_b5d42d5a9236fe::t_666ca99cc735e2 21
+  s_b5d42d5a9236fe::t_90bdacb2097c29 32
+  s_b5d42d5a9236fe::t_d1fa8c6c1ccc2a 42
+  s_b5d42d5a9236fe::t_0917dfda82a684 45-47
+python/sglang/srt/layers/attention/dsa_backend.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 2150,2152-2161
+  s_b5d42d5a9236fe::t_1746d2d499f9c0 2151,2162
+python/sglang/srt/speculative/prefill_kv_only.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 1-21,23-25
+  s_b5d42d5a9236fe::t_9adf3acae2ce73 22
+test/registered/kernels/test_dsa_transform_index.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 230-242
+python/sglang/srt/managers/scheduler_pp_mixin.py
+  s_b5d42d5a9236fe::t_57f0ec41c25739 5,19,65-67,69-70,72-73,339-342,344-345,347-351,354-360,362,386,404,412,419-425,427,1289-1290,1292-1297,1406-1407,1409-1410,1412,1428,1430,1453-1454,1456-1459,1612-1613,1615-1616,1620-1622,1624-1626,1634-1636,1693-1694,1696,1699,1932-1940,1942-1943,1946-1948,1950-1952,1954-1955,1957-1963,1965
+  s_b5d42d5a9236fe::t_df417f7836ba16 1298,1300,1451,1462,1490
+  s_b5d42d5a9236fe::t_18cfc08f0c16a6 49
+  s_b5d42d5a9236fe::t_6c4637d82f3fdd 55-56,85,336-338,343,346,352-353,361,387-390,396-403,405-411,413-418,426,1288,1291,1299,1405,1408,1411,1427,1429,1452,1455,1460-1461,1614,1617,1619,1623,1695,1697-1698,1759-1760,1763,1941,1944-1945,1949,1953,1956,1964,1966-1967
+test/registered/unit/disaggregation/test_mla_draft_replication.py
+  s_b5d42d5a9236fe::t_df417f7836ba16 1-44,47-48,51-69,71-74,76-82,84-85,87-90,92-95,97
+  s_b5d42d5a9236fe::t_95f8d01543fab0 45-46
+  s_b5d42d5a9236fe::t_7a3f1f7777f2aa 49-50
+  s_b5d42d5a9236fe::t_49842d5fec6a28 70
+  s_b5d42d5a9236fe::t_fbf49de2944db9 75
+  s_b5d42d5a9236fe::t_15278cdbb83a6c 83
+  s_b5d42d5a9236fe::t_34acf526a76adf 86
+  s_b5d42d5a9236fe::t_0928e6215693fa 91
+  s_b5d42d5a9236fe::t_8312a4dae47fc5 96
+docs/validation/prefill_mtp_compact.md
+  s_b5d42d5a9236fe::t_c7a3e14370a015 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "25af2e6b79446edb26bd2a804e63624b17ad07d4",
+  "prompts": {},
+  "sessions": {
+    "s_b5d42d5a9236fe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13879-f526-7691-98db-7b5af58a6dea",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

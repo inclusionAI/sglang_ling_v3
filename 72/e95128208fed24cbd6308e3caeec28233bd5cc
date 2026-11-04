@@ -1,0 +1,21 @@
+docs/ppu15/kvpool_1030/tp16_prefill/evidence/runtime-node0.json
+  s_fb9c4d8946a621::t_2753e7420d7536 1-1186
+docs/ppu15/kvpool_1030/tp16_prefill/evidence/runtime-node1.json
+  s_fb9c4d8946a621::t_e24c7dd2d5166e 1-343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "72e95128208fed24cbd6308e3caeec28233bd5cc",
+  "prompts": {},
+  "sessions": {
+    "s_fb9c4d8946a621": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a15c5a-062f-74a3-8f83-192f68bcef1a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

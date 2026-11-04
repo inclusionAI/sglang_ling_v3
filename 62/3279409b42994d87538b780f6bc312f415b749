@@ -1,0 +1,43 @@
+python/sglang/srt/managers/data_parallel_controller.py
+  s_550639e237dd2a::t_3c3354fc286da8 273-275,593-595
+python/sglang/kernels/ops/attention/dsa/tilelang_kernel.py
+  s_550639e237dd2a::t_3c3354fc286da8 1405,1449-1450,1455-1456
+test/registered/kernels/test_dsa_tilelang_ppu_decode.py
+  s_32111109d5b9fd::t_6cb1ed13454e02 27,30,51,62,71-82,115-124,126-144,175-182,185
+test/registered/kernels/test_dsa_tilelang_ppu_prefill.py
+  s_36bcf18f8fb901::t_18303ba95ef05f 27,30,51,62,71-82,85-87,105-113,116
+test/registered/unit/managers/test_data_parallel_controller.py
+  s_550639e237dd2a::t_4af9bac5048cb9 14,16,18,32-36,72-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "623279409b42994d87538b780f6bc312f415b749",
+  "prompts": {},
+  "sessions": {
+    "s_32111109d5b9fd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a36-f246-7543-b569-61196b3fb768",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Qing Wang <kingchin1218@gmail.com>"
+    },
+    "s_36bcf18f8fb901": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a27-7dfa-77f3-9bcd-ec65cbf5de10",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Qing Wang <kingchin1218@gmail.com>"
+    },
+    "s_550639e237dd2a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16802-d2ec-7693-a13a-03e6e54b5376",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Qing Wang <kingchin1218@gmail.com>"
+    }
+  }
+}

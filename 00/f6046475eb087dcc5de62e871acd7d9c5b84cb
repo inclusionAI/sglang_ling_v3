@@ -1,0 +1,37 @@
+test/manual/kernels/mega_moe_gluon_w4afp8_sources.json
+  s_d7e9bcae0ebc01::t_6b6587c4d710ec 1035-1041
+python/sglang/srt/layers/moe/mega_moe_gluon.py
+  s_d7e9bcae0ebc01::t_66f9f2bff20e96 126,137-144,160-163,167-170,175-180,248,270-277
+python/sglang/kernels/ops/moe/mega_moe_gluon_w4afp8.py
+  s_d7e9bcae0ebc01::t_66f9f2bff20e96 4649,4704,4707-4711,4758,4804-4830,4834,4919,4931-4933,4940-4951,4986
+test/manual/kernels/test_mega_moe_gluon_w4afp8.py
+  s_d7e9bcae0ebc01::t_6b6587c4d710ec 176,200-206,260-276
+  s_d7e9bcae0ebc01::t_f1ff058e45a610 315-316,321,326,333-434
+  s_ab50b354526313::t_1e65262e71751a 435-436
+test/registered/unit/layers/moe/test_mega_moe_gluon_contracts.py
+  s_d7e9bcae0ebc01::t_f1ff058e45a610 187-189,196,209,226,233,764,780-784,792,805
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "00f6046475eb087dcc5de62e871acd7d9c5b84cb",
+  "prompts": {},
+  "sessions": {
+    "s_ab50b354526313": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181e6-d7e4-75c3-ae67-1f761173ef02",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    },
+    "s_d7e9bcae0ebc01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18264-afad-7293-b559-5b0b5d5028c1",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}

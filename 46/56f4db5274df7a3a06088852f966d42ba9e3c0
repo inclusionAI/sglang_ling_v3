@@ -1,0 +1,23 @@
+python/sglang/srt/managers/scheduler.py
+  s_44844fb1f654af::t_bd7a482210d2b5 4057,4059
+python/sglang/srt/disaggregation/prefill.py
+  s_44844fb1f654af::t_bd7a482210d2b5 1225-1227,1239-1241
+test/registered/unit/disaggregation/test_qwen_hicache_early_send.py
+  s_44844fb1f654af::t_87bcc2d6dc9c3c 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4656f4db5274df7a3a06088852f966d42ba9e3c0",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

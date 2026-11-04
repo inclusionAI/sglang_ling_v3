@@ -1,0 +1,61 @@
+test/registered/kernels/ops/speculative/test_block_verification.py
+  s_d74c8d4c4bcb09::t_bf8ab6a25dbff8 157-161,164-167,170-171,174-188,194-195,202-207
+  s_d74c8d4c4bcb09::t_e6daa388c97192 162-163,168-169,172-173,189-193,196-201
+test/registered/unit/speculative/test_pd_eagle_draft_proposal.py
+  s_d74c8d4c4bcb09::t_4bca90d98a4a00 14-15,20-22,63,77,81-84,88-117
+  s_d74c8d4c4bcb09::t_e6daa388c97192 85-87,118-120
+  s_d74c8d4c4bcb09::t_be7bda88012ea0 121
+python/sglang/srt/speculative/eagle_worker_common.py
+  s_d74c8d4c4bcb09::t_e968ad2eddc517 391,488
+test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py
+  s_d74c8d4c4bcb09::t_4bca90d98a4a00 211,256,258
+test/registered/unit/spec/test_eagle_draft_sampling.py
+  s_d74c8d4c4bcb09::t_fa2f995e19cb1d 1
+  s_d74c8d4c4bcb09::t_e6daa388c97192 103,135-138,168-170,178-181,227-233,238,242,248-252,261-264
+  s_d74c8d4c4bcb09::t_bf8ab6a25dbff8 189,234
+  s_d74c8d4c4bcb09::t_7a48f417ae38c9 6,10-13,22-26,86-102,104-134,139-167,171-177,182-188,190-226,235-237,239-241,243-247,253-260,265-266
+  s_d74c8d4c4bcb09::t_cc2f5252273cab 267-268
+python/sglang/srt/speculative/eagle_draft_cuda_graph_runner.py
+  s_d74c8d4c4bcb09::t_e968ad2eddc517 201-206
+python/sglang/srt/speculative/eagle_utils.py
+  s_d74c8d4c4bcb09::t_e968ad2eddc517 746
+python/sglang/srt/speculative/eagle_worker_v2.py
+  s_d74c8d4c4bcb09::t_e968ad2eddc517 265-274,276-277,279,738
+  s_d74c8d4c4bcb09::t_ec9fbf1429b95c 1375-1382,1480
+  s_d74c8d4c4bcb09::t_e6daa388c97192 260-263
+  s_d74c8d4c4bcb09::t_6cdd730b7526be 1374
+test/registered/unit/spec/test_eagle_draft_cuda_graph_runner.py
+  s_d74c8d4c4bcb09::t_bf8ab6a25dbff8 19,23-24,28,67-71,75,85-87,90-97,103-113,117
+  s_d74c8d4c4bcb09::t_e6daa388c97192 72-74,76-84,88-89,98-102,114-116,118-123
+python/sglang/srt/managers/scheduler.py
+  s_d74c8d4c4bcb09::t_ec9fbf1429b95c 1687
+python/sglang/srt/speculative/eagle_disaggregation.py
+  s_d74c8d4c4bcb09::t_ec9fbf1429b95c 120,123-124
+  s_d74c8d4c4bcb09::t_e6daa388c97192 121-122
+python/sglang/srt/managers/overlap_utils.py
+  s_d74c8d4c4bcb09::t_ec9fbf1429b95c 295,301-303
+python/sglang/srt/speculative/spec_info.py
+  s_d74c8d4c4bcb09::t_ec9fbf1429b95c 191,201
+python/sglang/srt/arg_groups/speculative_hook.py
+  s_d74c8d4c4bcb09::t_e968ad2eddc517 43-45
+  s_d74c8d4c4bcb09::t_fa2f995e19cb1d 1210-1211
+python/sglang/srt/speculative/eagle_info.py
+  s_d74c8d4c4bcb09::t_e6daa388c97192 87-90
+  s_d74c8d4c4bcb09::t_e968ad2eddc517 34,36-37,66-86,91-95,198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3512f0c2e27dcb4b8b141533e6ced93bf16d14ee",
+  "prompts": {},
+  "sessions": {
+    "s_d74c8d4c4bcb09": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19aea-88c5-7833-8c0c-59774e3fa280",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

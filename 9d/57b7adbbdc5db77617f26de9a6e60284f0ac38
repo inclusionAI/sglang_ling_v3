@@ -1,0 +1,39 @@
+test/registered/unit/spec/test_dspark_folded_lm_head_group.py
+  s_79427b7b822a1d::t_fcae8086ed9ae1 241-252,256-257,262,266-267,283-289
+  s_79427b7b822a1d::t_77758ea2cb6698 74-76,86-88,105-107,114-116,127-129,135-137,143-151,154-160,170-177,183-185,187-189,195-202,208-215
+  s_79427b7b822a1d::t_a75a6ad55b444c 253-255,258-261,263-265,268-282
+  s_79427b7b822a1d::t_c7af009a807233 1-4,6-15,17,19-20,23-30,33-38,40-41,46,72-73,77-85,89-104,108-113,117-126,130-134,138-142,152-153,161-169,178-182,186,190-192,194,204-207,216-239,346-349
+  s_79427b7b822a1d::t_2e161be68f1242 5,16,18,21,31-32,39,42-45,47-49,52-53,56-60,67-71,193,203,240,290,294-299,303-304,309-319,323-324,335-339,342-345
+  s_79427b7b822a1d::t_19f7b36653e7ed 22,50-51,54-55,61-66,291-293,300-302,305-308,320-322,325-334,340-341
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  s_79427b7b822a1d::t_4458e0c12f73d4 9,201-208,210,392,1011
+python/sglang/srt/speculative/dspark_components/dspark_draft_sampler.py
+  s_79427b7b822a1d::t_4458e0c12f73d4 9,17,27,190-195
+  s_79427b7b822a1d::t_a75a6ad55b444c 203-205
+  s_79427b7b822a1d::t_ff4b4b21c10fea 4,16,196-197,200-202
+  s_79427b7b822a1d::t_7f9167b2516d99 198-199
+python/sglang/srt/model_executor/runner/decode_cuda_graph_runner.py
+  s_79427b7b822a1d::t_c421bc50c386aa 809-813,818-819,824-829
+test/registered/unit/spec/test_dspark_draft_block.py
+  s_79427b7b822a1d::t_fcae8086ed9ae1 20,190
+test/registered/unit/model_executor/runner/test_decode_cuda_graph_runner.py
+  s_79427b7b822a1d::t_01e0f76fcade8d 712-714,720-721,726-732,734-736,757-759,765-768,770-776
+  s_79427b7b822a1d::t_5d61bce5aa6a83 34-42,47,711,715-719,722-725,733,737-756,760-764,769,777-778
+  s_79427b7b822a1d::t_5bfad5113b3950 779-780
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9d57b7adbbdc5db77617f26de9a6e60284f0ac38",
+  "prompts": {},
+  "sessions": {
+    "s_79427b7b822a1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1877c-b0e3-7fa1-8029-19f5c0ea265b",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

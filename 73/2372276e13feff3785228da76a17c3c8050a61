@@ -1,0 +1,16 @@
+python/sglang/srt/mem_cache/common.py
+  h_f252eadf5e9832 189-194
+test/registered/unit/mem_cache/test_dsv41_snapshot_finish_publication.py
+  h_f252eadf5e9832 29-34,36-38,98-123,256-257,270-273,301-302,306-307,311-312
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "732372276e13feff3785228da76a17c3c8050a61",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

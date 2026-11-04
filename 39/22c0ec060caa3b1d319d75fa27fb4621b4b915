@@ -1,0 +1,24 @@
+test/registered/unit/mem_cache/test_dsv41_snapshot_commit_graph.py
+  s_fe92d796c96f00::t_6c572f2e2aa67f 38-68
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  s_fe92d796c96f00::t_6985496f8fe00c 1978-1987
+test/registered/kernel/mem_cache/test_dsv41_snapshot_commit_cuda.py
+  s_fe92d796c96f00::t_6c572f2e2aa67f 21-24,65-70,81,83,86-96,100,140-156
+  s_fe92d796c96f00::t_9f6c02d6846ff8 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3922c0ec060caa3b1d319d75fa27fb4621b4b915",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

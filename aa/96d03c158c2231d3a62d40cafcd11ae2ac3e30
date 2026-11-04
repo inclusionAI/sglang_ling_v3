@@ -1,0 +1,97 @@
+test/registered/spec/dspark/test_dspark_scheduler.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 203-268
+dspark/check_dp_attention.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-65
+test/registered/layers/test_fla_autotune_policy.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,4,11-18,20,22-25
+test/registered/unit/model_executor/test_spec_aux_hidden_state.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3-9,14,19-50,67-104,171-203
+python/sglang/srt/sampling/speculative_distribution.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 34,40,46-47
+test/registered/unit/entrypoints/test_internal_sampling.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3-9,17-26,28-36,39-67,80-103,148,159-217
+  s_fa9a3ca613e2ab::t_3a52f164505c8f 218
+dspark/compare_inference.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-226
+dspark/eval_gsm8k_comparison.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-359
+test/registered/spec/dspark/test_dspark_behavior_scores.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 79
+test/registered/spec/dspark/test_export_receipt.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-119
+  s_fa9a3ca613e2ab::t_59951b95f32ae5 120-188
+test/registered/spec/dspark/test_qwen_final_capture.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3-7,10,14-27,78-91,99-121
+  s_fa9a3ca613e2ab::t_27f12252edc11c 122
+test/registered/spec/dspark/test_dspark_weight_contract.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-24
+  s_fa9a3ca613e2ab::t_0a85281ec46c08 25-126
+test/registered/unit/managers/test_prefill_hidden_chunks.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,6,12-15,17,23,32-40,52-53,60-61,77-84,90-107,111-112,126-128,130,133-159,167-168,178-179,181,185,199,204,208-226,237,241-250,263-271,308,315-336
+  s_fa9a3ca613e2ab::t_911478cb5ee72b 337
+test/registered/spec/dspark/test_bailing_rope.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-56
+test/registered/spec/dspark/test_dspark_no_deep_backends.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-113
+test/registered/spec/dspark/test_bailing_input_embeddings.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-37
+test/registered/spec/dspark/test_dspark_deep_backend_contracts.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3-8,11-12,20-21,24-36,38-52,110-122,168-231,297-301,327-369,390-399
+test/registered/spec/dspark/test_dspark_sps_profiler.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3-5,10,20-24,238-248,320-334,390-409
+  s_fa9a3ca613e2ab::t_98d8513207c4b0 410
+test/registered/spec/dspark/test_dspark_info_dumper.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 2,4,17,259-332
+  s_fa9a3ca613e2ab::t_7ac40d0c3c32c0 333-334
+dspark/serve_flash_pair.sh
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 6-7,20-21
+test/registered/spec/dspark/test_confidence_factory.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-95
+dspark/README.md
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 3,5-8,14
+test/registered/spec/dspark/test_bailing_hidden_capture.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-35
+dspark/check_asystem_backend_patch.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-144
+dspark/port-max-rc2.md
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3,5-7,9-66,69-73,76-83,85,87-90,92,100-386,388-394,396-400,402-409,411-419
+test/registered/spec/dspark/test_bailing_optional_awq_import.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-40
+test/registered/spec/dspark/test_dspark_load_preflight.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-96
+  s_fa9a3ca613e2ab::t_1fc178614306ce 97,100-101,108-109,111,115-116,119,130-140
+python/sglang/srt/models/bailing_moe_v3.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 3712-3715
+dspark/patches/asystem-deep-backends.patch
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-77
+test/registered/unit/models/test_bailing_moe_v3_shared_expert_fusion.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 64-74,79-90,111-121
+  s_fa9a3ca613e2ab::t_81f45cda987369 122
+test/registered/spec/dspark/test_dspark_draft_path_default.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 128-131
+test/registered/spec/dspark/test_speculative_distribution.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3,11,13-28,31-32,37,41,48,62-71,78-83,85,87-107,109-121,129-135,147-158
+test/registered/unit/managers/test_tokenizer_response_metadata.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1,3-4,10,12-23,25-30,49-66,68-165,188-202
+  s_fa9a3ca613e2ab::t_d22021cedc7f75 203
+test/registered/unit/test_dspark_seed_contract.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 1-2,4,7-13,25-54
+test/registered/spec/dspark/test_dspark_bootstrap_budget.py
+  s_fa9a3ca613e2ab::t_bf627e9bcfbb00 60-80,89-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "aa96d03c158c2231d3a62d40cafcd11ae2ac3e30",
+  "prompts": {},
+  "sessions": {
+    "s_fa9a3ca613e2ab": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a96-1bfe-7920-8247-8e2810d52cfb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "hx555990 <hx555990@antgroup.com>"
+    }
+  }
+}

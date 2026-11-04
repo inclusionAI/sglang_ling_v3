@@ -1,0 +1,86 @@
+examples/runtime/token_in_token_out/token_in_token_out_vlm_engine.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 10
+  s_85d9f19f7e19fb::t_517032e6144a63 6
+test/registered/unit/multimodal/test_gpu_feature_transport.py
+  s_85d9f19f7e19fb::t_517032e6144a63 205,228,261,281,1199-1200,1229-1230,1266-1267,1303-1304,1324-1325,1350-1351,1374-1375
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 23,206,229,262,282,329,366,402,1201,1231,1268,1305,1326,1352,1376,1397
+  s_85d9f19f7e19fb::t_3c3ad2594f57f7 22
+python/sglang/srt/multimodal/processors/deepseek_ocr.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 11
+scripts/playground/bench_speculative.py
+  s_85d9f19f7e19fb::t_517032e6144a63 24
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 29
+python/sglang/srt/arg_groups/model_path_hook.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 12,20,54
+python/sglang/srt/managers/req_types.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 1-523
+test/registered/unit/layers/test_radix_attention_padded_extend.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 9
+test/registered/unit/mem_cache/test_unified_hicache_policy.py
+  s_85d9f19f7e19fb::t_517032e6144a63 42
+test/registered/unit/multimodal/test_deepseek_ocr_processor.py
+  s_85d9f19f7e19fb::t_517032e6144a63 8
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 9,112,162,169
+python/sglang/srt/managers/scheduler.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 63
+python/sglang/srt/managers/tokenizer_manager.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 142
+  s_85d9f19f7e19fb::t_08051759fcdb4b 129
+  s_85d9f19f7e19fb::t_e524b4f57ea723 130
+python/sglang/srt/managers/scheduler_components/batch_result_processor.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 18,44,180-181,464,466,498,500-501,509,567,643-644,656,817,820,828,833,837-838,844,846-847,1129
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 507
+test/registered/unit/disaggregation/test_encoder_preprocessor_media.py
+  s_85d9f19f7e19fb::t_517032e6144a63 6
+3rdparty/amd/tuning/benchmark_moe_rocm.py
+  s_85d9f19f7e19fb::t_03378f7b8890ca 11-12
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 15-16
+benchmark/kernels/fused_moe_triton/common_utils.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 7
+python/sglang/srt/managers/mm_data_processor.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 131-132
+python/sglang/srt/multimodal/processors/step3_vl.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 9
+test/registered/unit/managers/test_mm_hashes.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 39
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 30,34
+  s_85d9f19f7e19fb::t_2825db38ae7bf3 35-36
+test/registered/unit/disaggregation/test_prefill_result_polling.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 17,19,33,37,179-180,1081,1121,1158,1188-1189,1211,1252,1265-1267,1278-1282,1289,1302
+test/registered/unit/disaggregation/test_prefill_abort_result_cleanup.py
+  s_85d9f19f7e19fb::t_03378f7b8890ca 122,126,139-140,157,162,189-190
+  s_85d9f19f7e19fb::t_08051759fcdb4b 15,27,72,96,278,313,324
+test/registered/unit/models/test_deepseek_pp_mtp_embedding.py
+  s_85d9f19f7e19fb::t_08051759fcdb4b 19
+  s_85d9f19f7e19fb::t_de4dbaddd9b42b 20
+tools/sglang-simulator/src/sglang_simulator/simulation/sglang/model_runner.py
+  s_85d9f19f7e19fb::t_517032e6144a63 151
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 2,46
+python/sglang/srt/observability/trace.py
+  s_85d9f19f7e19fb::t_517032e6144a63 35
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 47,52-59,99,121-123,1117-1123,1163-1165,1170,1201-1204,1324-1327,1400-1402,1404-1408,1445,1496,1500-1502,1507-1518,1535-1537
+test/registered/unit/mem_cache/test_unified_hicache_hybrid_retry.py
+  s_85d9f19f7e19fb::t_517032e6144a63 27-28
+python/sglang/srt/observability/metrics_collector.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 52
+  s_85d9f19f7e19fb::t_517032e6144a63 50-51
+benchmark/kernels/fused_moe_triton/tuning_fused_moe_triton_sep.py
+  s_85d9f19f7e19fb::t_655c66b83ce1d0 27-28,31,33,36-37
+  s_85d9f19f7e19fb::t_b1af5bb8918591 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "31e9ece99977e79dc77621365126701d2791b90c",
+  "prompts": {},
+  "sessions": {
+    "s_85d9f19f7e19fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19fb4-4d6c-7533-9c79-f57ff1f6185d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

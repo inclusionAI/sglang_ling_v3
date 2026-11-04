@@ -1,0 +1,90 @@
+python/sglang/kernels/jit/csrc/deepseek_v4/main_norm_rope.cuh
+  h_f252eadf5e9832 390-392,530-531,548-549,575-595
+python/sglang/kernels/ops/attention/dsv4/elementwise.py
+  h_f252eadf5e9832 300-314
+python/sglang/kernels/ops/attention/dsv4/index_buf_accessor.py
+  h_f252eadf5e9832 36-46,129-135,162-167,178-182
+python/sglang/srt/arg_groups/deepseek_v4_hook.py
+  h_f252eadf5e9832 141-143,149-151,193-195,197-199,228-233
+python/sglang/srt/disaggregation/mooncake/conn.py
+  h_f252eadf5e9832 2308-2310
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  h_f252eadf5e9832 1858-1859,1873-1875,3084-3085,3088-3090
+python/sglang/srt/managers/scheduler.py
+  h_f252eadf5e9832 4050-4051,5018
+python/sglang/srt/managers/tp_worker.py
+  h_f252eadf5e9832 652-655
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 1782
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_pool.py
+  h_f252eadf5e9832 202-206,250-252
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 248-250,348-358,642,647-649
+python/sglang/srt/mem_cache/dsv41_swa_storage.py
+  h_f252eadf5e9832 102-104,217-219
+python/sglang/srt/model_executor/pool_configurator.py
+  h_f252eadf5e9832 574-576,1450-1452,1501-1503
+python/sglang/srt/models/deepseek_v4_dspark.py
+  h_f252eadf5e9832 121-123
+test/registered/unit/disaggregation/test_dsv41_native_bank_pd.py
+  h_f252eadf5e9832 10-11
+test/registered/unit/disaggregation/test_dsv41_request_window_pd_handoff.py
+  h_f252eadf5e9832 118-121,195-197,209
+test/registered/unit/disaggregation/test_dsv41_request_window_pd_wire.py
+  h_f252eadf5e9832 9
+test/registered/unit/layers/test_dsv41_ring_sparse_prefill.py
+  h_f252eadf5e9832 73-76,109-111,122-126,131,134-137,140-146,176-185,188-195,237-239,297-300,326-328,336-339,342-345,374-377,380-392,542-544,547-552
+test/registered/unit/managers/test_encoder_swa_merged_admission.py
+  h_f252eadf5e9832 8-9
+test/registered/unit/managers/test_encoder_swa_merged_execution.py
+  h_f252eadf5e9832 8
+test/registered/unit/managers/test_encoder_swa_multimodal.py
+  h_f252eadf5e9832 66-70,73-78,113-123,129-131,136-138,142-144,149-151,154-156,161-163
+test/registered/unit/managers/test_prefill_adder.py
+  h_f252eadf5e9832 738
+test/registered/unit/mem_cache/test_dsv41_batch_geometry.py
+  h_f252eadf5e9832 26-30,36-38,42-46,50-57,60-63,72-81,87-89,93-106,111-113,125-127,129-131,135-137,151-156,159-161,164-166,169-171,182-187,189-194,198-212,216-218,221-223,226-228,230-231,233-242,246-256,259-261
+test/registered/unit/mem_cache/test_dsv41_direct_ring.py
+  h_f252eadf5e9832 6-9,20-22,27-32,56-60,67-74,98-102,110-117,123-125,135-137
+test/registered/unit/mem_cache/test_dsv41_direct_ring_cuda.py
+  h_f252eadf5e9832 8-11,22-27,33-35,40-45,51-61,65-69,71-75,81-90,94-107,139-142,154-159,161-163,172-175,204-207,245-246,249-255,269-272,285-287,298-302,308-311,315-318
+test/registered/unit/mem_cache/test_dsv41_full_snapshot_runtime.py
+  h_f252eadf5e9832 220-222,239-247
+test/registered/unit/mem_cache/test_dsv41_layer_access.py
+  h_f252eadf5e9832 4,13
+test/registered/unit/mem_cache/test_dsv41_prefill_bounds.py
+  h_f252eadf5e9832 11-14,23-32,40-43,45-49,61-69,78-81,103-109,121-126,128-139,153-161,174-177,179-184,194-196
+test/registered/unit/mem_cache/test_dsv41_request_window.py
+  h_f252eadf5e9832 178
+test/registered/unit/mem_cache/test_dsv41_request_window_pd.py
+  h_f252eadf5e9832 56-58,106-108,195,241-243
+test/registered/unit/mem_cache/test_dsv41_request_window_pd_registration.py
+  h_f252eadf5e9832 7-9
+test/registered/unit/mem_cache/test_dsv41_snapshot_commit_graph.py
+  h_f252eadf5e9832 64-67,70-73,77-80,98-99,106-111,133-138,145-147,149-164,189-197,211-213,218-221,254-255,259-261,263-264
+test/registered/unit/mem_cache/test_dsv41_snapshot_prefill_reuse.py
+  h_f252eadf5e9832 63-65,236,247-249,256,303-305
+test/registered/unit/mem_cache/test_dsv41_swa_storage_access.py
+  h_f252eadf5e9832 4
+test/registered/unit/mem_cache/test_dsv41_swa_storage_dispatch.py
+  h_f252eadf5e9832 96-99
+test/registered/unit/mem_cache/test_dsv41_window_metadata_dynamic.py
+  h_f252eadf5e9832 63
+test/registered/unit/models/test_dsv41_prefill_graph.py
+  h_f252eadf5e9832 50-61
+test/registered/unit/server_args/test_dsv41_decode_snapshot_disabled.py
+  h_f252eadf5e9832 158,166-169,187-190,211-214,221-224,232-234,256-259
+test/registered/unit/spec/test_dsv41_dspark_empty_attention.py
+  h_f252eadf5e9832 4,20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a5961e89917cf3a610f151f8f14bf7eadd2344a3",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

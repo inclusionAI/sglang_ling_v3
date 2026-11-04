@@ -1,0 +1,30 @@
+python/sglang/srt/model_executor/forward_batch_info.py
+  s_31943fee543816::t_585f3055c5ee67 35,1779-1792,1796
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  s_31943fee543816::t_585f3055c5ee67 208
+  s_31943fee543816::t_0f5627283d60fd 105
+test/registered/unit/layer_boundary/test_aux_capture_deferred_allreduce.py
+  s_31943fee543816::t_e451089c722473 133-135
+python/sglang/srt/models/bailing_moe_v3.py
+  s_31943fee543816::t_585f3055c5ee67 1261,1265-1267,1467-1469,1489-1493
+test/registered/unit/spec/test_dspark_deepep_layout.py
+  s_31943fee543816::t_c457f2fb01b824 9,247-252,269-270,282-283,288-289
+  s_31943fee543816::t_361350585e6318 1-8,10-88,93-111,115-233,237-246,253-262,266-268,271-281,284-287,296-300,314-320,326-328,334,343-355,359-360,369-385
+  s_31943fee543816::t_b2f8a9e5c6fab3 89-92,112-114,234-236,263-265,290-295,301-313,321-325,329-333,335-342,356-358,361-368
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "95529c340545a1e155b42eb95225854a75879707",
+  "prompts": {},
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

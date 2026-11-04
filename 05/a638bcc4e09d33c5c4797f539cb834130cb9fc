@@ -1,0 +1,19 @@
+test/manual/glm53_compile_cache_controller.py
+  s_e14fbcb27cf056::t_7addf13f5aadeb 1-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "05a638bcc4e09d33c5c4797f539cb834130cb9fc",
+  "prompts": {},
+  "sessions": {
+    "s_e14fbcb27cf056": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18cd6-dd66-7750-b24f-d665e89d6e5d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "昶知 <eric.hc@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+python/sglang/srt/layers/attention/linear/kda_backend.py
+  h_5b710c0a1cb0fe 625-645
+test/registered/unit/layers/attention/test_kda_idle_verify.py
+  h_5b710c0a1cb0fe 29-36,47-49,66,69-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d5a855f1e777ced0af4ba712cdf3f05c1fce267b",
+  "prompts": {},
+  "humans": {
+    "h_5b710c0a1cb0fe": {
+      "author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

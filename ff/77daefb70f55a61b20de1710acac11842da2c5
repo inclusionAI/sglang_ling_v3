@@ -1,0 +1,22 @@
+python/sglang/kernels/jit/csrc/deepseek_v4/main_norm_rope.cuh
+  h_f252eadf5e9832 273-281,324-358,361-367,489-491,533-541,593-609,631-642,644-645,647,652-695
+python/sglang/kernels/ops/attention/dsv4/elementwise.py
+  h_f252eadf5e9832 69,281,288,290,301-313
+python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py
+  h_f252eadf5e9832 1716,1720-1727,1735,1739,1741-1742
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 1924-1952
+test/registered/kernel/mem_cache/test_dsv41_fused_window_history.py
+  h_f252eadf5e9832 1-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ff77daefb70f55a61b20de1710acac11842da2c5",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

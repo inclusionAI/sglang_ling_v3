@@ -1,0 +1,20 @@
+test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py
+  s_44844fb1f654af::t_c7454975860e9e 254-257,279-282
+  s_44844fb1f654af::t_544663ac8be465 234-242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e15e885aa59f775ef3bfe28439ece69d6f33ee2f",
+  "prompts": {},
+  "sessions": {
+    "s_44844fb1f654af": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0e616-8328-7bf3-8422-847402f4f61f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

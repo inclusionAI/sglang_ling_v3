@@ -1,0 +1,28 @@
+python/sglang/srt/mem_cache/dsv41_swa_injection.py
+  h_f252eadf5e9832 18-28,34-40,46-51,54-57,59-60,65-74,78-83,86-94,96-98,101-104,116-122,132-135,155-162,175-177,192-195
+python/sglang/srt/mem_cache/dsv41_swa_storage.py
+  h_f252eadf5e9832 92-109,122-126,137-139,144-145,155-158,168-175,179-181,187-190
+python/sglang/srt/speculative/dspark_components/dspark_kv_inject.py
+  h_f252eadf5e9832 202-204
+test/registered/unit/layers/test_deepseek_v4_metadata.py
+  h_f252eadf5e9832 8
+test/registered/unit/layers/test_dsv41_tail_source.py
+  h_f252eadf5e9832 62-69
+test/registered/unit/mem_cache/test_dsv41_swa_injection.py
+  h_f252eadf5e9832 38-40,42-46,51-56,60-62,69-71,74-76,78-86,93-106
+test/registered/unit/mem_cache/test_dsv41_swa_storage_dispatch.py
+  h_f252eadf5e9832 25-28,62-64,72-87
+test/registered/unit/spec/test_dspark_replay_cohesion.py
+  h_f252eadf5e9832 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1f16bd6b6c4c9c5632e13f2169bcda3ec58e9279",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

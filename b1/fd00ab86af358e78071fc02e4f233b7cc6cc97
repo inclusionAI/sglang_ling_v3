@@ -1,0 +1,22 @@
+test/registered/unit/entrypoints/test_server_info.py
+  s_8b0ece6132ddff::t_bd97a4fbb8eac2 173-174
+  s_8b0ece6132ddff::t_6ad63b77f42890 199-200
+python/sglang/srt/entrypoints/http_server.py
+  s_8b0ece6132ddff::t_2909d216bc2f47 928-930
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b1fd00ab86af358e78071fc02e4f233b7cc6cc97",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
