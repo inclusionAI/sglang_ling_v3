@@ -1,0 +1,24 @@
+test/registered/unit/run_tool_time_cache_cpu_tests.py
+  s_3972c652cf9de1::t_8e0582588c0752 37
+test/registered/unit/test_deepseek_optional_router_kernel.py
+  s_3972c652cf9de1::t_4558b08dde4b6d 127-129
+  s_3972c652cf9de1::t_8e0582588c0752 1-126,130-160
+python/sglang/srt/models/deepseek_v2.py
+  s_3972c652cf9de1::t_8e0582588c0752 178-185,345-348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2996a19824a9a70ff18e43d6e638867cb6947e8a",
+  "prompts": {},
+  "sessions": {
+    "s_3972c652cf9de1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19b24-821b-7740-b2df-f020208d67e8",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}
