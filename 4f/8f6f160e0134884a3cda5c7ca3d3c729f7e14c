@@ -1,0 +1,22 @@
+python/sglang/srt/speculative/dflash_worker_v2.py
+  s_05d1521a1febb0::t_72de078e46b162 1705-1718,1735,1738
+test/registered/unit/spec/test_dflash_prefill_hidden.py
+  s_05d1521a1febb0::t_72de078e46b162 1-94,96-139
+  s_05d1521a1febb0::t_defbb7573aa93f 95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4f8f6f160e0134884a3cda5c7ca3d3c729f7e14c",
+  "prompts": {},
+  "sessions": {
+    "s_05d1521a1febb0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a51c-c196-7b80-918b-b6d4bd21835d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}
