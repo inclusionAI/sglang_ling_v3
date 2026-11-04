@@ -1,0 +1,21 @@
+python/sglang/srt/entrypoints/openai/serving_chat.py
+  s_9fcce24f273208::t_bd818416831d08 2851,2966
+test/registered/unit/entrypoints/openai/test_serving_chat.py
+  s_9fcce24f273208::t_fcaf064d1c42ae 6962,6964
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3877a02abf632e8fbae44c89483a569c7982521b",
+  "prompts": {},
+  "sessions": {
+    "s_9fcce24f273208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8f11576-0caa-4937-81d5-1755f59b7de8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
