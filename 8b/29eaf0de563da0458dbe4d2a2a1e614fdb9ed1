@@ -1,0 +1,24 @@
+test/registered/unit/layers/test_dsv41_ring_sparse_prefill.py
+  s_fe92d796c96f00::t_83e9543c99da59 267,379-383,392-393
+  s_fe92d796c96f00::t_f8f7d383873d78 130-133
+  s_fe92d796c96f00::t_a8eb4457ba51e4 371-378,384-391,394-408
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  s_fe92d796c96f00::t_876592e6f2d002 541,566-568,607,641,665-668
+  s_fe92d796c96f00::t_83e9543c99da59 569
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8b29eaf0de563da0458dbe4d2a2a1e614fdb9ed1",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

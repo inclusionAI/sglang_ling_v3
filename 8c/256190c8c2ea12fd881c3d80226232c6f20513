@@ -1,0 +1,35 @@
+test/registered/unit/model_executor/test_derived_weight_cache.py
+  s_34a2b2e8aa24cb::t_ea341dacac0965 14,19,42-47,49,51-52
+  s_34a2b2e8aa24cb::t_0c8690931dba64 53-55
+python/sglang/srt/models/ling_v3_dspark.py
+  s_34a2b2e8aa24cb::t_d10a91a5bbe135 108-110,218-222
+  s_34a2b2e8aa24cb::t_70122e9c329e0c 16-19,43-46,215-217,237-241
+test/registered/unit/spec/test_ling_dspark_contract.py
+  s_34a2b2e8aa24cb::t_a7b5f5c2d5a120 13,20-23,26-29,84,250-252
+  s_34a2b2e8aa24cb::t_ea341dacac0965 243-248
+  s_34a2b2e8aa24cb::t_62b881023ef61a 196-242,249,253-256
+  s_34a2b2e8aa24cb::t_eabf4041dfe60c 257
+test/registered/unit/managers/test_scheduler_weight_version_tracking.py
+  s_34a2b2e8aa24cb::t_3a33b8e6a2e6e7 5-6,86,122-127,228-243,250-269
+  s_34a2b2e8aa24cb::t_1c36edff75775a 244-249,270-292
+python/sglang/srt/managers/scheduler_components/weight_updater.py
+  s_34a2b2e8aa24cb::t_70122e9c329e0c 47-49,143-146,198-203,217,261,289-290,342
+  s_34a2b2e8aa24cb::t_d10a91a5bbe135 194-197,216,260,341
+  s_34a2b2e8aa24cb::t_d631400564b677 204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8c256190c8c2ea12fd881c3d80226232c6f20513",
+  "prompts": {},
+  "sessions": {
+    "s_34a2b2e8aa24cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a16c-5517-7612-ac36-eafbad3b8f5e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}
