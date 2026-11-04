@@ -1,0 +1,19 @@
+test/manual/disaggregation_csa/test_ling_csa_pd_parity.py
+  s_643826788d9a1c::t_25c1e7c3c26617 69-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "28eae07d8d62be1ad8e7cc74b4566c82ee15c906",
+  "prompts": {},
+  "sessions": {
+    "s_643826788d9a1c": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "c050a087-1d2f-4ee6-8d52-7c744868df44",
+        "model": "antchat/GLM-5.3"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

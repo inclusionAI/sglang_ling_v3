@@ -1,0 +1,28 @@
+test/registered/kernels/ops/attention/test_dcp_lse_combine.py
+  h_5b710c0a1cb0fe 12
+test/registered/spec/dspark/test_dspark_draft_path_default.py
+  h_5b710c0a1cb0fe 16
+test/registered/unit/layer_boundary/test_aux_capture_deferred_allreduce.py
+  h_5b710c0a1cb0fe 19
+test/registered/unit/layers/attention/test_kda_helion_dispatcher.py
+  h_5b710c0a1cb0fe 3,9
+test/registered/unit/model_executor/runner/test_decode_cuda_graph_runner.py
+  h_5b710c0a1cb0fe 40
+test/registered/unit/model_executor/test_derived_weight_cache.py
+  h_5b710c0a1cb0fe 5,8,70-139
+test/registered/unit/model_executor/test_mlp_sync_hybrid_target_verify.py
+  h_5b710c0a1cb0fe 23,26,36,53
+test/registered/unit/spec/test_dspark_draft_block.py
+  h_5b710c0a1cb0fe 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c14a23a51e66e761dd19a9821ef18e206be8ad5b",
+  "prompts": {},
+  "humans": {
+    "h_5b710c0a1cb0fe": {
+      "author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

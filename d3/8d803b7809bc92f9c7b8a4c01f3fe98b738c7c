@@ -1,0 +1,37 @@
+python/sglang/srt/model_executor/runner_backend_utils/breakable_cuda_graph/breakable_cuda_graph.py
+  s_8fb170adb733ac::t_9b644245847c05 281,283
+test/registered/cuda_graph/breakable/test_breakable_cuda_graph.py
+  s_8fb170adb733ac::t_e1249065d94313 172-204
+test/registered/unit/model_executor/runner_backend_utils/test_breakable_cuda_graph_replay.py
+  s_8fb170adb733ac::t_e1249065d94313 1-51,53-56,58-63,80-131
+  s_8fb170adb733ac::t_05737c5b040e04 52,57,64-79
+  s_02bac1f8866f01::t_bb3ebebcc98626 132-133
+test/registered/unit/model_executor/model_runner_components/test_layer_setup.py
+  s_8fb170adb733ac::t_e1249065d94313 6-7,36-126
+python/sglang/srt/model_executor/model_runner_components/layer_setup.py
+  s_8fb170adb733ac::t_9b644245847c05 57-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d38d803b7809bc92f9c7b8a4c01f3fe98b738c7c",
+  "prompts": {},
+  "sessions": {
+    "s_02bac1f8866f01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19c45-cf08-7c90-b868-1ee884ff702a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "lzp267823 <lzp267823@alibaba-inc.com>"
+    },
+    "s_8fb170adb733ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16472-deb2-7e80-8af9-d6a97219474b",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "lzp267823 <lzp267823@alibaba-inc.com>"
+    }
+  }
+}

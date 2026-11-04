@@ -1,0 +1,25 @@
+test/registered/unit/mem_cache/test_hybrid_pool_assembler.py
+  s_85d9f19f7e19fb::t_315e76eb3453b9 1507,1584-1589,1591,1600
+  s_85d9f19f7e19fb::t_eac647ab6c801e 19-26,35,45,203,518-524,769-778,1003,1035,1130,1158-1160,1193,1195-1197,1373-1380,1404,1410,1416,1471-1474,1477,1483,1491,1505-1506,1508-1512,1517-1518,1523-1524,1533-1534,1541-1543,1548-1550,1558-1565,1571-1573,1577-1583,1593-1599,1601
+  s_85d9f19f7e19fb::t_ded84965e06146 1513-1516,1519-1522,1525-1532,1535-1540,1544-1547,1551-1557,1566-1570,1574-1576,1590,1592
+  s_85d9f19f7e19fb::t_1c6370edf52ef0 1602,2105,2107-2108,2110-2111,2117-2120,2122-2126,2128-2129,2131-2135,2137-2138,2141-2142
+python/sglang/srt/mem_cache/hybrid_cache/hybrid_pool_assembler.py
+  s_85d9f19f7e19fb::t_465eb7765ec6ea 1562,1568,1586
+  s_85d9f19f7e19fb::t_523922ec850ea0 382-384
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "084a3c4c01b2baa25a1f6207d689ec459530fdc2",
+  "prompts": {},
+  "sessions": {
+    "s_85d9f19f7e19fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19fb4-4d6c-7533-9c79-f57ff1f6185d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

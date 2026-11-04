@@ -1,0 +1,22 @@
+python/sglang/srt/layers/cp/interleave.py
+  s_fe92d796c96f00::t_6ed1db109003f3 232-238
+test/registered/unit/layers/test_cp_interleave_gather.py
+  s_fe92d796c96f00::t_de09758599c021 1-49,56-58,62-73,89-92
+  s_fe92d796c96f00::t_61a5682b73ac46 50-55,59-61,74-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c4222acedf6adff47c84ddcdaa2a6bfb5239546c",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}
