@@ -1,0 +1,24 @@
+python/sglang/kernels/ops/moe/dsv4_dp_route.py
+  s_fe92d796c96f00::t_aae6a822d0af64 8,11,13,17-20,23-24,26-28,32-36,38-39,42-45
+  s_fe92d796c96f00::t_186a4752cceaa3 1,46-47
+test/registered/kernel/moe/test_dsv4_dp_route.py
+  s_fe92d796c96f00::t_aae6a822d0af64 21-82,101-142
+  s_fe92d796c96f00::t_c2f7fb90be1377 150-193
+  s_fe92d796c96f00::t_90cb11c4198cdf 1,4,9,11-13,20,143-149,194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8af70862bbf3c70a8c976062ad9a6b9533046805",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

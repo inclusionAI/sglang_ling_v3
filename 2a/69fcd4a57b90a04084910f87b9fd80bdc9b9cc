@@ -1,0 +1,22 @@
+python/sglang/srt/models/bailing_moe_v3.py
+  s_31943fee543816::t_0c48790a60050c 224-226
+test/registered/unit/models/test_bailing_mla_idle.py
+  s_31943fee543816::t_335ac7ed9f87a9 1-61
+  s_31943fee543816::t_08ebeb3ad40946 62-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2a69fcd4a57b90a04084910f87b9fd80bdc9b9cc",
+  "prompts": {},
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

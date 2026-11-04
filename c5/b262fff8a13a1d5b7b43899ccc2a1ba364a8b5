@@ -1,0 +1,23 @@
+PR_DESCRIPTION_ling_csa_pd.md
+  s_643826788d9a1c::t_c69d30156bce0e 74
+  s_643826788d9a1c::t_225c7f35aa5cd9 76
+  s_643826788d9a1c::t_a39866d8c93d98 75,77
+  s_643826788d9a1c::t_7c1003e9b7f791 1-62,64,66-69,71-73,78-83
+  s_643826788d9a1c::t_21b87694f2237c 63,65,70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c5b262fff8a13a1d5b7b43899ccc2a1ba364a8b5",
+  "prompts": {},
+  "sessions": {
+    "s_643826788d9a1c": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "c050a087-1d2f-4ee6-8d52-7c744868df44",
+        "model": "antchat/GLM-5.3"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

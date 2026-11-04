@@ -1,0 +1,22 @@
+python/sglang/srt/configs/model_config.py
+  h_1d635ecd767a49 1052-1055
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1483-1485
+python/sglang/srt/layers/attention/flashattention_backend.py
+  h_1d635ecd767a49 20,342-346,349-350,1329-1331,1851
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 198-201
+test/registered/layers/attention/test_bailing_expanded_kv.py
+  h_1d635ecd767a49 24,59-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "35bbd66c1ac30e5126e99ea2aa848a334416c352",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
