@@ -1,0 +1,14 @@
+python/sglang/srt/layers/attention/flashattention_backend.py
+  h_1d635ecd767a49 352-353
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c32f11cffbdf7accb8ce209fe484f61602e1f916",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
