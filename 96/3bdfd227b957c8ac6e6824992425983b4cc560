@@ -1,0 +1,19 @@
+python/sglang/srt/configs/ling_csa_runtime.py
+  s_643826788d9a1c::t_58304042bb926d 107-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "963bdfd227b957c8ac6e6824992425983b4cc560",
+  "prompts": {},
+  "sessions": {
+    "s_643826788d9a1c": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "c050a087-1d2f-4ee6-8d52-7c744868df44",
+        "model": "antchat/GLM-5.3"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}
