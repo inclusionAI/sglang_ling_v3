@@ -1,0 +1,16 @@
+python/sglang/kernels/ops/attention/fla/kda_chunk_cache.py
+  h_1d635ecd767a49 10,92-93,162,192,201-213,218-254
+python/sglang/kernels/ops/attention/fla/kda_chunk_decode.py
+  h_1d635ecd767a49 9,131-134,281-294
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2a8ae05707aff91ef967ded93f00194cddca92bf",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
