@@ -1,0 +1,45 @@
+python/sglang/srt/managers/scheduler.py
+  s_69ae3985672754::t_6c037d8095bd91 1056-1058,1121,1125-1130,2951
+test/registered/unit/managers/test_prefill_cache_reclaimer.py
+  s_69ae3985672754::t_6c037d8095bd91 80
+test/registered/unit/managers/test_scheduler_prefill_decode_interval.py
+  s_69ae3985672754::t_6c037d8095bd91 1,16-18,22,34-37,40,46,49,55-57,68,81-110
+  s_69ae3985672754::t_b068ef2f681871 111-112
+test/registered/unit/multimodal/test_cuda_ipc_consumer_lifetime.py
+  s_69ae3985672754::t_6c037d8095bd91 1-119
+test/registered/unit/managers/test_scheduler_chunked_req_gate.py
+  s_69ae3985672754::t_6c037d8095bd91 96
+python/sglang/srt/utils/cuda_ipc_transport_utils.py
+  s_69ae3985672754::t_6c037d8095bd91 476-479
+test/registered/unit/managers/test_ppu_prefill_decode_interleave.py
+  s_69ae3985672754::t_6c037d8095bd91 46,230
+test/registered/unit/attention/test_dsa_flashmla_sparse_padding.py
+  s_69ae3985672754::t_c717d995b433ba 1,3,70-138,140-155
+  s_69ae3985672754::t_c846282eb22854 139
+python/sglang/srt/server_args.py
+  s_69ae3985672754::t_6c037d8095bd91 737-740,7328-7329
+python/sglang/srt/layers/attention/dsa_backend.py
+  s_69ae3985672754::t_41c20c6e216bf9 2283-2284
+  s_69ae3985672754::t_6c037d8095bd91 491-499,2760-2761
+test/registered/unit/attention/test_dsa_flashmla_mtp_layout.py
+  s_69ae3985672754::t_0d4f78340753fe 45,139
+  s_69ae3985672754::t_656d8e47047a55 17
+  s_69ae3985672754::t_c717d995b433ba 25-30,37-38,114-134
+  s_69ae3985672754::t_c0c0b5ab769f23 135-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b4f9a3ed579600aa551955fbe3db6f4213426357",
+  "prompts": {},
+  "sessions": {
+    "s_69ae3985672754": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1807c-1153-7ec3-856f-235dbe604012",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Qing Wang <kingchin1218@gmail.com>"
+    }
+  }
+}

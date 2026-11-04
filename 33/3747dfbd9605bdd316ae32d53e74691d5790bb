@@ -1,0 +1,32 @@
+docs/ppu15/kvpool_1030/tp16_prefill/README.md
+  h_25b71af7882e89 1-41
+docs/ppu15/kvpool_1030/tp16_prefill/evidence/status.json
+  h_25b71af7882e89 1-11
+docs/ppu15/kvpool_1030/tp16_prefill/manifest.json
+  h_25b71af7882e89 1-30
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/benchmark_prefill.py
+  h_25b71af7882e89 1-49
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/kvpool_env.sh
+  h_25b71af7882e89 1-8
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/node_runtime.py
+  h_25b71af7882e89 1-70
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/probe_prefill.py
+  h_25b71af7882e89 1-32
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/start_prefill_207.sh
+  h_25b71af7882e89 1-4
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/start_prefill_208.sh
+  h_25b71af7882e89 1-4
+docs/ppu15/kvpool_1030/tp16_prefill/scripts/start_prefill_tp16_kvpool.sh
+  h_25b71af7882e89 1-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "333747dfbd9605bdd316ae32d53e74691d5790bb",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

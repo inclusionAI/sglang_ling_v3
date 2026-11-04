@@ -1,0 +1,26 @@
+docker_ant/tests/test_prepare_ppu_kernel_sources_ci.py
+  s_c9239ef50a85f8::t_f04f53416daf81 204-206
+  s_c9239ef50a85f8::t_780984a7d8bf12 197-203,207-211
+docker_ant/prepare_ppu_kernel_sources.py
+  s_c9239ef50a85f8::t_f04f53416daf81 76-77
+docker_ant/prepare_ppu_kernel_sources_ci.py
+  s_c9239ef50a85f8::t_f04f53416daf81 111-112,133-135
+docker_ant/tests/test_prepare_ppu_kernel_sources.py
+  s_c9239ef50a85f8::t_780984a7d8bf12 89-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bbc82f894377d1afe2f3ba8dc8429e0687452cc8",
+  "prompts": {},
+  "sessions": {
+    "s_c9239ef50a85f8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f48-268f-7801-b087-d071be051a56",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}
