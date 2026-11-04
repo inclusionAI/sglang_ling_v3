@@ -1,0 +1,14 @@
+test2.txt
+  h_090a9801e15a54 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8e58e6d13c970313d5775134ff490daf0e58e006",
+  "prompts": {},
+  "humans": {
+    "h_090a9801e15a54": {
+      "author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}
