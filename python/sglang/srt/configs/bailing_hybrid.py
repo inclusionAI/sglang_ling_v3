@@ -243,12 +243,14 @@ class BailingMoeV3VLConfig(PretrainedConfig):
         self,
         text_config=None,
         vision_config=None,
-        image_token_id=157157,
-        video_token_id=156909,
-        vision_start_token_id=157158,
+        image_token_id=None,
+        video_token_id=None,
+        vision_start_token_id=None,
         vision_end_token_id=157159,
         tie_word_embeddings=False,
         mrope_section=None,
+        video_start_token_id=None,
+        video_end_token_id=157161,
         **kwargs,
     ):
         if isinstance(vision_config, dict):
@@ -267,10 +269,28 @@ class BailingMoeV3VLConfig(PretrainedConfig):
 
         self.vision_config = vision_config
         self.text_config = text_config
-        self.image_token_id = image_token_id
-        self.video_token_id = video_token_id
-        self.vision_start_token_id = vision_start_token_id
+
+        # Normalize legacy V3 configs once so the processor and mRoPE agree.
+        def resolve_token_id(value, legacy_name, default):
+            if value is not None:
+                return value
+            legacy_value = getattr(text_config, legacy_name, None)
+            return default if legacy_value is None else legacy_value
+
+        self.image_token_id = resolve_token_id(
+            image_token_id, "image_patch_token", 157157
+        )
+        self.video_token_id = resolve_token_id(
+            video_token_id, "video_patch_token", 156909
+        )
+        self.vision_start_token_id = resolve_token_id(
+            vision_start_token_id, "image_start_token", 157158
+        )
+        self.video_start_token_id = resolve_token_id(
+            video_start_token_id, "video_start_token", 157160
+        )
         self.vision_end_token_id = vision_end_token_id
+        self.video_end_token_id = video_end_token_id
 
         if mrope_section is None:
             mrope_section = getattr(text_config, "mrope_section", None)

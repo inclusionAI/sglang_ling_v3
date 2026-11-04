@@ -216,10 +216,16 @@ class BailingMRotaryEmbedding(RotaryEmbedding):
         second_per_grid_ts = None
         spatial_merge_size = hf_config.vision_config.spatial_merge_size
         text_config = cls._text_config(hf_config)
-        image_patch_id = text_config.image_patch_token
-        video_patch_id = text_config.video_patch_token
-        image_start_token_id = text_config.image_start_token
-        video_start_token_id = text_config.video_start_token
+        if getattr(hf_config, "model_type", None) == "bailing_moe_v3_vl":
+            image_patch_id = hf_config.image_token_id
+            video_patch_id = hf_config.video_token_id
+            image_start_token_id = hf_config.vision_start_token_id
+            video_start_token_id = hf_config.video_start_token_id
+        else:
+            image_patch_id = text_config.image_patch_token
+            video_patch_id = text_config.video_patch_token
+            image_start_token_id = text_config.image_start_token
+            video_start_token_id = text_config.video_start_token
         use_interleaved_frame_timestamp = getattr(
             text_config, "use_interleaved_frame_timestamp", False
         )
