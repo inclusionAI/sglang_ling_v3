@@ -1,0 +1,49 @@
+test/ppu/test_kvpool_sdk_setup.py
+  s_d8312e24e9742d::t_cc739bb37008d8 1-49
+  h_25b71af7882e89 1-49
+docker/ant/kvpool/scripts/real_client_compat.py
+  s_d8312e24e9742d::t_cc739bb37008d8 1-15
+  h_25b71af7882e89 1-15
+python/sglang/srt/mem_cache/hybrid_cache/hybrid_cache_controller.py
+  s_d8312e24e9742d::t_cc739bb37008d8 706-716
+  h_25b71af7882e89 706-716
+test/ppu/test_hybrid_l3_local_completion.py
+  s_d8312e24e9742d::t_cc739bb37008d8 1-61
+  h_25b71af7882e89 1-61
+docker_ant/Dockerfile_890p_sglang
+  s_d8312e24e9742d::t_cc739bb37008d8 30,41-43
+  s_d8312e24e9742d::t_88294d64de7aff 44
+  h_25b71af7882e89 30,41-44
+docker/ant/kvpool/vendor/mooncake_0.3.6.post1/real_client_daemon.py
+  s_d8312e24e9742d::t_d2eeb40d3a8d87 1-152
+  h_25b71af7882e89 1-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b2c8d24b337cd12ce36b4469fa4698adab8a22db",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_d8312e24e9742d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17c1e-05b6-7bc0-a40d-b98b61f9b4a5",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    },
+    "s_fb9c4d8946a621": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a15c5a-062f-74a3-8f83-192f68bcef1a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}
