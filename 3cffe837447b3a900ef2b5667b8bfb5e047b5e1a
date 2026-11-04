@@ -1,0 +1,21 @@
+python/sglang/srt/managers/scheduler_pp_mixin.py
+  s_b5d42d5a9236fe::t_0639a2c9c36462 1463
+test/registered/unit/disaggregation/test_pp_eagle_prefill.py
+  s_b5d42d5a9236fe::t_0639a2c9c36462 66-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3cffe837447b3a900ef2b5667b8bfb5e047b5e1a",
+  "prompts": {},
+  "sessions": {
+    "s_b5d42d5a9236fe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13879-f526-7691-98db-7b5af58a6dea",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

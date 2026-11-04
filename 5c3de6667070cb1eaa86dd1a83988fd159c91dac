@@ -1,0 +1,26 @@
+docs/ppu15/kvpool_1030/optimization_evidence_1103/broadcast_cpu_regression.json
+  h_25b71af7882e89 1-7
+docs/ppu15/kvpool_1030/optimization_evidence_1103/broadcast_feature_ab.json
+  h_25b71af7882e89 1-93
+docs/ppu15/kvpool_1030/optimization_evidence_1103/broadcast_source_validation.json
+  h_25b71af7882e89 1-5
+docs/ppu15/kvpool_1030/optimization_evidence_1103/final_state.json
+  h_25b71af7882e89 1-28
+docs/ppu15/kvpool_1030/optimization_evidence_1103/kvpool_on_off_ab.json
+  h_25b71af7882e89 1-93
+docs/ppu15/kvpool_1030/optimization_evidence_1103/master_metrics_deltas.json
+  h_25b71af7882e89 1-226
+docs/ppu15/kvpool_1030/optimizations_1103.md
+  h_25b71af7882e89 1-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5c3de6667070cb1eaa86dd1a83988fd159c91dac",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}
