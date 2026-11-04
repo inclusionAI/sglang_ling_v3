@@ -273,9 +273,11 @@ class BailingMoeV3VLConfig(PretrainedConfig):
         self.vision_end_token_id = vision_end_token_id
 
         if mrope_section is None:
-            mrope_section = text_config.rope_parameters.get(
-                "mrope_section", [8, 12, 12]
-            )
+            mrope_section = getattr(text_config, "mrope_section", None)
+            if mrope_section is None:
+                mrope_section = text_config.rope_parameters.get(
+                    "mrope_section", [8, 12, 12]
+                )
         self.mrope_section = mrope_section
         text_config.rope_parameters.update(
             rope_type="default",
