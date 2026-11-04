@@ -1,0 +1,14 @@
+python/sglang/kernels/ops/gemm/training_bf16.py
+  h_1d635ecd767a49 32-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f341387d3761492e189b3e4883c6d23a26eeaade",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
