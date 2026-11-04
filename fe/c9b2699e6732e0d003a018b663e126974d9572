@@ -1,0 +1,25 @@
+docker/k31-image/build_flashinfer_dynblock.py
+  s_9fcce24f273208::t_69656bc4e8205f 65-67,77,83-87,110
+docker/ant/aci/sglang_fast.aci.yml
+  s_9fcce24f273208::t_69656bc4e8205f 114-115,117-120
+docker/ant/aci/sglang_auto.aci.yml
+  s_9fcce24f273208::t_69656bc4e8205f 367-368,370-373
+docker/k31-image/verify_ant_image.py
+  s_9fcce24f273208::t_69656bc4e8205f 8,26,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fec9b2699e6732e0d003a018b663e126974d9572",
+  "prompts": {},
+  "sessions": {
+    "s_9fcce24f273208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8f11576-0caa-4937-81d5-1755f59b7de8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
