@@ -1,0 +1,41 @@
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  h_f252eadf5e9832 141-142,2032,2967,3035,3392,5248
+python/sglang/srt/utils/dsv41_host_timing.py
+  h_f252eadf5e9832 1-152
+python/sglang/srt/model_executor/model_runner.py
+  h_f252eadf5e9832 242-243,1683
+python/sglang/srt/layers/cp/interleave.py
+  h_f252eadf5e9832 52-53,223
+python/sglang/srt/models/deepseek_v4_prefill_graph.py
+  h_f252eadf5e9832 52-53,145,158,466,537
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 20-21,1926,1978
+python/sglang/srt/managers/scheduler.py
+  h_f252eadf5e9832 366-367,4410
+  h_f252eadf5e9832 4763
+python/sglang/srt/model_executor/runner/eager_runner.py
+  h_f252eadf5e9832 75-76,185,276,384
+python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py
+  h_f252eadf5e9832 28-29,1681
+python/sglang/srt/model_executor/runner_backend_utils/breakable_cuda_graph/breakable_cuda_graph.py
+  h_f252eadf5e9832 42-43,286
+python/sglang/srt/managers/schedule_batch.py
+  h_f252eadf5e9832 148-149,2830
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 24-25,218,308,532,554,582
+python/sglang/srt/models/deepseek_v4.py
+  h_f252eadf5e9832 262-263,2782,5362,5670
+python/sglang/srt/disaggregation/prefill.py
+  h_f252eadf5e9832 90,743,768-769
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5bdd5c4c5fa660f18ffa47ca7a88e283c1f9036f",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

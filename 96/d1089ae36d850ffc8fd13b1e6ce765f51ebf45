@@ -1,0 +1,16 @@
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 413,420,444,454,475-476
+test/registered/unit/mem_cache/test_dsv41_window_injection_dynamic.py
+  h_f252eadf5e9832 1-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "96d1089ae36d850ffc8fd13b1e6ce765f51ebf45",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

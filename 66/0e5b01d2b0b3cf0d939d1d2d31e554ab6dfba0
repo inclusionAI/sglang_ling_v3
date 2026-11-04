@@ -1,0 +1,43 @@
+python/sglang/srt/configs/glm5_next.py
+  s_d74c8d4c4bcb09::t_7ed0138f49ebe4 11
+python/sglang/srt/models/deepseek_nextn.py
+  s_d74c8d4c4bcb09::t_9b86dc0bf3a5c5 20
+  s_d74c8d4c4bcb09::t_7ed0138f49ebe4 304-305,319,325-331
+test/registered/unit/models/test_glm5_nextn_weight_loading.py
+  s_d74c8d4c4bcb09::t_578484d394fe89 270-272
+  s_d74c8d4c4bcb09::t_795f958c2bf520 5,7-8,14,16-18,21,110-113,117-147,150-152,154-164,166-179,183-192,196-202,206-217,221,225-229,267-268,275-277,286-301
+  s_d74c8d4c4bcb09::t_90fd74aeebb003 114-116,153,230-232,238-239,243-244,247,253-257,262-265
+  s_d74c8d4c4bcb09::t_9af21dd63adcd8 148-149,165
+  s_d74c8d4c4bcb09::t_68b8e02d692b20 6
+  s_d74c8d4c4bcb09::t_b7ae2979d06c1a 233-237,241,245-246,266,269,273-274
+  s_d74c8d4c4bcb09::t_7ea47feb9fd614 240,242,248-252,258-261
+  s_d74c8d4c4bcb09::t_9b86dc0bf3a5c5 180-182,193-195,203-205,218-220,222-224,278-285
+test/registered/unit/speculative/test_eagle_worker_lm_head.py
+  s_d74c8d4c4bcb09::t_286d6917ba8444 8,10,70,87-105
+  s_d74c8d4c4bcb09::t_721485da874c18 106
+python/sglang/srt/layers/logits_processor.py
+  s_d74c8d4c4bcb09::t_497bb32d501426 1269-1280
+python/sglang/srt/models/glm5_next_nextn.py
+  s_d74c8d4c4bcb09::t_9af21dd63adcd8 143
+  s_d74c8d4c4bcb09::t_68b8e02d692b20 18
+  s_d74c8d4c4bcb09::t_40869846f99072 35-41,160-171
+  s_d74c8d4c4bcb09::t_7ed0138f49ebe4 17,19,91-98,100,103,105-126,136-142,145-159,172-176,178-183
+test/registered/unit/spec/test_eagle_draft_extend_logits.py
+  s_d74c8d4c4bcb09::t_a27f501b0ecce9 11,13,18,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "660e5b01d2b0b3cf0d939d1d2d31e554ab6dfba0",
+  "prompts": {},
+  "sessions": {
+    "s_d74c8d4c4bcb09": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19aea-88c5-7833-8c0c-59774e3fa280",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

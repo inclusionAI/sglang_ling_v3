@@ -1,0 +1,16 @@
+python/sglang/srt/models/deepseek_v4_dspark.py
+  h_f252eadf5e9832 24,304-307
+test/registered/unit/spec/test_dsv41_dspark_empty_attention.py
+  h_f252eadf5e9832 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2cac87caccd4140136c4271c988b2152e1c941f5",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  h_1d635ecd767a49 316-327,329-352,819
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 730,732-733,750-752,755-756,1066
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d3ae1b927f591f1e9039fd4e034367a2f07bb258",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

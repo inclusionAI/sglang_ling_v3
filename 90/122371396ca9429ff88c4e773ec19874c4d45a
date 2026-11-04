@@ -1,0 +1,34 @@
+python/sglang/srt/disaggregation/decode.py
+  h_f252eadf5e9832 92-93,1462-1463,1465-1467,1470-1471,1819-1865,1868-1884,2301-2302
+python/sglang/srt/disaggregation/prefill.py
+  h_f252eadf5e9832 76,1420-1440,1444-1457,1471-1472,1474-1476,1479-1480
+python/sglang/srt/mem_cache/dsv41_swa_injection.py
+  h_f252eadf5e9832 76
+python/sglang/srt/mem_cache/dsv41_swa_transfer.py
+  h_f252eadf5e9832 9,81,83-84,86-87,90,93
+python/sglang/srt/speculative/dspark_components/dspark_kv_inject.py
+  h_f252eadf5e9832 151-152,154,160
+python/sglang/srt/speculative/dspark_components/dspark_verify.py
+  h_f252eadf5e9832 36-39,892-894,896,899-900
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  h_f252eadf5e9832 686-706,711-725
+test/registered/unit/mem_cache/test_dsv41_swa_injection.py
+  h_f252eadf5e9832 5,50-64
+test/registered/unit/mem_cache/test_dsv41_swa_transfer.py
+  h_f252eadf5e9832 1,4,9,23-25,27-28,39-40,42-50
+test/registered/unit/spec/test_dspark_replay_cohesion.py
+  h_f252eadf5e9832 10,38-49,82,125-148,178-181,183,185,206,208
+test/registered/unit/spec/test_dspark_swa_commit.py
+  h_f252eadf5e9832 49-55,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "90122371396ca9429ff88c4e773ec19874c4d45a",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

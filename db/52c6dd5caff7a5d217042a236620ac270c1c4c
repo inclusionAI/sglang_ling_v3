@@ -1,0 +1,24 @@
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  h_1d635ecd767a49 1311-1314
+python/sglang/kernels/ops/moe/router_weight.py
+  h_1d635ecd767a49 6,46-93
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1483-1486
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  h_1d635ecd767a49 316-323
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 1024-1031
+test/registered/kernels/ops/moe/test_router_weight_before_gemm2.py
+  h_1d635ecd767a49 9,59-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "db52c6dd5caff7a5d217042a236620ac270c1c4c",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

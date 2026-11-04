@@ -1,0 +1,47 @@
+test/registered/unit/spec/test_spec_registry.py
+  s_964db4a4eef22f::t_22a50e7f47a25e 232
+python/sglang/srt/arg_groups/speculative_hook.py
+  s_964db4a4eef22f::t_a64d96da2034be 129-145
+benchmark/kernels/bench_block_verification.py
+  s_964db4a4eef22f::t_22a50e7f47a25e 1-124
+python/sglang/kernels/ops/speculative/reject_sampling.py
+  s_964db4a4eef22f::t_22a50e7f47a25e 34-35,49-121,123,125-126,128-160,165,175-181,183-184,186-196,198,221-223,257-258,262-264,292-294
+docs/docs/advanced_features/speculative_decoding.mdx
+  s_964db4a4eef22f::t_22a50e7f47a25e 17,400-415
+test/registered/unit/spec/test_block_verification_args.py
+  s_964db4a4eef22f::t_22a50e7f47a25e 2-23,25-50,84-121
+  s_964db4a4eef22f::t_7dd755f49d869f 1,51-77,81-83
+  s_964db4a4eef22f::t_da16b1f091b7df 78-80
+  s_964db4a4eef22f::t_afb20800abda71 24
+python/sglang/srt/server_args.py
+  s_964db4a4eef22f::t_a64d96da2034be 2297-2302
+test/registered/kernels/ops/speculative/test_block_verification.py
+  s_964db4a4eef22f::t_22a50e7f47a25e 1-331
+python/sglang/srt/speculative/eagle_utils.py
+  s_964db4a4eef22f::t_a64d96da2034be 6,762-769,784-792,798-803,805
+test/registered/unit/spec/test_block_verification_dispatch.py
+  s_964db4a4eef22f::t_7dd755f49d869f 1-2,4,6-50,53-98,103-120,125-126,130,132,139,143-152
+  s_964db4a4eef22f::t_da16b1f091b7df 121-124,131,133-138,140-142
+  s_964db4a4eef22f::t_f6d16180882b37 127-129
+  s_964db4a4eef22f::t_b983b2729f21c0 3,5,99-102
+  s_964db4a4eef22f::t_359926ec8700c1 51-52
+test/registered/unit/spec/test_eagle_verify_tp_broadcast.py
+  s_964db4a4eef22f::t_da16b1f091b7df 104-106
+  s_964db4a4eef22f::t_afb20800abda71 101-103,107-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e6f519d958eb9177a89818a67893e87f854608e3",
+  "prompts": {},
+  "sessions": {
+    "s_964db4a4eef22f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d8c-9a66-71a1-96f5-e4e0a72a5254",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "fenghao <fenghao.dh@antgroup.com>"
+    }
+  }
+}

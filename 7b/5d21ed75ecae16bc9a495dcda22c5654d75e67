@@ -1,0 +1,27 @@
+python/sglang/srt/layers/moe/mega_moe.py
+  s_ab50b354526313::t_7fb1f90e789bec 130-133,159,222-225
+  s_ab50b354526313::t_1ce647ff069b41 226
+python/sglang/srt/layers/moe/mega_moe_gluon_mxfp4.py
+  s_ab50b354526313::t_7fb1f90e789bec 1-17,19,22-143
+  s_ab50b354526313::t_71761f148aa9af 18,20-21
+python/sglang/srt/layers/quantization/fp8.py
+  s_ab50b354526313::t_7fb1f90e789bec 1811-1818
+test/registered/unit/layers/moe/test_gluon_mxfp4_bound.py
+  s_ab50b354526313::t_71761f148aa9af 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7b5d21ed75ecae16bc9a495dcda22c5654d75e67",
+  "prompts": {},
+  "sessions": {
+    "s_ab50b354526313": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181e6-d7e4-75c3-ae67-1f761173ef02",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}

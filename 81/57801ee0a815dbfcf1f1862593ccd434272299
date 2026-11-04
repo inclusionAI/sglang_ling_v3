@@ -1,0 +1,30 @@
+python/sglang/kernels/ops/moe/dsv4_dp_route.py
+  h_f252eadf5e9832 1-47
+python/sglang/srt/layers/moe/moe_runner/humming.py
+  h_f252eadf5e9832 867-869
+python/sglang/srt/layers/moe/token_dispatcher/standard.py
+  h_f252eadf5e9832 34,243-250
+python/sglang/srt/model_executor/forward_batch_info.py
+  h_f252eadf5e9832 542-543,1420-1429
+python/sglang/srt/model_executor/runner/decode_cuda_graph_runner.py
+  h_f252eadf5e9832 1039,1338-1346
+python/sglang/srt/model_executor/runner_utils/buffers.py
+  h_f252eadf5e9832 106,233
+python/sglang/srt/models/deepseek_v4.py
+  h_f252eadf5e9832 141,4333-4345
+python/sglang/srt/runtime_context.py
+  h_f252eadf5e9832 668,685
+test/registered/kernel/moe/test_dsv4_dp_route.py
+  h_f252eadf5e9832 1-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8157801ee0a815dbfcf1f1862593ccd434272299",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

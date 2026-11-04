@@ -1,0 +1,37 @@
+test/registered/unit/managers/test_tokenizer_response_metadata.py
+  s_fa9a3ca613e2ab::t_908437cc919a63 9
+test/registered/spec/dspark/test_dspark_deep_backend_contracts.py
+  s_fa9a3ca613e2ab::t_734475efd2e138 247-269
+  s_fa9a3ca613e2ab::t_b56ba6df3f7e8a 270
+test/registered/spec/dspark/test_dspark_sps_profiler.py
+  s_fa9a3ca613e2ab::t_908437cc919a63 5,12,17
+test/registered/unit/managers/test_prefill_hidden_chunks.py
+  s_fa9a3ca613e2ab::t_ca38376df71afa 15,210-212,226
+  s_fa9a3ca613e2ab::t_908437cc919a63 6-7
+  s_fa9a3ca613e2ab::t_a003c0a909125f 1,13-14,22,31-53,56,61,63,68-69,76-85,101-123
+  s_fa9a3ca613e2ab::t_734475efd2e138 145
+  s_fa9a3ca613e2ab::t_33d9eb6fefe83e 147-149,159-164,174-181,183,187-189,203-205
+test/registered/spec/dspark/test_dspark_model_contracts.py
+  s_fa9a3ca613e2ab::t_24a3f3b1649d08 1,8,16-18,20-23,29,31-35,37,46-49,51-56,58-69,73-80,82-83,85-100,102-105,108-114,116-124,126-135,137-138,140,142-148,150-156,158-172,174-176,184-186,192-196,198-200,212-218,220-224,226-231,234-248,250-253,256-278,280-301
+  s_fa9a3ca613e2ab::t_41d0a3173125dc 19,36,50,57,70-72,81,84,101,115,125,136,139,149,157,173,197,225,232,249,254,279
+test/registered/unit/entrypoints/test_internal_sampling.py
+  s_fa9a3ca613e2ab::t_908437cc919a63 8
+test/registered/spec/dspark/test_bailing_compatibility.py
+  s_fa9a3ca613e2ab::t_f40b3488840f8d 1,7-8,15-59,61-78,81-83,85-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "985fe51d0aba11a8c4cde2641d6f138bcb66911d",
+  "prompts": {},
+  "sessions": {
+    "s_fa9a3ca613e2ab": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a96-1bfe-7920-8247-8e2810d52cfb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "hx555990 <hx555990@antgroup.com>"
+    }
+  }
+}

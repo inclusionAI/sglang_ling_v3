@@ -1,0 +1,26 @@
+test/registered/unit/managers/test_encoder_swa_merged_execution.py
+  s_fe92d796c96f00::t_935e755c225b8b 165
+test/registered/unit/layers/test_dsv41_ring_sparse_prefill.py
+  s_fe92d796c96f00::t_a7a3a77858c3ad 398
+test/registered/unit/server_args/test_deepseek_v41_features.py
+  s_fe92d796c96f00::t_935e755c225b8b 43-45
+test/registered/unit/mem_cache/test_dsv41_request_window_pd.py
+  s_fe92d796c96f00::t_935e755c225b8b 7,18,200-201,203,205
+  s_fe92d796c96f00::t_46987a44052aaa 8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7fba2847615ab7c5c83919e8ca926c1463dfe6f9",
+  "prompts": {},
+  "sessions": {
+    "s_fe92d796c96f00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11fd0-7604-7e63-8f3a-672d65ca5072",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

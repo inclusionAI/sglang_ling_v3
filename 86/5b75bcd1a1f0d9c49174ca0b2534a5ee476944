@@ -1,0 +1,40 @@
+python/sglang/kernels/jit/csrc/deepseek_v4/main_norm_rope.cuh
+  h_f252eadf5e9832 16,266-272,347-349,385-393,425-427,474-481,526-531,546-553,562-577
+python/sglang/kernels/ops/attention/dsv4/elementwise.py
+  h_f252eadf5e9832 68,279,287,297-303
+python/sglang/kernels/ops/attention/dsv4/index_buf_accessor.py
+  h_f252eadf5e9832 36-39,55,96-98,122-123,127,150-152,157-165,203-207
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  h_f252eadf5e9832 2508,2567,5839,5871
+python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py
+  h_f252eadf5e9832 890,1716-1719,1730
+python/sglang/srt/mem_cache/dsv41_request_window.py
+  h_f252eadf5e9832 304,309,352-355,478-508,523-524,567-568,593-638,1411,1413-1418,1594,1597-1604,1610-1611,1639-1640,1696
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_pool.py
+  h_f252eadf5e9832 201-202,217,223,242-248
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_runtime.py
+  h_f252eadf5e9832 520-525
+python/sglang/srt/mem_cache/dsv41_swa_storage.py
+  h_f252eadf5e9832 11-13,34-38,118,127-130,133,140,194-195
+test/registered/unit/mem_cache/test_dsv41_direct_ring.py
+  h_f252eadf5e9832 1-108
+test/registered/unit/mem_cache/test_dsv41_direct_ring_cuda.py
+  h_f252eadf5e9832 1-242
+test/registered/unit/mem_cache/test_dsv41_snapshot_commit_graph.py
+  h_f252eadf5e9832 61,81,173
+test/registered/unit/mem_cache/test_dsv41_snapshot_execution.py
+  h_f252eadf5e9832 154
+test/registered/unit/mem_cache/test_dsv41_swa_storage_dispatch.py
+  h_f252eadf5e9832 96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "865b75bcd1a1f0d9c49174ca0b2534a5ee476944",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

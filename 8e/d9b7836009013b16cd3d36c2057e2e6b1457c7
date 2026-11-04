@@ -1,0 +1,16 @@
+python/sglang/srt/mem_cache/dsv41_swa_snapshot_pool.py
+  h_f252eadf5e9832 37-39,90
+test/registered/kernel/attention/dsv4/test_dsv41_snapshot_coverage_cuda.py
+  h_f252eadf5e9832 172-209
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8ed9b7836009013b16cd3d36c2057e2e6b1457c7",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

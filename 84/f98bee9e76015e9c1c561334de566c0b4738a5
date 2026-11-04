@@ -1,0 +1,29 @@
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  s_71995c0ff562f5::t_d244f4feebc815 84,257-258
+python/sglang/srt/model_executor/forward_batch_info.py
+  s_71995c0ff562f5::t_d244f4feebc815 35,1378-1381,1383-1389,1393,1402-1403
+  s_71995c0ff562f5::t_79d5aa7fd55ba5 1376-1377,1382
+test/registered/unit/spec/test_dspark_deepep_layout.py
+  s_71995c0ff562f5::t_505e385fb78239 8,31-33,45-47,49-54,60-64,76-85,93-96,102-104,110-118,135-140,142-144,154-156,170-172,185-187,206-215,217-222,224-233,237-250,255-257,259-263,269-274,280-289,291-292,299-305,311-319,335,340-342,345-351
+  s_71995c0ff562f5::t_9b1623d3682c2c 1-7,9-30,34-44,48,55-59,65-75,86-92,97-101,105-109,119-134,141,145-153,157-169,173-184,188-205,216,223,234-236,251-254,258,264-268,275-279,293-298,306-310,323-334,336-339,343-344,352-357,366-369
+  s_71995c0ff562f5::t_4399597df7bb5b 363
+  s_71995c0ff562f5::t_3db9d2c6201202 290,320-322,358-362,364-365
+python/sglang/srt/models/bailing_moe_v3.py
+  s_71995c0ff562f5::t_d244f4feebc815 36,2006,2011-2020
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "84f98bee9e76015e9c1c561334de566c0b4738a5",
+  "prompts": {},
+  "sessions": {
+    "s_71995c0ff562f5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19f4d-8859-7e42-abdf-61bb0590f38b",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

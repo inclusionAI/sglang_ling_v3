@@ -1,0 +1,27 @@
+python/sglang/srt/server_args.py
+  s_69ae3985672754::t_5d59ccb5f6d6b5 5870-5872,5874-5875
+python/sglang/srt/managers/scheduler_components/dp_attn.py
+  s_69ae3985672754::t_5d59ccb5f6d6b5 380-381
+test/registered/unit/server_args/test_dsa_cp_independent_dp.py
+  s_69ae3985672754::t_5d59ccb5f6d6b5 1-7,10-35,37-179,181-182,186-201,208-217
+  s_69ae3985672754::t_f8d699530ebad1 9
+  s_69ae3985672754::t_13a97b14dd039a 8,36,180,183-185,202-207
+python/sglang/srt/arg_groups/overrides.py
+  s_69ae3985672754::t_5d59ccb5f6d6b5 356-361,372,385-389
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a76dcfa3edb48170037744095d541508206ec413",
+  "prompts": {},
+  "sessions": {
+    "s_69ae3985672754": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1807c-1153-7ec3-856f-235dbe604012",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Qing Wang <kingchin1218@gmail.com>"
+    }
+  }
+}
