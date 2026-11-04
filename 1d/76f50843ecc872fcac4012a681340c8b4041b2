@@ -1,0 +1,40 @@
+docker_ant/Dockerfile_890p_sglang
+  s_c1e1b25db851cf::t_78a3d674f4ce26 110
+python/sglang/srt/environ.py
+  s_c1e1b25db851cf::t_d3dc52b8416be1 433-435,784-788
+sgl-kernel/csrc/common_extension.cc
+  s_c1e1b25db851cf::t_6b1904f54e4d17 70-76
+sgl-kernel/CMakeLists.txt
+  s_c1e1b25db851cf::t_6b1904f54e4d17 421-425
+sgl-kernel/csrc/elementwise/ppu_rmsnorm_fp8.cu
+  s_c1e1b25db851cf::t_1e6aa4717b26df 18-20,571-572,613
+  s_c1e1b25db851cf::t_188b84dadabc35 1-17,21-570,573-612,614-655
+python/sglang/srt/layers/quantization/fp8_norm.py
+  s_c1e1b25db851cf::t_d3dc52b8416be1 1-22,25-73
+  s_c1e1b25db851cf::t_1e6aa4717b26df 23-24
+test/registered/unit/test_ppu_norm_fp8.py
+  s_c1e1b25db851cf::t_d3dc52b8416be1 1-31,35-262
+  s_c1e1b25db851cf::t_1e6aa4717b26df 32-34
+docker_ant/tests/test_image_build_inputs.py
+  s_c1e1b25db851cf::t_6b1904f54e4d17 18-30
+python/sglang/srt/models/deepseek_v2.py
+  s_c1e1b25db851cf::t_d3dc52b8416be1 148-151,2191-2194,2212-2244,2247-2252,2260,2264-2273,2391-2400
+docker_ant/prepare_ppu_kernel_sources.py
+  s_c1e1b25db851cf::t_78a3d674f4ce26 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1d76f50843ecc872fcac4012a681340c8b4041b2",
+  "prompts": {},
+  "sessions": {
+    "s_c1e1b25db851cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19797-3d2e-75e2-8c88-b5a1c9b959da",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}

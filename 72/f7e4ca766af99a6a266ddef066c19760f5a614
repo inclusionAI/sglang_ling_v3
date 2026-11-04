@@ -1,0 +1,72 @@
+docker/ant/apply_deepep_transport_init_fix13.py
+  h_25b71af7882e89 17,22-24
+docker_ant/Dockerfile_890p_sglang
+  h_25b71af7882e89 71-73,79,83,207-209
+docs/ppu15/dsv4_opt_in_isolation.md
+  h_25b71af7882e89 1-76
+python/sglang/__init__.py
+  h_25b71af7882e89 3-7
+python/sglang/_ppu_dsv4_dependencies.py
+  h_25b71af7882e89 1-83
+python/sglang/srt/arg_groups/pd_disaggregation_hook.py
+  h_25b71af7882e89 8,18-20,46-58
+python/sglang/srt/arg_groups/speculative_hook.py
+  h_25b71af7882e89 11-12,355-358
+python/sglang/srt/environ.py
+  h_25b71af7882e89 1089
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  h_25b71af7882e89 40,1093
+python/sglang/srt/layers/logits_processor.py
+  h_25b71af7882e89 30,688,702
+python/sglang/srt/layers/moe/mega_moe.py
+  h_25b71af7882e89 26,107,117,122,140,233,425
+python/sglang/srt/layers/moe/ppu_mxfp4_mega_moe.py
+  h_25b71af7882e89 664-665
+python/sglang/srt/layers/moe/token_dispatcher/deepep.py
+  h_25b71af7882e89 10,1051-1067
+python/sglang/srt/layers/quantization/mxfp4.py
+  h_25b71af7882e89 31,1172
+python/sglang/srt/mem_cache/kv_cache_builder.py
+  h_25b71af7882e89 37,295
+python/sglang/srt/model_executor/model_runner.py
+  h_25b71af7882e89 56,953
+python/sglang/srt/model_executor/pool_configurator.py
+  h_25b71af7882e89 33,713-715
+python/sglang/srt/models/deepseek_v4.py
+  h_25b71af7882e89 52,2140-2142,2959
+python/sglang/srt/speculative/dspark_components/dspark_draft.py
+  h_25b71af7882e89 11,547-548
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  h_25b71af7882e89 13,685
+python/sglang/srt/speculative/dspark_components/kernels/commit_kv_proj.py
+  h_25b71af7882e89 12,119-122
+python/sglang/srt/speculative/spec_info.py
+  h_25b71af7882e89 9,197
+python/sglang/srt/utils/ppu_dsv4_scope.py
+  h_25b71af7882e89 1-53
+test/ppu/kernels/test_ppu_mega_moe_selection.py
+  h_25b71af7882e89 18
+test/ppu/test_dsv4_aux_capture_memory.py
+  h_25b71af7882e89 4,13-17,20
+test/registered/unit/disaggregation/test_deepep_preallocate_order.py
+  h_25b71af7882e89 29,33,39-41
+test/registered/unit/disaggregation/test_dspark_disagg_draft_input.py
+  h_25b71af7882e89 14-18
+test/registered/unit/disaggregation/test_ppu_dsv4_opt_in.py
+  h_25b71af7882e89 1-198
+test/registered/unit/disaggregation/test_ppu_mega_moe_scope.py
+  h_25b71af7882e89 25
+test/registered/unit/test_deepep_image_patch.py
+  h_25b71af7882e89 61-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "72f7e4ca766af99a6a266ddef066c19760f5a614",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

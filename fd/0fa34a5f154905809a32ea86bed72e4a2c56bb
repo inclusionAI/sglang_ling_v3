@@ -1,0 +1,24 @@
+docker_ant/tests/test_ppu_runtime_requirements.py
+  s_0a1a5a1e7f1eec::t_df6706d796b8e6 39,59
+docker_ant/tests/test_export_ppu_providers.py
+  s_0a1a5a1e7f1eec::t_df6706d796b8e6 64-95
+docker_ant/README.md
+  s_0a1a5a1e7f1eec::t_f51c419b26cde3 197-199
+  s_0a1a5a1e7f1eec::t_102b5d1e0325ad 194-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fd0fa34a5f154905809a32ea86bed72e4a2c56bb",
+  "prompts": {},
+  "sessions": {
+    "s_0a1a5a1e7f1eec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a176d0-a5cc-7e43-9f4b-1996346ef936",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}
