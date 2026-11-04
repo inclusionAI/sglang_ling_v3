@@ -1,0 +1,16 @@
+python/sglang/kernels/ops/attention/fla/chunk_intra.py
+  h_1d635ecd767a49 150-152
+python/sglang/kernels/ops/attention/fla/kda_chunk_intra.py
+  h_1d635ecd767a49 76-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "992a01933576c2f18f734fc65dc362ad97790f2f",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
