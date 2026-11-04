@@ -1,0 +1,23 @@
+test/registered/unit/layers/test_grouped_topk_dispatch.py
+  s_85d9f19f7e19fb::t_bcfc711b4a5133 20-21
+python/sglang/kernels/ops/moe/bailing_moe_topk.py
+  s_85d9f19f7e19fb::t_51c95afa36f2f8 68
+test/registered/kernels/ops/moe/test_bailing_moe_topk.py
+  s_85d9f19f7e19fb::t_bcfc711b4a5133 136-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ecf46ad8f1528ca4b212ff5dc7849141915381bc",
+  "prompts": {},
+  "sessions": {
+    "s_85d9f19f7e19fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19fb4-4d6c-7533-9c79-f57ff1f6185d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

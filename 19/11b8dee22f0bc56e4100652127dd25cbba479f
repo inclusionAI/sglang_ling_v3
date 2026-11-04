@@ -1,0 +1,14 @@
+test/manual/moe/test_deepep_ll_pre_gemm2_weights.py
+  h_1d635ecd767a49 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1911b8dee22f0bc56e4100652127dd25cbba479f",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

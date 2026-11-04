@@ -1,0 +1,24 @@
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  s_31943fee543816::t_597d7f5e9c7a14 1130-1133
+test/registered/kernels/ops/moe/test_ep_scatter_indices.py
+  s_31943fee543816::t_b63499715abc9d 9,18-19,70-75,83-91,97-101,115-122,126-129
+  s_31943fee543816::t_aed2c0cda4e577 36,67,76-82,92-96,102-114,123-125
+  s_31943fee543816::t_435d6fa771dcfa 3-4,17,20-27,130-133
+  s_31943fee543816::t_540c7efb816740 1-2,5-8,10-16,28-35,37-66,68-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e28b02634809c494bf156eab1dad6d33eb351365",
+  "prompts": {},
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

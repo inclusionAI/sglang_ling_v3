@@ -1,0 +1,30 @@
+test/registered/unit/managers/test_dp1_mlp_broadcast.py
+  s_d8312e24e9742d::t_800235fcb29cb7 1-31,33-115
+  s_d8312e24e9742d::t_7752a6f7c39167 32
+  h_25b71af7882e89 1-31,33-115
+python/sglang/srt/managers/scheduler_components/dp_attn.py
+  s_d8312e24e9742d::t_7752a6f7c39167 160
+  s_d8312e24e9742d::t_800235fcb29cb7 157-159,161-167
+  h_25b71af7882e89 157-159,161-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6f22d84eebcb9c8041ab17424c37a3f5631acf25",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_d8312e24e9742d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17c1e-05b6-7bc0-a40d-b98b61f9b4a5",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

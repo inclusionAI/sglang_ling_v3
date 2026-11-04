@@ -1,0 +1,30 @@
+python/sglang/srt/managers/multi_tokenizer_mixin.py
+  s_85d9f19f7e19fb::t_8fcec972600a14 135-138
+test/registered/unit/mem_cache/test_unified_radix_allocation_eviction.py
+  s_85d9f19f7e19fb::t_51869e22a91f49 848-851,854
+  s_85d9f19f7e19fb::t_9295c19009dd2a 845-846,852-853,855
+  s_85d9f19f7e19fb::t_9bd04bd051d197 847
+python/sglang/srt/mem_cache/unified_radix_cache.py
+  s_85d9f19f7e19fb::t_43a276f6db3a47 120
+  s_85d9f19f7e19fb::t_8fcec972600a14 1301-1377,1379-1386,1390,1426
+  s_85d9f19f7e19fb::t_796c670579ef0a 1298-1300
+  s_85d9f19f7e19fb::t_9949d85a1c40cb 1387-1389
+  s_85d9f19f7e19fb::t_3975126378dec5 1391-1393,1423-1425
+  s_85d9f19f7e19fb::t_35fda6202f514d 1427-1429
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fffa7fcdd3b48a4b0e4c18553d9a3dd391cbda5e",
+  "prompts": {},
+  "sessions": {
+    "s_85d9f19f7e19fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19fb4-4d6c-7533-9c79-f57ff1f6185d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

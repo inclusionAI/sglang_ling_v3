@@ -1,0 +1,34 @@
+test/registered/spec/dspark/test_dspark_draft_path_default.py
+  s_31943fee543816::t_ce83e7b24a6a11 148-151,152-154,156-157
+docs/docs/advanced_features/speculative_decoding.mdx
+  s_31943fee543816::t_778ab8ebd937e3 519,520
+  s_31943fee543816::t_85621f71b1c9ba 510,515-516,521,523,527
+  s_31943fee543816::t_c3a3af318fc182 508-509,511-514,517-518,522,525-526,528-534
+test/registered/unit/spec/test_dspark_dp_deepep_admission.py
+  s_31943fee543816::t_a35651b5e7b3b8 1,3-8,10-14,24-25,35-36,39-44,49-51,53-55,60-67,69,75-77,83-84,91-93
+  s_31943fee543816::t_0402e93341e278 85-86,88-90
+  s_31943fee543816::t_aa61a123b1af76 26-29,32-34,37-38,45-48,56-59,70-74,79-82
+  s_31943fee543816::t_821c4d36f3c5af 2,15-16,17-23
+python/sglang/srt/arg_groups/speculative_hook.py
+  s_31943fee543816::t_aa61a123b1af76 359-361,363-364
+test/registered/unit/layers/attention/test_kda_idle_verify.py
+  s_31943fee543816::t_24cfea60aa6882 6
+test/registered/unit/models/test_bailing_mla_idle.py
+  s_31943fee543816::t_335ac7ed9f87a9 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8c7fe432427b7b167557e57ace669d3146322366",
+  "prompts": {},
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": null
+    }
+  }
+}

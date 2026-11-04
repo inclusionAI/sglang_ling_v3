@@ -1,0 +1,36 @@
+python/sglang/srt/configs/bailing_hybrid.py
+  h_5b710c0a1cb0fe 246-248,252-253,272,273-291,293,298-300
+python/sglang/srt/layers/rotary_embedding/bailing_mrope.py
+  h_5b710c0a1cb0fe 219-228
+test/registered/unit/configs/test_bailing_vl_tokens.py
+  h_5b710c0a1cb0fe 1-78,79,80-88,89,90-130
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  s_31943fee543816::t_597d7f5e9c7a14 1130-1133
+test/registered/kernels/ops/moe/test_ep_scatter_indices.py
+  s_31943fee543816::t_b63499715abc9d 9,18-19,72-77,85-93,99-103,117-124,130,134
+  s_31943fee543816::t_aed2c0cda4e577 36,78-84,94-98,104-116,129
+  s_31943fee543816::t_435d6fa771dcfa 3-4,17,20-27,138-141
+  s_31943fee543816::t_540c7efb816740 1-2,5-8,10-16,28-35,37-66,70-71
+  h_5b710c0a1cb0fe 67-69,125-128,131-133,135-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5a928fa37f2dad2e95a6e452e0a751c82bd7d477",
+  "prompts": {},
+  "humans": {
+    "h_5b710c0a1cb0fe": {
+      "author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}
