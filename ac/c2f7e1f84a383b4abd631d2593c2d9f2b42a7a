@@ -1,0 +1,25 @@
+docker/k31-image/overlay_flashinfer_prims_ts.py
+  s_9fcce24f273208::t_deadf72b3096b5 53-62
+docker/ant/aci/sglang_auto.aci.yml
+  s_9fcce24f273208::t_deadf72b3096b5 366-372
+docker/k31-image/verify_ant_image.py
+  s_9fcce24f273208::t_deadf72b3096b5 1-42
+docker/ant/aci/sglang_fast.aci.yml
+  s_9fcce24f273208::t_deadf72b3096b5 113-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "acc2f7e1f84a383b4abd631d2593c2d9f2b42a7a",
+  "prompts": {},
+  "sessions": {
+    "s_9fcce24f273208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8f11576-0caa-4937-81d5-1755f59b7de8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
