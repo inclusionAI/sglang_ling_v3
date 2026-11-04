@@ -1519,6 +1519,15 @@ def _wrap_shm_or_inline(tensor: torch.Tensor, precomputed_hash: Optional[int] = 
             f"({e}); falling back to inline transport. "
             f"Consider increasing /dev/shm size."
         )
+        # A contiguous per-image slice can still own the entire batch storage.
+        # Ordinary pickle serializes that storage for each slice, turning an
+        # N-image request into O(N^2) bytes when SHM is exhausted.
+        if tensor.layout == torch.strided:
+            if type(tensor) is not torch.Tensor:
+                tensor = tensor.as_subclass(torch.Tensor)
+            logical_nbytes = tensor.numel() * tensor.element_size()
+            if tensor.untyped_storage().nbytes() > logical_nbytes:
+                tensor = tensor.clone()
         return tensor
 
 
