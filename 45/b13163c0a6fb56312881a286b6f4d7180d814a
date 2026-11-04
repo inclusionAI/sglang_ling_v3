@@ -1,0 +1,24 @@
+test/registered/unit/configs/test_bailing_vl_tokens.py
+  s_873d6b93788335::t_063443da5a1440 72-77,79-81,90-97,106-107
+python/sglang/srt/layers/rotary_embedding/bailing_mrope.py
+  s_873d6b93788335::t_429b422c48af15 219-228
+python/sglang/srt/configs/bailing_hybrid.py
+  s_873d6b93788335::t_063443da5a1440 252-253
+  s_873d6b93788335::t_429b422c48af15 246-248,272-290,292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "45b13163c0a6fb56312881a286b6f4d7180d814a",
+  "prompts": {},
+  "sessions": {
+    "s_873d6b93788335": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a202-94e8-7023-ba3d-a292fa0c89ab",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

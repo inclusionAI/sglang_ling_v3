@@ -1,0 +1,14 @@
+docker_ant/Dockerfile_890p_sglang
+  h_74bbcaa631f805 152-154,169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "50072da60f8bb5ec8f249b66afe6fafcc828d75b",
+  "prompts": {},
+  "humans": {
+    "h_74bbcaa631f805": {
+      "author": "铭阅 <wangyingjie.wyj@antgroup.com>"
+    }
+  }
+}

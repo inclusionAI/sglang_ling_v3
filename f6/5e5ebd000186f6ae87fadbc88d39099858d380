@@ -1,0 +1,37 @@
+python/sglang/srt/disaggregation/encoder/prefix_prewarm.py
+  s_8b0ece6132ddff::t_e79d2730df14ef 1-197
+python/sglang/srt/disaggregation/encoder/receiver.py
+  s_8b0ece6132ddff::t_6b24eff32f2709 41,2527,3199-3207
+python/sglang/srt/managers/io_struct.py
+  s_8b0ece6132ddff::t_c22448400799a8 383-385,1259-1262
+python/sglang/srt/managers/schedule_batch.py
+  s_8b0ece6132ddff::t_c2eab051dceb31 102,241-256,1571-1576,3322-3323,3325,3328-3329,3339,3346-3354
+python/sglang/srt/managers/scheduler.py
+  s_8b0ece6132ddff::t_9714a2ee2d8d1b 3277-3278,3776-3780
+python/sglang/srt/managers/tokenizer_manager.py
+  s_8b0ece6132ddff::t_11b8c65c73f5a1 63,624-625,1042-1059,1198-1203,1969
+test/registered/unit/api/v1/test_parity.py
+  s_8b0ece6132ddff::t_25a33de754de21 57
+test/registered/unit/disaggregation/test_encode_receiver.py
+  s_8b0ece6132ddff::t_4949241f658cb3 36,77-79,96,174-197
+test/registered/unit/disaggregation/test_epd_prefix_prewarm.py
+  s_8b0ece6132ddff::t_6083d2812c3464 1-276
+test/registered/unit/disaggregation/test_pd_admission_limits.py
+  s_8b0ece6132ddff::t_3fe6258e036864 31-34,39,53-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f65e5ebd000186f6ae87fadbc88d39099858d380",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

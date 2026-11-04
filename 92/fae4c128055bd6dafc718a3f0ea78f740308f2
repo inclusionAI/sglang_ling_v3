@@ -1,0 +1,22 @@
+python/sglang/kernels/ops/moe/mega_moe_gluon_w4afp8.py
+  h_3ae6f6b96949db 652,656
+python/sglang/srt/layers/moe/mega_moe_gluon.py
+  h_3ae6f6b96949db 254-263
+python/sglang/srt/mem_cache/dsa_cache_layer_split.py
+  h_3ae6f6b96949db 720-730
+test/manual/kernels/mega_moe_gluon_w4afp8_sources.json
+  h_3ae6f6b96949db 291-293,1029-1034
+test/manual/kernels/test_mega_moe_gluon_w4afp8.py
+  h_3ae6f6b96949db 134-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "92fae4c128055bd6dafc718a3f0ea78f740308f2",
+  "prompts": {},
+  "humans": {
+    "h_3ae6f6b96949db": {
+      "author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+python/sglang/srt/disaggregation/common/conn.py
+  h_f252eadf5e9832 1096,1102,1109-1110
+python/sglang/srt/disaggregation/decode.py
+  h_f252eadf5e9832 92-95,1465-1475,1823-1825,1827-1829
+python/sglang/srt/disaggregation/mooncake/conn.py
+  h_f252eadf5e9832 1381,1383,1390,1441-1443,1534-1536
+python/sglang/srt/disaggregation/prefill.py
+  h_f252eadf5e9832 76-79,1422-1423,1427-1440,1454-1464
+python/sglang/srt/disaggregation/utils.py
+  h_f252eadf5e9832 1376,1378,1629-1631
+python/sglang/srt/mem_cache/dsv41_swa_transfer.py
+  h_f252eadf5e9832 1-205
+test/registered/unit/disaggregation/test_dsv41_dspark_pd.py
+  h_f252eadf5e9832 420-426
+test/registered/unit/mem_cache/test_dsv41_swa_transfer.py
+  h_f252eadf5e9832 1-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "79ffd5f57560fccb784709ea577e83a956613fbb",
+  "prompts": {},
+  "humans": {
+    "h_f252eadf5e9832": {
+      "author": "xuyongfei.xyf <xuyongfei.xyf@antgroup.com>"
+    }
+  }
+}

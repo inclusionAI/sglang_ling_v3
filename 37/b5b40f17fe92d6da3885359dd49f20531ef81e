@@ -1,0 +1,49 @@
+python/sglang/srt/layers/attention_residual.py
+  s_b94cb62be4f958::t_a25f156af353c6 32-34,86-92,95,147-148,150
+  s_b94cb62be4f958::t_bcca95fe2f927e 66,137-140,142-146
+  s_b94cb62be4f958::t_8f4c498b941e47 57-60,115,141
+  s_b94cb62be4f958::t_6809a00fea3e86 133-136,152-154
+  s_b94cb62be4f958::t_1b7ae2ccf912e0 104
+  s_b94cb62be4f958::t_9e3767ef04cd22 31,64-65
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  s_b94cb62be4f958::t_a25f156af353c6 414
+test/registered/jit/test_powlu_contig_post_quant.py
+  s_b94cb62be4f958::t_fcd5ccfeed8a29 125-127,135,137,141,147,150-152,154-156,195-200
+  s_b94cb62be4f958::t_6f6aa9a8df43e8 13-14,26,28,73-76,116-124,128-134,138-140,148-149,153,157-169,171-175,177-194,201-221
+  s_b94cb62be4f958::t_30696d41e089bf 136,142-146,170,176
+  s_b94cb62be4f958::t_29dfdfda4d734f 77-111,113-115
+  s_b94cb62be4f958::t_0e5ed9f90ca4d8 112
+test/registered/kernels/test_attention_residual.py
+  s_b94cb62be4f958::t_180b44caa8ed07 74-91,95-114
+  s_b94cb62be4f958::t_fcd5ccfeed8a29 395-397,405-407
+  s_b94cb62be4f958::t_ee3202843c95af 119-125,127-128
+  s_b94cb62be4f958::t_6f6aa9a8df43e8 229-232,389-394,398-404,408-409
+  s_b94cb62be4f958::t_00e28f7c3885b2 92-94
+  s_b94cb62be4f958::t_7e0374bbe77510 10-11,16,26-58,115-118,126,129-181
+  s_b94cb62be4f958::t_4e1870c929e459 410
+python/sglang/kernels/ops/moe/powlu.py
+  s_b94cb62be4f958::t_3fdb03e0229276 490-492
+  s_b94cb62be4f958::t_f5cdc436f88210 523
+  s_b94cb62be4f958::t_59474335a10bf0 542-546
+  s_b94cb62be4f958::t_a25f156af353c6 415,489,497,517-522,524-534,582,588-591,612-622,644,652
+  s_b94cb62be4f958::t_dc0495dc3ba2ea 416-417
+test/registered/unit/layers/moe/test_deep_gemm_powlu_padding.py
+  s_b94cb62be4f958::t_5b0eae6b3cef98 1-73,77-82
+  s_b94cb62be4f958::t_830dbf5a8c8032 74-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "37b5b40f17fe92d6da3885359dd49f20531ef81e",
+  "prompts": {},
+  "sessions": {
+    "s_b94cb62be4f958": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb6ed-4ee0-7790-8c63-b4e4483dbef0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

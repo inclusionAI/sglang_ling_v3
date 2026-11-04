@@ -1,0 +1,29 @@
+docker/ant/aci/sglang_auto.aci.yml
+  s_2541f86770adb4::t_d30a09004de450 1-374
+docker/ant/aci/sglang_runtime.aci.yml
+  s_2541f86770adb4::t_de8c9d6986dc82 325,341
+docker/ant/generate_fast_auto.py
+  s_2541f86770adb4::t_e9b197873bb333 37-39,141-143
+  s_2541f86770adb4::t_b9b91e10f22928 1-36,40-140,144-147
+docker/ant/README.md
+  s_2541f86770adb4::t_b9b91e10f22928 7-8,43,47-69
+  s_2541f86770adb4::t_e9b197873bb333 78
+docker/ant/aci/sglang_fast.aci.yml
+  s_2541f86770adb4::t_de8c9d6986dc82 116,141,154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a1e8c9a5cebcbc31448f5800f91ac9a21e168df0",
+  "prompts": {},
+  "sessions": {
+    "s_2541f86770adb4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a4bd-2279-7640-a9b7-1be3a97fc742",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

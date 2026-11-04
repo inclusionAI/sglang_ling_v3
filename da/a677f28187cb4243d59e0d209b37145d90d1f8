@@ -1,0 +1,16 @@
+python/sglang/srt/disaggregation/prefill.py
+  h_25b71af7882e89 549-581,610-611,624-626
+test/registered/unit/disaggregation/test_prefill_early_reclaim.py
+  h_25b71af7882e89 1-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "daa677f28187cb4243d59e0d209b37145d90d1f8",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

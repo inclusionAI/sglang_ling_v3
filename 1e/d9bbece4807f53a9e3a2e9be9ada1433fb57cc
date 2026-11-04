@@ -1,0 +1,14 @@
+python/sglang/srt/managers/io_struct.py
+  h_090a9801e15a54 1305-1330
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1ed9bbece4807f53a9e3a2e9be9ada1433fb57cc",
+  "prompts": {},
+  "humans": {
+    "h_090a9801e15a54": {
+      "author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}

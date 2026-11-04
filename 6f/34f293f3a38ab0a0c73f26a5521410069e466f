@@ -1,0 +1,38 @@
+python/sglang/srt/managers/long_prompt_tokenizer.py
+  s_8b0ece6132ddff::t_60039cc4bf8872 1-267
+  s_8b0ece6132ddff::t_781684f82d4f1e 268-269
+python/sglang/srt/entrypoints/openai/chat_encoding_adapters.py
+  s_8b0ece6132ddff::t_3cd4b50081ff6a 231-232,245,285
+python/sglang/srt/entrypoints/openai/serving_chat.py
+  s_8b0ece6132ddff::t_f67323e8cc4604 639
+python/sglang/srt/entrypoints/openai/serving_deepseek_recipe.py
+  s_8b0ece6132ddff::t_fd1cd30ec30b51 65,69
+python/sglang/srt/managers/tokenizer_manager.py
+  s_8b0ece6132ddff::t_9a3c47bfb7d97a 80,129,621-622,842-851,1276-1286
+python/sglang/srt/parser/deepseek_recipe_renderer.py
+  s_8b0ece6132ddff::t_a950216e10f8e1 9,13-14,40-42,111-126,129-131,133-139,157-163,167-171,178-230,242-253,255-256
+test/registered/unit/entrypoints/openai/test_serving_deepseek_recipe.py
+  s_8b0ece6132ddff::t_3b318a7ebd8964 45
+test/registered/unit/entrypoints/openai/utils.py
+  s_8b0ece6132ddff::t_6f59b3c76f9d01 57
+test/registered/unit/managers/test_long_prompt_tokenizer.py
+  s_8b0ece6132ddff::t_0453f5dec1e464 1-242
+test/registered/unit/parser/test_deepseek_recipe_renderer.py
+  s_8b0ece6132ddff::t_fd84167756aa37 2,208-259
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6f34f293f3a38ab0a0c73f26a5521410069e466f",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

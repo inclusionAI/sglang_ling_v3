@@ -1,0 +1,28 @@
+docker_ant/tests/test_ppu_runtime_verification.py
+  s_0a1a5a1e7f1eec::t_b66dc9d24a07ac 11,21-51,89
+  s_0a1a5a1e7f1eec::t_22ae7f2b3520fe 2-3,9,52-57,60-74,78-85
+  s_0a1a5a1e7f1eec::t_ec3e86d0d7b9c2 58-59,75-77,86-88,107-110
+docker_ant/Dockerfile_890p_sglang
+  s_0a1a5a1e7f1eec::t_63a035ce342f03 244,250,262
+docker_ant/README.md
+  s_0a1a5a1e7f1eec::t_84ef19b5969c00 151,156-157,159
+  s_0a1a5a1e7f1eec::t_63a035ce342f03 152-155,158
+docker/ant/verify_ppu_runtime.py
+  s_0a1a5a1e7f1eec::t_63a035ce342f03 47-64,123,131-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1840a3f71ac1e008f4b65dbffda4c26e8c5edcad",
+  "prompts": {},
+  "sessions": {
+    "s_0a1a5a1e7f1eec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a176d0-a5cc-7e43-9f4b-1996346ef936",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}

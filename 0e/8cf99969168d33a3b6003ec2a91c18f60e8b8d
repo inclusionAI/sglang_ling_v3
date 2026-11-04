@@ -1,0 +1,19 @@
+docker/Dockerfile
+  s_1fd0db3a49dcfd::t_df1432945973c1 259,263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0e8cf99969168d33a3b6003ec2a91c18f60e8b8d",
+  "prompts": {},
+  "sessions": {
+    "s_1fd0db3a49dcfd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a187c8-fbc8-72b0-8407-7422e71b8504",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Eric Wong <huangchun50@gmail.com>"
+    }
+  }
+}
