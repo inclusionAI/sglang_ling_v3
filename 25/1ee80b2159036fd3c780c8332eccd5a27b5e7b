@@ -1,0 +1,26 @@
+python/sglang/kernels/jit/csrc/distributed/custom_all_reduce.cuh
+  h_1d635ecd767a49 30,98,223,300,338,425,484-503,509,512,514-515,549,556,558,561-566,569-572,584-604,663-671,706,709,710-711,712,713-717,718
+python/sglang/kernels/ops/communication/all_reduce.py
+  h_1d635ecd767a49 142-143,148-151,162,166-170,171,172,173-175
+python/sglang/srt/distributed/device_communicators/custom_all_reduce_v2.py
+  h_1d635ecd767a49 33,107,118-119,125,187-188,318-329,331,346,347,354,366,377-382,383-402,403
+python/sglang/srt/distributed/parallel_state.py
+  h_1d635ecd767a49 474,478-505,702-710,1005-1028,1032-1043,1158-1194
+python/sglang/srt/layers/communicator.py
+  h_1d635ecd767a49 174-175,821-822,1518
+test/registered/kernels/ops/communication/test_native_bf16_reduce.py
+  h_1d635ecd767a49 1-92
+test/registered/kernels/ops/communication/test_training_precision_collectives.py
+  h_1d635ecd767a49 1-63,64-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "251ee80b2159036fd3c780c8332eccd5a27b5e7b",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

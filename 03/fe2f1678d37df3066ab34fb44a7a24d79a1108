@@ -1,0 +1,22 @@
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  h_1d635ecd767a49 1288
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1492-1495
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 42-43,632,663-668,703-721,1118-1127,1136-1148,1283,1353-1381,1569-1573,1582,1632
+test/registered/unit/models/test_bailing_moe_v3_deepep_sbo.py
+  h_1d635ecd767a49 82,196-220
+test/registered/unit/models/test_bailing_shared_attention_tp.py
+  h_1d635ecd767a49 1-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "03fe2f1678d37df3066ab34fb44a7a24d79a1108",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
