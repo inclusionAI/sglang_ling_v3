@@ -1,0 +1,16 @@
+python/sglang/srt/configs/bailing_hybrid.py
+  h_5b710c0a1cb0fe 276-278
+test/registered/unit/configs/test_bailing_vl_config.py
+  h_5b710c0a1cb0fe 1-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e369311b467e0cfdd7e8461a26fd86c8dd68ed93",
+  "prompts": {},
+  "humans": {
+    "h_5b710c0a1cb0fe": {
+      "author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

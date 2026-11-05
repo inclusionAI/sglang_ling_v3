@@ -1,0 +1,51 @@
+python/sglang/srt/debug_utils/cpu_reference.py
+  s_d2f4c9dc120b69::t_aa97e633c360a5 55,81,222-223
+python/sglang/srt/debug_utils/operator_reference.py
+  s_d2f4c9dc120b69::t_aa97e633c360a5 26
+python/sglang/srt/debug_utils/native_attention_reference.py
+  s_d2f4c9dc120b69::t_a290f1e560141b 31-39,41-43
+  s_d2f4c9dc120b69::t_69a9d82924d25a 40
+  s_d2f4c9dc120b69::t_b61342ba9fd1ec 23-26,44-47,49-50,56-72,75-77,82-86,88-92,95-98,104-120,126,128-166,168-193
+  s_d2f4c9dc120b69::t_b240a081234915 52-55,122-123
+  s_d2f4c9dc120b69::t_aa97e633c360a5 1-22,27-30,48,51,73-74,78-81,87,93-94,99-103,121,124-125,127,167
+  s_d2f4c9dc120b69::t_b143a344359ef2 194-208
+scripts/rollout_precision.py
+  s_d2f4c9dc120b69::t_048b4362e2cc33 4698,4713-4715,4727
+  s_d2f4c9dc120b69::t_69a9d82924d25a 4708-4712,4716-4720,4725
+scripts/rollout_precision_patch.py
+  s_d2f4c9dc120b69::t_048b4362e2cc33 37
+test/registered/debug_utils/test_native_attention_reference.py
+  s_d2f4c9dc120b69::t_9875bba7b50cd8 1-13,30,48,63-67,100-101,105,141-142
+  s_d2f4c9dc120b69::t_b240a081234915 108-109
+  s_d2f4c9dc120b69::t_a290f1e560141b 14-29,31-47,49-62,68-99,102-104,106-107,110-140,143-164
+python/sglang/srt/debug_utils/native_subgraph_capture.py
+  s_d2f4c9dc120b69::t_69a9d82924d25a 486-495,497-498,502-504
+  s_d2f4c9dc120b69::t_048b4362e2cc33 485
+  s_d2f4c9dc120b69::t_afd13d75408aae 496
+  s_d2f4c9dc120b69::t_a290f1e560141b 499-501
+test/registered/debug_utils/test_rollout_precision_one_click.py
+  s_d2f4c9dc120b69::t_a290f1e560141b 710-716,748-751
+  s_d2f4c9dc120b69::t_9875bba7b50cd8 718,724-725
+python/sglang/srt/debug_utils/certified_reference.py
+  s_d2f4c9dc120b69::t_aa97e633c360a5 525,583-585,630,660-661
+  s_d2f4c9dc120b69::t_b61342ba9fd1ec 662
+python/sglang/srt/debug_utils/native_layer_replay.py
+  s_d2f4c9dc120b69::t_048b4362e2cc33 1014,1021,1023-1024,1026,1030,1054,1066,1091,1095-1100,1133,1135-1136
+  s_d2f4c9dc120b69::t_69a9d82924d25a 1016-1019,1025,1027-1029,1067,1092-1094,1138-1144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "131a03fe9651617f24e3343fba5eda99502f4e8e",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+test/registered/unit/configs/test_bailing_vl_config.py
+  s_873d6b93788335::t_080e5b133c8fd5 6-8,23-30,33-39,42-45,52-54,57-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "64336d1b24c7fc3c64388c6c9e69ff605af2848c",
+  "prompts": {},
+  "sessions": {
+    "s_873d6b93788335": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a202-94e8-7023-ba3d-a292fa0c89ab",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

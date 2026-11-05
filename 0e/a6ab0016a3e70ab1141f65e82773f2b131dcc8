@@ -1,0 +1,18 @@
+python/sglang/srt/environ.py
+  h_25b71af7882e89 457
+python/sglang/srt/managers/scheduler_components/dp_attn.py
+  h_25b71af7882e89 157-167
+test/registered/unit/managers/test_dp1_mlp_broadcast.py
+  h_25b71af7882e89 1-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0ea6ab0016a3e70ab1141f65e82773f2b131dcc8",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

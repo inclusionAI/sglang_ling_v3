@@ -1,0 +1,14 @@
+python/sglang/srt/managers/tokenizer_control_mixin.py
+  h_090a9801e15a54 81-83,113,257-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "638e7d6bcef6a2aa481ff3fbc1d4674a0ba86def",
+  "prompts": {},
+  "humans": {
+    "h_090a9801e15a54": {
+      "author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}

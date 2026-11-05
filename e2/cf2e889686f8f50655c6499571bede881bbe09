@@ -1,0 +1,26 @@
+test/registered/unit/disaggregation/test_ppu_dsv4_opt_in.py
+  s_fb9c4d8946a621::t_b1f87cf6c5c94a 1,47
+docs/ppu15/dsv4_opt_in_isolation.md
+  s_fb9c4d8946a621::t_e94a6a7ffcb3c8 3,28,36,53,55,57-75,81,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e2cf2e889686f8f50655c6499571bede881bbe09",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_fb9c4d8946a621": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a15c5a-062f-74a3-8f83-192f68bcef1a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}
