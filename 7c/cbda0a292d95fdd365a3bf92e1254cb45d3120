@@ -1,0 +1,16 @@
+python/sglang/srt/layers/quantization/fp8_utils.py
+  h_1d635ecd767a49 1743-1746,2167-2169,2196-2219
+test/registered/kernels/ops/moe/test_fp8_expert_requant.py
+  h_1d635ecd767a49 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7ccbda0a292d95fdd365a3bf92e1254cb45d3120",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
