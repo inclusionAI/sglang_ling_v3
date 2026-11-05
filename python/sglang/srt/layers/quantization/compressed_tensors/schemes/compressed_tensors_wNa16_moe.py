@@ -492,6 +492,12 @@ class CompressedTensorsWNA16MoE(CompressedTensorsMoEScheme):
             is_k_full=self.is_k_full,
             routed_scaling_factor=self.moe_runner_config.routed_scaling_factor,
             clamp_limit=self.moe_runner_config.swiglu_limit,
+            gemm1_clamp_limit=(
+                self.moe_runner_config.gemm1_clamp_limit
+                if self.moe_runner_config.gemm1_alpha is None
+                and self.moe_runner_config.swiglu_limit is None
+                else None
+            ),
             workspace=layer.workspace,
         )
         return StandardCombineInput(hidden_states=output)

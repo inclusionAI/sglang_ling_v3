@@ -109,6 +109,17 @@ def get_scalar_type(
         return scalar_types.uint4b8 if num_bits == 4 else scalar_types.uint8b128
 
 
+def _silu_and_mul_limit_only(
+    input: torch.Tensor, out: torch.Tensor, limit: float
+) -> torch.Tensor:
+    """Bailing limit-only activation clamps the gate after SiLU."""
+    gate, up = input.chunk(2, dim=-1)
+    gate = F.silu(gate).clamp(max=limit)
+    up = up.clamp(min=-limit, max=limit)
+    torch.mul(gate, up, out=out)
+    return out
+
+
 def swiglu_limit_func(
     output: torch.Tensor,
     input: torch.Tensor,  # first half is gate, second half is up
@@ -168,6 +179,7 @@ def fused_marlin_moe(
     activation: str = "silu",
     is_gated: bool = True,
     no_combine: bool = False,
+    gemm1_clamp_limit: Optional[float] = None,
 ) -> torch.Tensor:
     """
     This function computes a Mixture of Experts (MoE) layer using two sets of
@@ -358,6 +370,12 @@ def fused_marlin_moe(
             intermediate_cache2,
             intermediate_cache1.view(-1, gemm1_n),
             clamp_limit,
+        )
+    elif activation == "silu" and is_gated and gemm1_clamp_limit is not None:
+        _silu_and_mul_limit_only(
+            intermediate_cache1.view(-1, gemm1_n),
+            intermediate_cache2,
+            gemm1_clamp_limit,
         )
     elif activation == "silu" and is_gated:
         silu_and_mul(intermediate_cache1.view(-1, gemm1_n), intermediate_cache2)

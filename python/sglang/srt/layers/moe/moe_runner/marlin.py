@@ -208,6 +208,12 @@ def fused_experts_none_to_marlin(
             else runner_config.swiglu_limit
         ),
         gemm1_alpha=runner_config.gemm1_alpha,
+        gemm1_clamp_limit=(
+            runner_config.gemm1_clamp_limit
+            if runner_config.gemm1_alpha is None
+            and runner_config.swiglu_limit is None
+            else None
+        ),
         activation=runner_config.activation,
         is_gated=runner_config.is_gated,
         no_combine=runner_config.no_combine,
