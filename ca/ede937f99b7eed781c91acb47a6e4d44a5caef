@@ -1,0 +1,36 @@
+python/sglang/srt/managers/schedule_batch.py
+  s_2989e747921d7b::t_d1d8646d6e8402 2771-2775,2781
+  s_2989e747921d7b::t_116a72c516d8eb 2768-2770
+  s_2989e747921d7b::t_7405a39e783172 2776-2780
+  s_2989e747921d7b::t_f50d12a45e3865 2782
+test/registered/unit/managers/test_mamba_checkpoint_depth.py
+  s_2989e747921d7b::t_d75a4d6218f5d4 15,29,43-44,62,70-74,90-111
+  s_2989e747921d7b::t_2c3c2018ad1466 75
+  s_2989e747921d7b::t_0e6311b44d8b1c 112
+test/registered/unit/mem_cache/test_swa_evict_keep_window.py
+  s_2989e747921d7b::t_d75a4d6218f5d4 130-134,137-139,142-144,148-150,153-159,164,167-168,181-190,195-197
+  s_2989e747921d7b::t_ed84d81479347e 151-152
+python/sglang/srt/mem_cache/hybrid_cache/hybrid_pool_assembler.py
+  s_2989e747921d7b::t_d75a4d6218f5d4 385-386,1287-1291,1323-1327,1364-1384,1409,1423-1426,1465-1468,1573-1576
+docker/Dockerfile.community
+  s_2989e747921d7b::t_dfeda243e9bdd5 9
+test/registered/unit/mem_cache/test_hybrid_pool_assembler.py
+  s_2989e747921d7b::t_d75a4d6218f5d4 1544-1549,1556-1559
+  s_2989e747921d7b::t_ed84d81479347e 1508-1509,1571-1575
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "caede937f99b7eed781c91acb47a6e4d44a5caef",
+  "prompts": {},
+  "sessions": {
+    "s_2989e747921d7b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a980-4684-7d13-8058-233d81e9345a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}
