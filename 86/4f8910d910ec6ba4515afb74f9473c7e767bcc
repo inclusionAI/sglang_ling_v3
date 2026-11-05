@@ -1,0 +1,20 @@
+python/sglang/kernels/jit/csrc/elementwise/activation.cuh
+  h_1d635ecd767a49 56,65-66,90-100,147-152,154,158,162,173,179-180,219,223,226,235-239
+python/sglang/kernels/ops/activation/activation.py
+  h_1d635ecd767a49 44,187-209
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  h_1d635ecd767a49 335-336,339
+test/registered/kernels/ops/activation/test_activation.py
+  h_1d635ecd767a49 12,43-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "864f8910d910ec6ba4515afb74f9473c7e767bcc",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
