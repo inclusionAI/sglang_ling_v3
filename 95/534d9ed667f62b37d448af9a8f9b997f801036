@@ -1,0 +1,42 @@
+python/sglang/srt/managers/scheduler_components/batch_result_processor.py
+  s_85d9f19f7e19fb::t_e646794f66a31e 553,646,664-665
+test/registered/unit/managers/test_batch_result_processor_hidden_states.py
+  s_85d9f19f7e19fb::t_18d99c29f1322f 121-124
+  s_85d9f19f7e19fb::t_f47a12acdb3002 26,65,85,110,120,125,278,412-414,448,522,530-532
+test/registered/unit/managers/scheduler_components/test_request_retirer.py
+  s_85d9f19f7e19fb::t_c69f33a50042bb 4-5,71-137,141-142
+  s_85d9f19f7e19fb::t_18d99c29f1322f 138-140
+  s_85d9f19f7e19fb::t_83956453929d59 143-144
+python/sglang/srt/managers/tokenizer_manager.py
+  s_85d9f19f7e19fb::t_e646794f66a31e 1500-1507
+python/sglang/srt/managers/scheduler_components/request_retirer.py
+  s_85d9f19f7e19fb::t_fc4b8232154ea3 68-76,81-86
+  s_85d9f19f7e19fb::t_6160c560a21e58 66-67
+test/registered/unit/managers/test_mm_hashes.py
+  s_85d9f19f7e19fb::t_ba77cf41e8db87 82-84,87-89
+  s_85d9f19f7e19fb::t_e646794f66a31e 18
+  s_85d9f19f7e19fb::t_59d97bba6e8140 128-129,132,134-136,138,142,180,182-192,228,236-240,285,297-299,304-308,310,313-314,321,328-344,355-357,361,363,388,396,404-406,417-426,449,457-459,477,483,485,491-494,519,521-522,526,531
+  s_85d9f19f7e19fb::t_dbaa1f2c4dd7f6 10,36-81,85-86,90-97
+  s_85d9f19f7e19fb::t_3dd9e0522ecda2 1,113-120,122-126
+test/registered/unit/dllm/test_gemma4_uniform_lifecycle.py
+  s_85d9f19f7e19fb::t_18d99c29f1322f 355-358
+  s_85d9f19f7e19fb::t_8c6d73f3d2bd18 19,102,278-280,322-324,329-331,347
+python/sglang/srt/managers/mm_data_processor.py
+  s_85d9f19f7e19fb::t_cac47bf54ddbad 234-237,254,256,266-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "95534d9ed667f62b37d448af9a8f9b997f801036",
+  "prompts": {},
+  "sessions": {
+    "s_85d9f19f7e19fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19fb4-4d6c-7533-9c79-f57ff1f6185d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+.github/CI_PERMISSIONS.json
+  h_1f940cd96f2dab 284-289
+.github/workflows/nightly-test-npu.yml
+  h_1f940cd96f2dab 321
+.github/workflows/pr-test-npu.yml
+  h_1f940cd96f2dab 770-779,782-792,811-812,923-924,948-952,955-962,965-968,970-980
+.github/workflows/release-docker-efa.yml
+  h_1f940cd96f2dab 1-287
+docker/efa.Dockerfile
+  h_1f940cd96f2dab 1-94
+docker/rocm.Dockerfile
+  h_1f940cd96f2dab 359,382
+docs/docs/advanced_features/pd_disaggregation.mdx
+  h_1f940cd96f2dab 116,118,120-124,126-130,133-142,152,159-161,164-168,177
+docs/docs/get-started/install.mdx
+  h_1f940cd96f2dab 39
+python/sglang/kernels/jit/csrc/dsa/dcp_topk_merge.cuh
+  h_1f940cd96f2dab 1-416
+python/sglang/kernels/jit/csrc/gemm/tiny_gemm/common.cuh
+  h_1f940cd96f2dab 1-81
+python/sglang/kernels/jit/csrc/gemm/tiny_gemm/mma.cuh
+  h_1f940cd96f2dab 1-6,11-12,17-18,22,27,29-35,37-39,41-43,45-48,50-54,56-73,75-83,85-86,88-90,95-130,133-135,137-190,195-202,204-206,208-224,228-237,239,241-243,245,248-256,259-260,263-280,282-291,296-307,311-337,340,342-356
+python/sglang/kernels/jit/csrc/gemm/tiny_gemm/simt.cuh
+  h_1f940cd96f2dab 1-8,19,27-29,32-47,49-51,54-57,59,62-63,66,68,70-74,76-77,79,82,88-89,91,94,98-102,104,108,110-112,114-118,120-121,123-126,128-129,131-133,135-137,139-143,150-157,162,164-165,169-176
+python/sglang/kernels/jit/csrc/occupancy/cluster_probe.cuh
+  h_1f940cd96f2dab 5,35-38,40-41,43-44
+python/sglang/kernels/jit/include/sgl_kernel/distributed/ptx.cuh
+  h_1f940cd96f2dab 4-6,236-257
+python/sglang/kernels/ops/attention/cutedsl_kda.py
+  h_1f940cd96f2dab 1242-1244,1263,1288-1289,1548
+python/sglang/kernels/ops/attention/dsa/dcp_topk_merge.py
+  h_1f940cd96f2dab 1-2,6,10,17-18,20,22-23,27-49,51-65,67-82
+python/sglang/kernels/ops/gemm/kimi_k3.py
+  h_1f940cd96f2dab 32
+python/sglang/kernels/ops/gemm/tiny_gemm.py
+  h_1f940cd96f2dab 3-15,20,31,41-64,66,68-85,89-94,97-98,101-109,112,114-117,121-142,144-145,149-178,180-194,198-259,268,272-275,287,291-292,294,300
+python/sglang/srt/layers/attention/dsa/dsa_dcp_sharded.py
+  h_1f940cd96f2dab 1-134
+python/sglang/srt/layers/attention/dsv4/dsv41_sparse.py
+  h_1f940cd96f2dab 16,176-181,183-188,190,239,247,250-251,274
+python/sglang/srt/models/deepseek_common/utils.py
+  h_1f940cd96f2dab 227,233
+python/sglang/srt/models/dots3_common/modeling.py
+  h_1f940cd96f2dab 256
+python/sglang/srt/speculative/dflash_info_v2.py
+  h_1f940cd96f2dab 156-165
+python/sglang/test/ascend/e2e/run_aisbench.sh
+  h_1f940cd96f2dab 524,604
+scripts/ci/npu/precise-test/bucket_recommended_tests.py
+  h_1f940cd96f2dab 5-8,38,511,544,715-717,719-721
+scripts/ci/npu/precise-test/list_multimodal_tests.py
+  h_1f940cd96f2dab 15-16
+test/registered/attention/unittests/dsv4/test_dsv41_fused_compress.py
+  h_1f940cd96f2dab 126-127,129-130
+test/registered/kernels/benchmark/gemm/bench_tiny_gemm.py
+  h_1f940cd96f2dab 1-2,8-10,16-17,19,31-57,59-80,83-96,99-102,107-109,111,118
+test/registered/kernels/ops/attention/test_cutedsl_kda.py
+  h_1f940cd96f2dab 1-93
+test/registered/kernels/ops/attention/test_dsa_dcp_topk_merge.py
+  h_1f940cd96f2dab 1-214
+test/registered/kernels/ops/gemm/test_tiny_gemm.py
+  h_1f940cd96f2dab 1,3-4,11-12,16-104,109-112,115-121,127-141,144-156,160-174
+test/registered/npu/accuracy/qwen3_6_27b/test_npu_qwen3_6_27b_w8a8_1p_in3k5_out1k5_50ms_gpqa.py
+  h_1f940cd96f2dab 1,11,19-28,113-158,160
+test/registered/npu/performance/deepseek_v4_flash/test_npu_deepseek_v4_flash_w8a8_1p1d_16p_in128k_out1k_prefix90_20ms.py
+  h_1f940cd96f2dab 5-6,230,233,236-238,241-242,245,251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e83d91d60ccdc80d74db2eb7cbd4830b1d25e8a7",
+  "prompts": {},
+  "humans": {
+    "h_1f940cd96f2dab": {
+      "author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

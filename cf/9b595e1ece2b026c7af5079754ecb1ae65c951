@@ -1,0 +1,29 @@
+docker/ant/generate_fast_auto.py
+  s_2541f86770adb4::t_d2594125530b10 20-21,23,28-32,42-52,54-58,62-63,65,153-157,165,170-171,173,197
+  s_2541f86770adb4::t_5929f0cae9021d 161-163
+docker/ant/aci/sglang_auto.aci.yml
+  s_2541f86770adb4::t_46c6f0f1ba33a1 4,23,75,78,83-87,97-107,109-113,117-118,120,127,161,289,293,381,389,397,409,420
+docker/ant/aci/sglang_runtime.aci.yml
+  s_2541f86770adb4::t_4b47b86b9ed5af 109,116-117,143,276,283-284,308,319,331,347,362
+docker/ant/README.md
+  s_2541f86770adb4::t_98f233a3e557ec 10-11
+  s_2541f86770adb4::t_5929f0cae9021d 63,66,179
+docker/ant/aci/sglang_fast.aci.yml
+  s_2541f86770adb4::t_4b47b86b9ed5af 26,35,42-43,127,135,144,157,169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cf9b595e1ece2b026c7af5079754ecb1ae65c951",
+  "prompts": {},
+  "sessions": {
+    "s_2541f86770adb4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a4bd-2279-7640-a9b7-1be3a97fc742",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

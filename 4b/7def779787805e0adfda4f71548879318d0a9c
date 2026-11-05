@@ -1,0 +1,29 @@
+test/manual/dsv4/README_ppu_mhc_post_triton.md
+  s_36bcf18f8fb901::t_95111a4d3fec0a 52-54,89-94
+  s_36bcf18f8fb901::t_d62d4ba0e020ac 1-51,55-88,95-125
+python/sglang/kernels/ops/layernorm/mhc.py
+  s_36bcf18f8fb901::t_42d7135eb6d016 26-30,33-35,1149-1164
+  s_36bcf18f8fb901::t_ebfb6a10143bd2 31-32
+test/manual/dsv4/check_ppu_mhc_post_triton.py
+  s_36bcf18f8fb901::t_ebfb6a10143bd2 116-118,135-137,153-159,163-165,168-170,179-188,192-199,201-207,230-233,240-244,250-259,261-265,267-268,273-277
+  s_36bcf18f8fb901::t_d62d4ba0e020ac 1-115,119-134,138-152,160-162,166-167,171-178,189-191,200,208-229,234-239,245-249,260,266,269-272,278-281
+python/sglang/kernels/ops/layernorm/mhc_post_ppu_triton.py
+  s_36bcf18f8fb901::t_42d7135eb6d016 1-14,26-57,61-65,77-101,106-107,112-122,127,132-135
+  s_36bcf18f8fb901::t_ebfb6a10143bd2 15-25,58-60,66-76,102-105,108-111,123-126,128-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4b7def779787805e0adfda4f71548879318d0a9c",
+  "prompts": {},
+  "sessions": {
+    "s_36bcf18f8fb901": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a27-7dfa-77f3-9bcd-ec65cbf5de10",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Qing Wang <kingchin1218@gmail.com>"
+    }
+  }
+}

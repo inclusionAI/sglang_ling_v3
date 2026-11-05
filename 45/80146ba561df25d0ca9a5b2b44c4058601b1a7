@@ -1,0 +1,19 @@
+examples/rollout_precision/CPU_REFERENCE.md
+  s_d2f4c9dc120b69::t_5f3744aa2adaef 7,9-11,72-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4580146ba561df25d0ca9a5b2b44c4058601b1a7",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

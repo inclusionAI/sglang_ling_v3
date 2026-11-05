@@ -1,0 +1,32 @@
+python/sglang/srt/layers/moe/moe_runner/configs/humming/afu_mxfp4_tp4_h20_down_k320_018.json
+  s_51c34f7332cc20::t_988fd6e1fb6a93 1-42
+test/registered/unit/layers/moe/test_humming_builtin_profiles.py
+  s_51c34f7332cc20::t_47b9edc721fcef 141-143,207-209
+  s_51c34f7332cc20::t_57247f49da756d 15,97-140,144-206,210-215,217
+python/sglang/srt/layers/moe/moe_runner/humming_tuning_profiles.py
+  s_51c34f7332cc20::t_47b9edc721fcef 117-120,128-131
+  s_51c34f7332cc20::t_988fd6e1fb6a93 15,36-39,47-82,94-112,115-116,121-127,132-134,198
+test/registered/unit/layers/moe/test_humming_tuning_override.py
+  s_51c34f7332cc20::t_57247f49da756d 359,369,379-382,389-395,397-398
+  s_51c34f7332cc20::t_47b9edc721fcef 337-340,360-368,400-401,409-411,421-423,428-432,442-443,449-452
+  s_51c34f7332cc20::t_cf5c14f3d6dc3e 396,399,402-408,412-420,424-427,433-441,444-448,453-456
+python/sglang/srt/layers/moe/moe_runner/humming.py
+  s_51c34f7332cc20::t_47b9edc721fcef 340-342
+  s_51c34f7332cc20::t_988fd6e1fb6a93 33,269-270,276-277,292-297,308-309,327-332,335-339
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b1724d7e28ca533814507ab27e6a64b981219dce",
+  "prompts": {},
+  "sessions": {
+    "s_51c34f7332cc20": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04205-1b6d-74f0-9aa6-e5bd318c5bc3",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}
