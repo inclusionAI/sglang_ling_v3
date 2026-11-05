@@ -1,0 +1,36 @@
+python/sglang/srt/environ.py
+  s_b94cb62be4f958::t_34aad3fc7387a8 1480,1483-1484
+  s_b94cb62be4f958::t_01fb9ff7c19157 1481-1482
+python/sglang/srt/models/bailing_moe_v3.py
+  s_b94cb62be4f958::t_34aad3fc7387a8 45-48,98-103,1604,1624-1626,1676-1677,1679-1682,1708,1730-1734,1754-1756,1760-1765,1767,1916-1917,2004-2017,2019-2038,2085-2108,2205,2228-2230,2249-2251
+  s_b94cb62be4f958::t_12a4e4f7b490b8 1615-1617,1678,1757-1759,1766
+  s_b94cb62be4f958::t_a56ce08ce4bd58 2018
+python/sglang/srt/layers/attention_residual_parallel.py
+  s_b94cb62be4f958::t_34aad3fc7387a8 1-4,10-67,75
+  s_b94cb62be4f958::t_12a4e4f7b490b8 5-9,68-74,76
+test/registered/unit/models/test_bailing_attnres_token_shard.py
+  s_b94cb62be4f958::t_12a4e4f7b490b8 1,7-8,23,207-209,211-217
+  s_b94cb62be4f958::t_8b7af270da6d04 106-110,117
+  s_b94cb62be4f958::t_a56ce08ce4bd58 50,58,132-136,138-142,144,160,166-167,172
+  s_b94cb62be4f958::t_4fc23b46d816fd 2-6,9-22,24-49,51-57,59-95,97-105,111-116,118-131,137,143,145-159,161-165,168-171,173-206,210,218-221
+  s_b94cb62be4f958::t_e2579ad3bf9c76 96
+test/registered/unit/layers/test_attention_residual_parallel.py
+  s_b94cb62be4f958::t_12a4e4f7b490b8 19-20,24,34,36-44,91-112,123
+  s_b94cb62be4f958::t_51df068a21eb8e 1-18,21-23,25-33,35,45-90,113-122,124-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2066608132b730795b1d5780ec4b38e6a055a0f5",
+  "prompts": {},
+  "sessions": {
+    "s_b94cb62be4f958": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb6ed-4ee0-7790-8c63-b4e4483dbef0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}
