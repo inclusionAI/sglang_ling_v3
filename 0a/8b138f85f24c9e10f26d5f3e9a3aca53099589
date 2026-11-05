@@ -1,0 +1,23 @@
+python/sglang/srt/models/bailing_fp8_tp_padding.py
+  s_e259a47f59a9de::t_853dcc5ff039be 14-16,23-26
+python/sglang/srt/models/bailing_moe_v3.py
+  s_e259a47f59a9de::t_853dcc5ff039be 369
+  s_e259a47f59a9de::t_792d1eeb4e82f5 368
+  s_e259a47f59a9de::t_d21506fcd5c769 370-372
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0a8b138f85f24c9e10f26d5f3e9a3aca53099589",
+  "prompts": {},
+  "sessions": {
+    "s_e259a47f59a9de": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a9d1-c6e1-7940-b64f-ea54c9ac2062",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}
