@@ -1,0 +1,45 @@
+python/sglang/srt/debug_utils/cpu_model_reference.py
+  s_d2f4c9dc120b69::t_989273a68bac13 637-639,652
+  s_d2f4c9dc120b69::t_e72ad885e588a1 640-651,653-658,660-662,669-678,681-683
+  s_d2f4c9dc120b69::t_b23866afa979bb 10,196-197,222,229,377-378,384-387,390,394,402-403,407-410,420,428,435,441-443,463-464,467,475-476,478-481,495,498,500-501,511
+  s_d2f4c9dc120b69::t_3858e85e460fb3 230-245,373-376,379-383,388,395-401,404-406,411-419,423-427,468,470-474,477,496-497,499,509-510,512
+python/sglang/srt/debug_utils/certified_reference.py
+  s_d2f4c9dc120b69::t_4e4c9b9bb3b50d 162-163,170-172,174-176,181-184,198,200-201,281-282,441-442,448,451-453,456-457,463,514-515,542
+  s_d2f4c9dc120b69::t_12f524d593480f 164-169,173,177-180,185-197,199,202-211,443-447,449-450,458-462,541,543
+python/sglang/srt/debug_utils/cpu_reference.py
+  s_d2f4c9dc120b69::t_4e4c9b9bb3b50d 52-53,76-77,217-219,226-228,232-233,235-236
+  s_d2f4c9dc120b69::t_12f524d593480f 220-225,229-231,234,237-250
+python/sglang/srt/debug_utils/rollout_precision_report.py
+  s_d2f4c9dc120b69::t_e72ad885e588a1 4957-4959
+  s_d2f4c9dc120b69::t_989273a68bac13 4950
+test/registered/debug_utils/test_cpu_model_reference.py
+  s_d2f4c9dc120b69::t_a201d0c4d348d2 165,292-293,310,312,315-317,321-322,326,335-349,361-366,370-375,384-387
+  s_d2f4c9dc120b69::t_8a6fa4ddc85c55 294-309,311,313-314,318-320,323-325,327-334,350-360,367-369,376-383,388-395
+  s_d2f4c9dc120b69::t_c18818003fa1de 396-397
+python/sglang/srt/debug_utils/certified_model.py
+  s_d2f4c9dc120b69::t_077be4f308dcb1 147-150,152,155,157,159-160,164-170,184-186,188-191,372-376,395,419,421-425,428,446-447,449-451,461-464,466,555-560
+  s_d2f4c9dc120b69::t_5dadbe6f8a11ba 31-34,151,153-154,156,158,161-162,171-176,180-183,187,192,377,387,390,394,414-415,418,426-427,429-432,445,448,452-453,465,519-520
+  s_d2f4c9dc120b69::t_a201d0c4d348d2 146
+test/registered/debug_utils/test_certified_reference.py
+  s_d2f4c9dc120b69::t_9f84794a9601cb 234-237,240-243,249,268-272,282-286,293-294,308-309
+  s_d2f4c9dc120b69::t_8a6fa4ddc85c55 238-239,244-248,250-267,273-281,287-292,295-307
+python/sglang/srt/debug_utils/operator_reference.py
+  s_d2f4c9dc120b69::t_4e4c9b9bb3b50d 110
+  s_d2f4c9dc120b69::t_12f524d593480f 109,111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b5ba2535454ba4e1dfb9318edc29325614cffe5d",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}
