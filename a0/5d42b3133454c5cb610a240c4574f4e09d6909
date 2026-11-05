@@ -1,0 +1,54 @@
+python/sglang/srt/debug_utils/rollout_precision_report.py
+  s_d2f4c9dc120b69::t_f351c00458bc90 1154-1155
+  s_d2f4c9dc120b69::t_720a2b17ea155e 1156-1158
+python/sglang/srt/debug_utils/native_layer_replay.py
+  s_d2f4c9dc120b69::t_a99c36990cdd95 313-322
+  s_d2f4c9dc120b69::t_cf053ce46425ca 323-325,372-376,568-571,606-626,1037-1040
+python/sglang/srt/debug_utils/native_subgraph_capture.py
+  s_d2f4c9dc120b69::t_12fc7b2c02f465 656-657,675,686
+  s_d2f4c9dc120b69::t_c99d5225d8f5a9 71,408-411
+python/sglang/srt/debug_utils/subgraph_plan.py
+  s_d2f4c9dc120b69::t_12fc7b2c02f465 689-695
+python/sglang/srt/debug_utils/representative_subgraphs.py
+  s_d2f4c9dc120b69::t_12fc7b2c02f465 77-78,94-97,110,141-142
+  s_d2f4c9dc120b69::t_4ee2fdde6b6f10 143-144
+python/sglang/srt/debug_utils/rollout_precision_lightweight.py
+  s_d2f4c9dc120b69::t_12fc7b2c02f465 192-194
+  s_d2f4c9dc120b69::t_31d5ceb4bbf44c 195-197
+python/sglang/srt/debug_utils/native_subgraph_replay.py
+  s_d2f4c9dc120b69::t_c99d5225d8f5a9 134-136,193-195,199,825-826
+  s_d2f4c9dc120b69::t_2dadda31427a53 827-829
+test/registered/debug_utils/test_max_apl_comparison.py
+  s_d2f4c9dc120b69::t_727ac6077132e8 1-52
+  s_d2f4c9dc120b69::t_49e0d5f8e2760d 53-55
+python/sglang/srt/debug_utils/native_layer_capture.py
+  s_d2f4c9dc120b69::t_a99c36990cdd95 169-171,211-217,220-221
+python/sglang/srt/debug_utils/apl_operator_replay.py
+  s_d2f4c9dc120b69::t_f351c00458bc90 73-74,95-98,233
+  s_d2f4c9dc120b69::t_c6071dac132063 43-44,209-217,256-257
+  s_d2f4c9dc120b69::t_be80a8e248195d 1-5,7,9-42,45-69,99,101-176,235-255,258-291
+  s_d2f4c9dc120b69::t_12fc7b2c02f465 6,8,70-72,75-94,100,177-208,218-232,234
+  s_d2f4c9dc120b69::t_0e0af0af44e175 292-294
+scripts/rollout_precision_patch.py
+  s_d2f4c9dc120b69::t_c99d5225d8f5a9 21
+python/sglang/srt/debug_utils/operator_reference.py
+  s_d2f4c9dc120b69::t_c99d5225d8f5a9 198-201
+python/sglang/srt/debug_utils/rollout_precision.py
+  s_d2f4c9dc120b69::t_c99d5225d8f5a9 578-582
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a05d42b3133454c5cb610a240c4574f4e09d6909",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}
