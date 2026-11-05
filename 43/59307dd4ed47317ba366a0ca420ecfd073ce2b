@@ -1,0 +1,38 @@
+scripts/rollout_precision_patch.py
+  s_d2f4c9dc120b69::t_5d1bbc4350c844 36
+python/sglang/srt/debug_utils/native_hardware_reference.py
+  s_d2f4c9dc120b69::t_9e156011a8caa9 47-55,57-59,67-86,92-94,116-118,121-127,141-143,147-149,151-155,168-170,175-187,209-219,224-234,238-252,264-271,273-278,289-302,305-311,317-321,324-342,348-357,360-362,365-368,370-376,380-403,405-411,413-422
+  s_d2f4c9dc120b69::t_85fa4241e50db1 105-106,195
+  s_d2f4c9dc120b69::t_5d1bbc4350c844 255,261,312-313,358-359,363-364,369,377-379
+  s_d2f4c9dc120b69::t_29071ab623331e 1-46,56,60-66,87-91,95-104,107-115,119-120,128-140,144-146,150,156-167,171-174,188-194,196-208,220-223,235-237,253-254,256-260,262-263,272,279-288,303-304,314-316,322-323,343-347,404,412,423-431
+  s_d2f4c9dc120b69::t_4871926d33d847 432
+test/registered/debug_utils/test_native_hardware_reference.py
+  s_d2f4c9dc120b69::t_a872961786c503 1-19,30-38,42-46,62-63,68-90,100,113-114,116-120,137,149-151,160-168
+  s_d2f4c9dc120b69::t_85fa4241e50db1 20-29,39-41,47-61,64-67,91-99,101-112,115,121-136,138-148,152-159
+python/sglang/srt/debug_utils/rollout_precision_report.py
+  s_d2f4c9dc120b69::t_87fa23a6193236 4910-4915,4917,4945,5088
+  s_d2f4c9dc120b69::t_9e156011a8caa9 4916,4918-4944
+python/sglang/srt/debug_utils/native_subgraph_replay.py
+  s_d2f4c9dc120b69::t_29071ab623331e 90,101-103
+python/sglang/srt/debug_utils/cpu_reference.py
+  s_d2f4c9dc120b69::t_9e156011a8caa9 907-909,911-912
+  s_d2f4c9dc120b69::t_5d1bbc4350c844 886,905-906,910,913-916
+scripts/rollout_precision.py
+  s_d2f4c9dc120b69::t_5d1bbc4350c844 736,825,846,5174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4359307dd4ed47317ba366a0ca420ecfd073ce2b",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

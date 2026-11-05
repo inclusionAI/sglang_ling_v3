@@ -1,0 +1,19 @@
+python/sglang/srt/models/dflash.py
+  s_9fcce24f273208::t_951cfa41ed165a 1163-1173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "38610780c6eb4bc41958d2371e0b8fb9aaf8d25d",
+  "prompts": {},
+  "sessions": {
+    "s_9fcce24f273208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8f11576-0caa-4937-81d5-1755f59b7de8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
