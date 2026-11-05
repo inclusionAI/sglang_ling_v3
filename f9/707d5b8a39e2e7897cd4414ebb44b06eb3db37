@@ -1,0 +1,182 @@
+python/sglang/srt/debug_utils/deterministic_kda_compare.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-321
+python/sglang/srt/debug_utils/comparator/prepared_views.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-228
+python/sglang/srt/debug_utils/comparator/aligner/unsharder/executor.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 6,23-30,113-114,142-161
+python/sglang/srt/debug_utils/native_attention_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-208
+python/sglang/srt/debug_utils/operator_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-441
+python/sglang/srt/debug_utils/routing_replay_weights.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-177
+python/sglang/srt/debug_utils/training_reference_profile.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-235
+scripts/rollout_precision.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-5319
+python/sglang/srt/debug_utils/rollout_logit_audit.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-104
+python/sglang/srt/debug_utils/rollout_precision_campaign_followup.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-879
+python/sglang/srt/debug_utils/rollout_precision_ainsight.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-482
+python/sglang/srt/debug_utils/exact_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-254
+python/sglang/srt/debug_utils/native_collective_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-136
+python/sglang/srt/debug_utils/training_reference_contract.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-181
+python/sglang/srt/debug_utils/kda_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-972
+python/sglang/srt/debug_utils/layer_diagnostics.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-547
+python/sglang/srt/debug_utils/comparator/output_types.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 97-125,195,263-268,314
+python/sglang/srt/debug_utils/capture_manifest.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-521
+python/sglang/srt/debug_utils/training_reference_bi.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-893
+python/sglang/srt/debug_utils/deterministic_kda_capture.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-421
+python/sglang/srt/debug_utils/cpu_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1174
+python/sglang/srt/debug_utils/certified_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-695
+python/sglang/srt/debug_utils/native_subgraph_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-982
+python/sglang/srt/debug_utils/training_reference_compare.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1055
+python/sglang/srt/debug_utils/capture_index.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-404
+python/sglang/srt/debug_utils/native_hardware_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-436
+python/sglang/srt/debug_utils/rollout_precision_cluster.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-434
+python/sglang/srt/debug_utils/rollout_precision_history_analysis.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-2276
+scripts/rollout_precision_campaign.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-2236
+python/sglang/srt/debug_utils/rollout_precision_lightweight.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-318
+python/sglang/srt/debug_utils/dump_loader.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 33-34,39-40,102,104,162-169
+python/sglang/srt/debug_utils/rollout_linear_audit.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-146
+python/sglang/srt/model_executor/model_runner.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1188-1189
+python/sglang/srt/debug_utils/representative_subgraphs.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-758
+python/sglang/srt/debug_utils/moe_trace.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-756
+python/sglang/srt/debug_utils/comparator/aligner/token_aligner/route.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-879
+python/sglang/srt/debug_utils/quantization_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-129
+python/sglang/srt/debug_utils/rollout_tensor_intervention.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-289
+python/sglang/srt/debug_utils/training_reference_capture.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-434
+python/sglang/srt/debug_utils/rollout_precision_campaign_report.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-731
+python/sglang/srt/debug_utils/rollout_precision_campaign_plan.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-890
+python/sglang/srt/debug_utils/tp_subgraph_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-390
+python/sglang/srt/debug_utils/training_reference_load.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-538
+python/sglang/srt/debug_utils/rollout_precision.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1801
+python/sglang/srt/debug_utils/subgraph_plan.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-746
+python/sglang/srt/debug_utils/rollout_layer_acceptance.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-80
+python/sglang/srt/debug_utils/native_moe_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-253
+python/sglang/srt/debug_utils/cpu_model_reference.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-718
+python/sglang/srt/debug_utils/comparator/entrypoint.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 4-5,8,30,32,79-98,105-111,130-131,135-144,146-147,149-150,152-216,221-234,236-241,254-255,257,263,275-284,347,372-386,415,437-438,446-452,456-470,476-480,485-497,552-557,576-580,629-642
+python/sglang/srt/debug_utils/rollout_free_generation.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-78
+python/sglang/srt/debug_utils/comparator/alignment_backend.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-191
+python/sglang/srt/debug_utils/certified_model.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-606
+python/sglang/srt/debug_utils/rollout_precision_campaign_runtime.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-355
+python/sglang/srt/debug_utils/rollout_precision_offline.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-802
+python/sglang/srt/debug_utils/native_subgraph_capture.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-685
+python/sglang/srt/debug_utils/comparator/dp_utils.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1,5,11,18-171
+  s_d2f4c9dc120b69::t_e769d07ebe3e80 172-173
+python/sglang/srt/debug_utils/rollout_precision_history_compare.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1401
+python/sglang/srt/debug_utils/routing_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-584
+python/sglang/srt/debug_utils/ordered_reduce_scatter.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-35
+python/sglang/srt/debug_utils/rollout_precision_mechanism.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-151
+python/sglang/srt/debug_utils/graph_snapshot.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-528
+python/sglang/srt/debug_utils/training_reference_tiny.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1030
+scripts/rollout_precision_dataset.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-502
+python/sglang/srt/debug_utils/native_layer_capture.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-234
+python/sglang/srt/debug_utils/tensor_intervention.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-213
+python/sglang/srt/debug_utils/prepare_mlp_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-605
+python/sglang/srt/debug_utils/native_layer_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1160
+python/sglang/srt/debug_utils/training_reference_bridge.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-283
+python/sglang/srt/debug_utils/rollout_precision_history_summary.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-146
+python/sglang/srt/debug_utils/comparator/tensor_comparator/comparator.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 2,7-14,64-84,145-155,223,281-335
+python/sglang/srt/debug_utils/comparator/bundle_comparator.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 5,21,27,37-41,49-51,154,169,191,193-205,211-219,243-306,335-778,802,866,869-881
+python/sglang/srt/debug_utils/rollout_precision_report.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-7525
+python/sglang/srt/debug_utils/layer_type_plan.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-233
+python/sglang/srt/debug_utils/rollout_output_tokens.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-375
+python/sglang/srt/debug_utils/runtime_observation.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-442
+scripts/rollout_precision_patch.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-332
+python/sglang/srt/debug_utils/comparator/metric_backend.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-662
+python/sglang/srt/debug_utils/rollout_precision_history.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-1719
+python/sglang/srt/debug_utils/comparator/report_sink.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 10,14-15,24-25,40-41,43-49,52-54,59-64,67-68,75-99,102-120,124,126,136-137,152-153
+python/sglang/srt/debug_utils/diagnostic_replay.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-562
+python/sglang/srt/debug_utils/certified_state.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-117
+python/sglang/srt/debug_utils/training_reference_megatron.py
+  s_d2f4c9dc120b69::t_4b217beac3f95d 1-237
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f9707d5b8a39e2e7897cd4414ebb44b06eb3db37",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}
