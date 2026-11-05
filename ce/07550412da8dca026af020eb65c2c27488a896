@@ -1,0 +1,18 @@
+python/sglang/srt/layers/sampler.py
+  h_1d635ecd767a49 82
+test/registered/ops/test_aiter_greedy_sample_amd.py
+  h_1d635ecd767a49 39
+test/registered/unit/spec/test_pipeline_eagle_worker.py
+  h_1d635ecd767a49 66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ce07550412da8dca026af020eb65c2c27488a896",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
