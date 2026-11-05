@@ -1,0 +1,23 @@
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_8b0ece6132ddff::t_00b2df2ca1e768 126,941,943,1456-1463
+python/sglang/srt/layers/attention/dsv4/dsv41_sparse.py
+  s_8b0ece6132ddff::t_c4f6769ec24f54 22,212-214
+python/sglang/srt/layers/dsv41_sm90.py
+  s_8b0ece6132ddff::t_8ab5f982ff68df 47-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c36c1a969e20e10ec5767163daef2d5b0bc94368",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}
