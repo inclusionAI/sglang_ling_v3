@@ -1,0 +1,24 @@
+python/sglang/kernels/ops/attention/fla/fused_norm_gate.py
+  h_1d635ecd767a49 360,379-391
+python/sglang/kernels/ops/layernorm/training_rmsnorm.py
+  h_1d635ecd767a49 1-110
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1482-1484
+python/sglang/srt/layers/layernorm.py
+  h_1d635ecd767a49 438-439,480-495
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 2774-2784
+test/registered/kernels/ops/layernorm/test_training_rmsnorm.py
+  h_1d635ecd767a49 1-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "53ac16f2652e401298a009a569cd0b9168855da3",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+python/sglang/kernels/jit/csrc/elementwise/pos_enc.cuh
+  h_1d635ecd767a49 39-45
+python/sglang/kernels/jit/csrc/elementwise/rope.cuh
+  h_1d635ecd767a49 74-79,100-101
+test/registered/kernels/ops/attention/test_rope.py
+  h_1d635ecd767a49 61-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3523acaeebdddc6b7cb337422fd0844e8cab3d6c",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

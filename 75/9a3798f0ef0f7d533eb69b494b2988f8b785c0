@@ -1,0 +1,48 @@
+python/sglang/kernels/jit/csrc/gemm/per_token_group_quant.cuh
+  h_1d635ecd767a49 198,222-224,234-235,244-246,290-293,297-315,492,585,603-605,607-617,639-641,643-652,664-685,688,692-701
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  h_1d635ecd767a49 302,350-358,395,465,516,545,586-592
+python/sglang/kernels/ops/moe/router_weight.py
+  h_1d635ecd767a49 1-44
+python/sglang/kernels/ops/quantization/__init__.py
+  h_1d635ecd767a49 133-134,156-157
+python/sglang/kernels/ops/quantization/per_token_group_quant.py
+  h_1d635ecd767a49 35-36,50-51,63-69,107-108,122-123,126-130,189-190,213-218,223-241,255-262,272-273
+python/sglang/srt/layers/moe/fused_moe_triton/layer.py
+  h_1d635ecd767a49 183-189,281,289,391,398,491-492
+python/sglang/srt/layers/moe/moe_runner/ascend.py
+  h_1d635ecd767a49 290-294
+python/sglang/srt/layers/moe/moe_runner/base.py
+  h_1d635ecd767a49 53,61
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  h_1d635ecd767a49 48,187-200,307-361,446-457,673-677,817-853,899,1002-1013,1017-1021,1066-1076,1143-1145,1266-1268,1312,1330-1335,1342-1345,1489-1491,1654,1709,1757
+python/sglang/srt/layers/moe/token_dispatcher/deepep.py
+  h_1d635ecd767a49 133,143,785,793,809,822,834,873,904-928,930-946,1054,1074
+python/sglang/srt/layers/quantization/w4afp8.py
+  h_1d635ecd767a49 345-348
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 1009-1017,1049-1055,1058
+test/manual/moe/test_deepep_ll_pre_gemm2_weights.py
+  h_1d635ecd767a49 1-140
+test/registered/kernels/ops/moe/test_router_weight_before_gemm2.py
+  h_1d635ecd767a49 1-57
+test/registered/kernels/ops/quantization/test_per_token_group_quant.py
+  h_1d635ecd767a49 25,546-630
+test/registered/kernels/ops/quantization/test_router_weight_quant.py
+  h_1d635ecd767a49 1-81
+test/registered/unit/layers/moe/test_cutedsl_deepep_auto.py
+  h_1d635ecd767a49 223,226,248,259-268
+test/registered/unit/layers/moe/test_cutedsl_deepep_dispatch_config.py
+  h_1d635ecd767a49 385,407
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "759a3798f0ef0f7d533eb69b494b2988f8b785c0",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

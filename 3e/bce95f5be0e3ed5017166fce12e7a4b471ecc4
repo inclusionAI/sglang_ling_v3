@@ -1,0 +1,20 @@
+python/sglang/kernels/ops/attention/fla/chunk_delta_h.py
+  h_1d635ecd767a49 20,510-514
+python/sglang/kernels/ops/attention/fla/chunk_intra.py
+  h_1d635ecd767a49 74,848-850,852,854,968-976,1023-1034,1065-1074
+python/sglang/kernels/ops/attention/fla/kda.py
+  h_1d635ecd767a49 749-758,914-927,945,1163-1167,1279,1318-1340
+test/registered/kernels/ops/attention/test_kda_precision_lifecycle.py
+  h_1d635ecd767a49 157-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3ebce95f5be0e3ed5017166fce12e7a4b471ecc4",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
