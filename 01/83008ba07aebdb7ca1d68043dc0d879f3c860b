@@ -1,0 +1,22 @@
+python/sglang/kernels/ops/moe/moe_fused_gate.py
+  h_1d635ecd767a49 9,90-176,232-233,264-265,274-279,305-313,319-323,429-452
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1070-1071
+python/sglang/srt/layers/moe/topk.py
+  h_1d635ecd767a49 1480-1486,1488-1490
+test/registered/kernels/ops/moe/test_grouped_top8_training.py
+  h_1d635ecd767a49 1-100
+test/registered/kernels/ops/moe/test_moe_fused_gate.py
+  h_1d635ecd767a49 79-84,105-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0183008ba07aebdb7ca1d68043dc0d879f3c860b",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

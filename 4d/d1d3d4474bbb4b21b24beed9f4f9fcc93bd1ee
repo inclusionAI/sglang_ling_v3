@@ -1,0 +1,20 @@
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  h_1d635ecd767a49 1275-1276,1290-1295,1297-1310,1326-1328,1346,1372-1373
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  h_1d635ecd767a49 1521-1528
+python/sglang/srt/layers/moe/token_dispatcher/deepep.py
+  h_1d635ecd767a49 1006-1008
+test/registered/kernels/ops/moe/test_ep_gather_order.py
+  h_1d635ecd767a49 1-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4dd1d3d4474bbb4b21b24beed9f4f9fcc93bd1ee",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
