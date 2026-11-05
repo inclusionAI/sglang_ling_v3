@@ -1,0 +1,22 @@
+python/sglang/srt/managers/scheduler.py
+  h_1d635ecd767a49 4285,4288-4305
+python/sglang/srt/managers/scheduler_pp_mixin.py
+  h_1d635ecd767a49 87-90,669,1040-1041,1044-1048,1324-1331,1342-1345,1477-1478,1480,1531,1547
+python/sglang/srt/speculative/pipeline_eagle_worker.py
+  h_1d635ecd767a49 17,120-124,231-246,269-271,334-337
+test/registered/unit/managers/test_pp_result_stream_order.py
+  h_1d635ecd767a49 11,15,34,52-55,75-82,84-91,96-205,213,215-217,224-237,245-248,254,271,278,282-291,308,310-311,313-314,328-333
+test/registered/unit/spec/test_pipeline_eagle_worker.py
+  h_1d635ecd767a49 225-262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "729274a47d91c1219eb575f0ae7673945b1be341",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
