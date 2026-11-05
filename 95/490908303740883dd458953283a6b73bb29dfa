@@ -1,0 +1,108 @@
+python/sglang/srt/layers/moe/mega_moe.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 26,107,117,122,140,233,425
+  h_25b71af7882e89 26,107,117,122,140,233,425
+docs/ppu15/dsv4_opt_in_isolation.md
+  s_fb9c4d8946a621::t_e94a6a7ffcb3c8 3,28,36,53,55,57-75,81,83
+  s_fb9c4d8946a621::t_04fdffc7676ea2 1-2,4-27,29-35,37-52,54,56,76-80,82,84-91
+  h_25b71af7882e89 1-2,4-27,29-35,37-52,54,56,76-80,82,84-91
+python/sglang/srt/model_executor/pool_configurator.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 33,713-715
+  h_25b71af7882e89 33,713-715
+docker_ant/Dockerfile_890p_sglang
+  s_fb9c4d8946a621::t_04fdffc7676ea2 71-73,79,83,207-209
+  h_25b71af7882e89 71-73,79,83,207-209
+python/sglang/srt/speculative/dspark_components/dspark_draft.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 11,547-548
+  h_25b71af7882e89 11,547-548
+python/sglang/srt/utils/ppu_dsv4_scope.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 1-51
+  h_25b71af7882e89 1-41,42-51
+python/sglang/srt/layers/moe/token_dispatcher/deepep.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 10,1051-1067
+  h_25b71af7882e89 10,1051-1067
+python/sglang/srt/layers/logits_processor.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 30,688,702
+  h_25b71af7882e89 30,688,702
+python/sglang/srt/layers/quantization/mxfp4.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 31,1172
+  h_25b71af7882e89 31,1172
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 40,1093
+  h_25b71af7882e89 40,1093
+python/sglang/srt/model_executor/model_runner.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 56,953
+  h_25b71af7882e89 56,953
+python/sglang/srt/speculative/dspark_components/kernels/commit_kv_proj.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 12,119-122
+  h_25b71af7882e89 12,119-122
+python/sglang/srt/speculative/spec_info.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 9,197
+  h_25b71af7882e89 9,197
+python/sglang/srt/mem_cache/kv_cache_builder.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 37,295
+  h_25b71af7882e89 37,295
+python/sglang/srt/arg_groups/pd_disaggregation_hook.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 8,18-20,46-58
+  h_25b71af7882e89 8,18-20,46-58
+test/registered/unit/disaggregation/test_ppu_mega_moe_scope.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 25
+  h_25b71af7882e89 25
+python/sglang/srt/arg_groups/speculative_hook.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 11-12,355-358
+  h_25b71af7882e89 11-12,355-358
+python/sglang/srt/environ.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 1089
+  h_25b71af7882e89 1089
+test/registered/unit/disaggregation/test_deepep_preallocate_order.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 29,33,39-41
+  h_25b71af7882e89 29,33,39-41
+test/registered/unit/disaggregation/test_dspark_disagg_draft_input.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 14-18
+  h_25b71af7882e89 14-18
+test/registered/unit/disaggregation/test_ppu_dsv4_opt_in.py
+  s_fb9c4d8946a621::t_b1f87cf6c5c94a 1,47
+  s_fb9c4d8946a621::t_04fdffc7676ea2 2-46,48-130
+  h_25b71af7882e89 2-3,4-6,7-21,22-46,48-112,113-130
+docker/ant/apply_deepep_transport_init_fix13.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 17,22-24
+  h_25b71af7882e89 17,22-24
+python/sglang/srt/models/deepseek_v4.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 52,2140-2142,2959
+  h_25b71af7882e89 52,2140-2142,2959
+test/ppu/test_dsv4_aux_capture_memory.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 4,13-17,20
+  h_25b71af7882e89 4,13-17,20
+test/ppu/kernels/test_ppu_mega_moe_selection.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 18
+  h_25b71af7882e89 18
+python/sglang/srt/speculative/dspark_components/dspark_worker_v2.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 13,685
+  h_25b71af7882e89 13,685
+test/registered/unit/test_deepep_image_patch.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 61-66
+  h_25b71af7882e89 61-66
+python/sglang/srt/layers/moe/ppu_mxfp4_mega_moe.py
+  s_fb9c4d8946a621::t_04fdffc7676ea2 664-665
+  h_25b71af7882e89 664-665
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "95490908303740883dd458953283a6b73bb29dfa",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_fb9c4d8946a621": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a15c5a-062f-74a3-8f83-192f68bcef1a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

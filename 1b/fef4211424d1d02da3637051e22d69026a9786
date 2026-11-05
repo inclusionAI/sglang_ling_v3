@@ -1,0 +1,20 @@
+python/sglang/srt/disaggregation/decode.py
+  s_643826788d9a1c::t_67acddc54efc6e 2673,2677
+  s_643826788d9a1c::t_8c8ce93c2f8143 2674-2676,2678
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1bfef4211424d1d02da3637051e22d69026a9786",
+  "prompts": {},
+  "sessions": {
+    "s_643826788d9a1c": {
+      "agent_id": {
+        "tool": "antcc",
+        "id": "c050a087-1d2f-4ee6-8d52-7c744868df44",
+        "model": "antchat/GLM-5.3"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

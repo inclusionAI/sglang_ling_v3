@@ -1,0 +1,31 @@
+python/sglang/srt/layers/moe/token_dispatcher/ppu_layout.py
+  s_c9239ef50a85f8::t_1ccd737576963b 25
+test/registered/unit/attention/test_ppu_prepacked_mla_query.py
+  s_c9239ef50a85f8::t_1ccd737576963b 120,149-154
+test/registered/unit/test_ppu_norm_fp8.py
+  s_c9239ef50a85f8::t_1ccd737576963b 215-225
+test/registered/unit/test_ppu_deepep_layout.py
+  s_c9239ef50a85f8::t_1ccd737576963b 119-129
+python/sglang/srt/layers/quantization/fp8_norm.py
+  s_c9239ef50a85f8::t_1ccd737576963b 20
+python/sglang/srt/models/deepseek_common/attention_forward_methods/forward_mla.py
+  s_c9239ef50a85f8::t_1ccd737576963b 111
+test/manual/test_ppu_dsa_dynamic_shapes.py
+  s_c9239ef50a85f8::t_1ccd737576963b 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1615a0f4af5054add63c69bb39f32602ad853bad",
+  "prompts": {},
+  "sessions": {
+    "s_c9239ef50a85f8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f48-268f-7801-b087-d071be051a56",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}

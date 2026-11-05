@@ -1,0 +1,23 @@
+docker/ant/aci/sglang_auto.aci.yml
+  s_2541f86770adb4::t_b51d26373988ae 329-330,333
+docker/ant/aci/sglang_fast.aci.yml
+  s_2541f86770adb4::t_ddc7403f006236 75-76,79
+docker/ant/README.md
+  s_2541f86770adb4::t_ddc7403f006236 78-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "462c4027b2ca51296dd1334ab5cf484a950a0340",
+  "prompts": {},
+  "sessions": {
+    "s_2541f86770adb4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a4bd-2279-7640-a9b7-1be3a97fc742",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

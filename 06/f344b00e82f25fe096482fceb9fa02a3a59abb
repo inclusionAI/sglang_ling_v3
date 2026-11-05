@@ -1,0 +1,25 @@
+docker_ant/README.md
+  s_c9239ef50a85f8::t_77a3c736a20105 380,382
+  s_c9239ef50a85f8::t_c614c7b7873e19 377-379,381,383-391
+docker_ant/Dockerfile_890p_sglang
+  s_c9239ef50a85f8::t_4184730d443562 134-135,139,141
+docker_ant/tests/test_image_build_inputs.py
+  s_c9239ef50a85f8::t_77a3c736a20105 19
+  s_c9239ef50a85f8::t_7095f31d747ef0 20-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "06f344b00e82f25fe096482fceb9fa02a3a59abb",
+  "prompts": {},
+  "sessions": {
+    "s_c9239ef50a85f8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f48-268f-7801-b087-d071be051a56",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tengweicai <tengweicai@gmail.com>"
+    }
+  }
+}

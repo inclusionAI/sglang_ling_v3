@@ -1,0 +1,108 @@
+python/sglang/kernels/jit/csrc/distributed/custom_all_reduce.cuh
+  h_1d635ecd767a49 30,98,100-150,274,351,389,476,535-554,560,563,565-566,600,607,609-610,613-618,621-624,636-656,693-694,717-723,758,761-771
+python/sglang/kernels/jit/csrc/elementwise/pos_enc.cuh
+  h_1d635ecd767a49 39-45
+python/sglang/kernels/jit/csrc/elementwise/rope.cuh
+  h_1d635ecd767a49 74-79,100-101
+python/sglang/kernels/jit/csrc/gemm/per_token_group_quant.cuh
+  h_1d635ecd767a49 198,222-224,234-235,244-246,290-293,297-315,492,585,603-605,607-617,639-641,643-652,664-685,688,692-701
+python/sglang/kernels/ops/attention/fla/chunk_delta_h.py
+  h_1d635ecd767a49 49,81,97-105,107,109,111,142-149,153-158,163-168,173-178,185-190,195-200,205-210,215-220,228-231,237-240,246-249,255-258,295-299,301-305,314-318,320-324,333-337,339-343,352-356,358-362,369-370,376-377,383-384,390-391,395-402,406-411,416-421,426-431,448-450,471-472,508
+python/sglang/kernels/ops/attention/fla/chunk_intra.py
+  h_1d635ecd767a49 150-153,199,201-202,233-234,236,240,272-273,275,280,285,789,847,900-914
+python/sglang/kernels/ops/attention/fla/fused_norm_gate.py
+  h_1d635ecd767a49 360,379-391
+python/sglang/kernels/ops/attention/fla/kda.py
+  h_1d635ecd767a49 557-558,625-627,763,784-785,828-831,837-838,846-852,892-893,921-922,934,968-969,1017-1035,1046,1088-1105,1118,1137-1138,1161,1201-1205,1216-1218,1231-1232,1247-1248,1253-1256,1277-1278,1303-1304
+python/sglang/kernels/ops/attention/fla/kda_precision.py
+  h_1d635ecd767a49 1-130
+python/sglang/kernels/ops/communication/all_reduce.py
+  h_1d635ecd767a49 142-147,152-155,165-166,168-170,174-187
+python/sglang/kernels/ops/layernorm/training_rmsnorm.py
+  h_1d635ecd767a49 1-110
+python/sglang/kernels/ops/moe/ep_moe_kernels.py
+  h_1d635ecd767a49 302,350-358,395,465,516,545,586-592,1275-1276,1290-1296,1299-1310,1326-1328,1346,1372-1373
+python/sglang/kernels/ops/moe/moe_fused_gate.py
+  h_1d635ecd767a49 9,90-176,232-233,264-265,274-279,305-313,319-323,429-452
+python/sglang/kernels/ops/moe/router_weight.py
+  h_1d635ecd767a49 1-44
+python/sglang/kernels/ops/quantization/__init__.py
+  h_1d635ecd767a49 133-134,156-157
+python/sglang/kernels/ops/quantization/per_token_group_quant.py
+  h_1d635ecd767a49 35-36,50-51,63-69,107-108,122-123,126-130,189-190,213-218,223-241,255-262,272-273
+python/sglang/srt/distributed/device_communicators/custom_all_reduce_v2.py
+  h_1d635ecd767a49 33,107,118-119,125,317-319,334-335,365-388
+python/sglang/srt/distributed/parallel_state.py
+  h_1d635ecd767a49 474,478-505,702-710,1005-1029,1033-1046,1161-1197
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1070-1071,1480-1482,1492-1495
+python/sglang/srt/layers/attention/linear/kda_backend.py
+  h_1d635ecd767a49 11,371-386,474,551-577,722-748,892-894
+python/sglang/srt/layers/communicator.py
+  h_1d635ecd767a49 174-175,821-822,1518
+python/sglang/srt/layers/layernorm.py
+  h_1d635ecd767a49 438-439,480-495
+python/sglang/srt/layers/moe/fused_moe_triton/layer.py
+  h_1d635ecd767a49 183-189,281,289,391,398,491-492
+python/sglang/srt/layers/moe/moe_runner/ascend.py
+  h_1d635ecd767a49 290-294
+python/sglang/srt/layers/moe/moe_runner/base.py
+  h_1d635ecd767a49 53,61
+python/sglang/srt/layers/moe/moe_runner/deep_gemm.py
+  h_1d635ecd767a49 48,187-200,307-361,446-457,673-677,817-853,899,1002-1013,1017-1021,1066-1076,1143-1145,1266-1268,1312,1330-1335,1342-1345,1489-1491,1521-1528,1661,1716,1764
+python/sglang/srt/layers/moe/token_dispatcher/deepep.py
+  h_1d635ecd767a49 133,143,785,793,809,822,834,873,904-928,930-946,1006-1008,1057,1077
+python/sglang/srt/layers/moe/topk.py
+  h_1d635ecd767a49 1480-1486,1488-1490
+python/sglang/srt/layers/quantization/w4afp8.py
+  h_1d635ecd767a49 345-348
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 42-43,632,638-640,663-668,703-721,746-753,755-758,772-780,1036-1044,1076-1082,1085,1118-1127,1136-1148,1283,1353-1367,1555-1559,1568,1618,2873-2883
+test/manual/moe/test_deepep_ll_pre_gemm2_weights.py
+  h_1d635ecd767a49 1-140
+test/registered/kernels/ops/attention/test_kda_gate_training_layout.py
+  h_1d635ecd767a49 1-56
+test/registered/kernels/ops/attention/test_kda_precision_lifecycle.py
+  h_1d635ecd767a49 1-156
+test/registered/kernels/ops/attention/test_kda_state_layout.py
+  h_1d635ecd767a49 1-73
+test/registered/kernels/ops/attention/test_rope.py
+  h_1d635ecd767a49 61-91
+test/registered/kernels/ops/communication/test_custom_all_reduce.py
+  h_1d635ecd767a49 172-185,247-333
+test/registered/kernels/ops/communication/test_training_precision_collectives.py
+  h_1d635ecd767a49 1-229
+test/registered/kernels/ops/layernorm/test_training_rmsnorm.py
+  h_1d635ecd767a49 1-103
+test/registered/kernels/ops/moe/test_ep_gather_order.py
+  h_1d635ecd767a49 1-59
+test/registered/kernels/ops/moe/test_grouped_top8_training.py
+  h_1d635ecd767a49 1-100
+test/registered/kernels/ops/moe/test_moe_fused_gate.py
+  h_1d635ecd767a49 79-84,105-177
+test/registered/kernels/ops/moe/test_router_weight_before_gemm2.py
+  h_1d635ecd767a49 1-57
+test/registered/kernels/ops/quantization/test_per_token_group_quant.py
+  h_1d635ecd767a49 25,546-630
+test/registered/kernels/ops/quantization/test_router_weight_quant.py
+  h_1d635ecd767a49 1-81
+test/registered/unit/layers/moe/test_cutedsl_deepep_auto.py
+  h_1d635ecd767a49 223,226,248,259-268
+test/registered/unit/layers/moe/test_cutedsl_deepep_dispatch_config.py
+  h_1d635ecd767a49 385,407
+test/registered/unit/models/test_bailing_moe_v3_deepep_sbo.py
+  h_1d635ecd767a49 82,196-220
+test/registered/unit/models/test_bailing_shared_attention_tp.py
+  h_1d635ecd767a49 1-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3b86a3b9e973417feeb26eb54d222d8cbfb4cfa7",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

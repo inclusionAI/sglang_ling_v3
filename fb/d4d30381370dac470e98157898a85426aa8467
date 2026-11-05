@@ -1,0 +1,31 @@
+test/registered/unit/managers/test_tool_event_tracker.py
+  s_3972c652cf9de1::t_21c7b8219b1fb9 120-130
+  s_3972c652cf9de1::t_0d888ff47fe74e 1-119,131-163
+python/sglang/srt/managers/scheduler.py
+  s_3972c652cf9de1::t_1d4e793b653991 141-143
+  s_3972c652cf9de1::t_5976ee8e60f85c 189,952,1317-1318,3109-3147,3334
+python/sglang/srt/managers/tool_event_tracker.py
+  s_3972c652cf9de1::t_5976ee8e60f85c 1,3-6,64,66,70,72,78-83,90-92,94-96,111-113,134-136
+  s_3972c652cf9de1::t_1d4e793b653991 2,7-63,65,67-69,71,73-77,84-89,93,97-110,114-133,137-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fbd4d30381370dac470e98157898a85426aa8467",
+  "prompts": {},
+  "humans": {
+    "h_090a9801e15a54": {
+      "author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_3972c652cf9de1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19b24-821b-7740-b2df-f020208d67e8",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}

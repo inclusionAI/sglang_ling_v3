@@ -1,0 +1,24 @@
+python/sglang/srt/layers/attention/linear/kda_backend.py
+  s_31943fee543816::t_2dee995122f8a3 753-758
+test/registered/unit/layers/attention/test_kda_idle_verify.py
+  s_31943fee543816::t_24cfea60aa6882 1-5,7-69
+test/registered/unit/models/test_bailing_mla_idle.py
+  s_31943fee543816::t_335ac7ed9f87a9 1-5,7-62
+  s_31943fee543816::t_08ebeb3ad40946 63-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3de161d092035ede8403bc95d53b4e5aacbf3cc3",
+  "prompts": {},
+  "sessions": {
+    "s_31943fee543816": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19afd-fd44-7bf0-a993-a0f8566550c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+docker/ant/kvpool/scripts/real_client_compat.py
+  h_25b71af7882e89 1-15
+docker/ant/kvpool/vendor/mooncake_0.3.6.post1/real_client_daemon.py
+  h_25b71af7882e89 1-152
+docker_ant/Dockerfile_890p_sglang
+  h_25b71af7882e89 30,41-44
+test/ppu/test_kvpool_sdk_setup.py
+  h_25b71af7882e89 1-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8df0607400d2e509e1a3f0ed1b884ca41a5aa5b6",
+  "prompts": {},
+  "humans": {
+    "h_25b71af7882e89": {
+      "author": "韵娇 <zhangyajiao.zyj@antgroup.com>"
+    }
+  }
+}

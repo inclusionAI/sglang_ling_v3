@@ -1,0 +1,21 @@
+python/sglang/srt/mem_cache/cpu_backup_budget.py
+  s_b14c5864faf74b::t_70b1d1c184c196 89,91,93
+python/sglang/srt/models/qwen4_exp.py
+  s_b14c5864faf74b::t_86d9acf5626f07 1398-1400
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a6c76885ca0150ea0706415fd56c44afecae847d",
+  "prompts": {},
+  "sessions": {
+    "s_b14c5864faf74b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f2d80beb-b1f7-4844-b010-4d95995c96b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

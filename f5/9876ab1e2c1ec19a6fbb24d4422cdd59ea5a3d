@@ -1,0 +1,20 @@
+python/sglang/kernels/jit/csrc/distributed/custom_all_reduce.cuh
+  h_1d635ecd767a49 97,222,299,337,424,488,492,526,533,535,538,541,553,646,649
+python/sglang/kernels/ops/communication/all_reduce.py
+  h_1d635ecd767a49 142-143,148,159
+python/sglang/srt/distributed/device_communicators/custom_all_reduce_v2.py
+  h_1d635ecd767a49 312,356
+python/sglang/srt/distributed/parallel_state.py
+  h_1d635ecd767a49 477-484
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f59876ab1e2c1ec19a6fbb24d4422cdd59ea5a3d",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

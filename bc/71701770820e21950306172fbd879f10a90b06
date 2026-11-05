@@ -1,0 +1,23 @@
+test/registered/kernels/ops/kvcache/test_hicache_page_first_write_back.py
+  s_51c34f7332cc20::t_27026b1d2ee21d 291-294,296-303,317-321,326-333
+  s_51c34f7332cc20::t_9bd16ef2268b67 16-20,262-290,295,304-316,322-325,334-339
+  s_51c34f7332cc20::t_89baa06540571b 340-341
+python/sglang/kernels/jit/csrc/kvcacheio/staged_write_back.cuh
+  s_51c34f7332cc20::t_3e3ccd9c9f5007 84-93,98-100,118-127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bc71701770820e21950306172fbd879f10a90b06",
+  "prompts": {},
+  "sessions": {
+    "s_51c34f7332cc20": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04205-1b6d-74f0-9aa6-e5bd318c5bc3",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

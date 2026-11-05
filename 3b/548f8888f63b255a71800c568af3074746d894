@@ -1,0 +1,25 @@
+python/sglang/srt/debug_utils/training_reference_bridge.py
+  s_d2f4c9dc120b69::t_5b68ed84302a16 200-201
+python/sglang/srt/debug_utils/training_reference_profile.py
+  s_d2f4c9dc120b69::t_4c9946328e0233 229
+test/registered/debug_utils/test_rollout_precision_campaign_integration_review.py
+  s_d2f4c9dc120b69::t_2dbdea856835b9 61
+test/registered/debug_utils/test_training_reference_profile.py
+  s_d2f4c9dc120b69::t_a84661916de64c 365
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3b548f8888f63b255a71800c568af3074746d894",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

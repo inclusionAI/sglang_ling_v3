@@ -1,0 +1,14 @@
+test/registered/kernels/ops/moe/test_ep_scatter_indices.py
+  h_5b710c0a1cb0fe 67-69,125-128,131-133,135-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4d5664085ccaa0a67cad042c771914dec9c71afa",
+  "prompts": {},
+  "humans": {
+    "h_5b710c0a1cb0fe": {
+      "author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}

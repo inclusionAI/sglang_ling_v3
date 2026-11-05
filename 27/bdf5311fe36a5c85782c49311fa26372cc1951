@@ -1,0 +1,18 @@
+test/registered/unit/managers/test_pp_result_stream_order.py
+  h_1d635ecd767a49 254
+test/registered/unit/spec/test_pipeline_eagle_worker.py
+  h_1d635ecd767a49 67
+test/registered/unit/state_capturer/test_routed_experts_pp.py
+  h_1d635ecd767a49 263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "27bdf5311fe36a5c85782c49311fa26372cc1951",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

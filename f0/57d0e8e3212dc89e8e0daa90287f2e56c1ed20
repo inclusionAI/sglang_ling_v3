@@ -1,0 +1,30 @@
+python/sglang/kernels/jit/csrc/distributed/custom_all_reduce.cuh
+  h_1d635ecd767a49 544,551-552,719-723
+python/sglang/kernels/ops/communication/all_reduce.py
+  h_1d635ecd767a49 182-183
+python/sglang/srt/distributed/device_communicators/custom_all_reduce_v2.py
+  h_1d635ecd767a49 108,121-122,129-131,193-194,324-335,354-356,364,376,401-408
+python/sglang/srt/distributed/parallel_state.py
+  h_1d635ecd767a49 474,478,491,494-495,702-704,708,1017,1032,1036,1159
+python/sglang/srt/environ.py
+  h_1d635ecd767a49 1481
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 1365-1381
+test/registered/kernels/ops/communication/test_native_bf16_reduce.py
+  h_1d635ecd767a49 1-92
+test/registered/kernels/ops/communication/test_training_precision_collectives.py
+  h_1d635ecd767a49 1,18-19,47,63-64,67-68,82-83,104-107,131-132,160
+test/registered/unit/models/test_bailing_shared_attention_tp.py
+  h_1d635ecd767a49 4,38-48,62-66,71-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f057d0e8e3212dc89e8e0daa90287f2e56c1ed20",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
