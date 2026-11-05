@@ -1,0 +1,24 @@
+python/sglang/srt/debug_utils/native_subgraph_replay.py
+  s_d2f4c9dc120b69::t_ad95d809bc1691 785,793,795
+python/sglang/srt/debug_utils/rollout_precision_offline.py
+  s_d2f4c9dc120b69::t_ad95d809bc1691 132-133,152-156
+test/registered/debug_utils/test_native_subgraph_replay.py
+  s_d2f4c9dc120b69::t_a727b0f587670c 50-52,54-57
+  s_d2f4c9dc120b69::t_ad95d809bc1691 39-49,53,58-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c7d347aa05f1ef8a0d895555d2160668c2901cb3",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}
