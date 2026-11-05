@@ -11,14 +11,19 @@ Only model loading uses this helper; runtime kernels keep aligned shapes.
 import torch
 
 
-def padded_bailing_fp8_intermediate_size(quant_config, intermediate_size, tp_size):
+def padded_bailing_fp8_intermediate_size(
+    quant_config, intermediate_size, tp_size, *, is_routed_expert=True
+):
     """Select model-specific padding only for serialized block128 FP8 tails."""
     if (
         quant_config is None
         or quant_config.get_name() != "fp8"
         or not getattr(quant_config, "is_checkpoint_fp8_serialized", False)
         or getattr(quant_config, "use_mxfp8", False)
-        or getattr(quant_config, "is_fp4_experts", False)
+        or (
+            is_routed_expert
+            and getattr(quant_config, "is_fp4_experts", False)
+        )
         or getattr(quant_config, "weight_block_size", None) != [128, 128]
         or tp_size <= 1
     ):

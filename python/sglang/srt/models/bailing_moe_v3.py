@@ -356,9 +356,21 @@ class BailingMLP(nn.Module):
 
         self.act_fn = SiluAndMul()
         self._fp8_tp_padding = None
+        # A mixed checkpoint keeps dense/shared projections in FP8 even when
+        # its routed experts are FP4. Select padding from these actual weights.
+        mixed_fp8_projections = (
+            getattr(getattr(self.gate_up_proj, "weight", None), "dtype", None)
+            == torch.float8_e4m3fn,
+            getattr(getattr(self.down_proj, "weight", None), "dtype", None)
+            == torch.float8_e4m3fn,
+        )
         if (
-            padded_bailing_fp8_intermediate_size(
-                quant_config, intermediate_size, tp_size
+            (
+                not getattr(quant_config, "is_fp4_experts", False)
+                or any(mixed_fp8_projections)
+            )
+            and padded_bailing_fp8_intermediate_size(
+                quant_config, intermediate_size, tp_size, is_routed_expert=False
             )
             is not None
         ):
@@ -367,7 +379,7 @@ class BailingMLP(nn.Module):
                 or self.down_proj.weight.dtype != torch.float8_e4m3fn
             ):
                 raise NotImplementedError(
-                    "Bailing shared-expert FP8 TP padding requires serialized FP8 projections"
+                    "Bailing FP8 TP padding requires both projections in serialized FP8"
                 )
             rank = group.rank_in_group if group is not None else 0
             self._fp8_tp_padding = BailingFp8TPPadding(
