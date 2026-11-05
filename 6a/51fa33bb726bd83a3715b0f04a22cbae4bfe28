@@ -1,0 +1,25 @@
+python/sglang/srt/layers/quantization/compressed_tensors/schemes/compressed_tensors_wNa16_moe.py
+  s_e259a47f59a9de::t_0592a745e679a0 495-500
+python/sglang/srt/layers/moe/moe_runner/marlin.py
+  s_e259a47f59a9de::t_0592a745e679a0 211-216
+python/sglang/srt/layers/moe/fused_moe_triton/fused_marlin_moe.py
+  s_e259a47f59a9de::t_0592a745e679a0 112-122,182
+  s_e259a47f59a9de::t_43468ddec4b9ea 374-378
+  s_e259a47f59a9de::t_f8f465fbff2ea7 379
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6a51fa33bb726bd83a3715b0f04a22cbae4bfe28",
+  "prompts": {},
+  "sessions": {
+    "s_e259a47f59a9de": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a9d1-c6e1-7940-b64f-ea54c9ac2062",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "vito.yy <vito.yy@antgroup.com>"
+    }
+  }
+}
