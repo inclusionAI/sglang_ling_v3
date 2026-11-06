@@ -1,0 +1,27 @@
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_8b0ece6132ddff::t_71cc1114e2074d 126-130,1460-1464,1466,1468-1470,5520-5524
+python/sglang/srt/layers/dsv41_sm90.py
+  s_8b0ece6132ddff::t_3d83430259c8d9 10-15,69-73,196,224-251
+python/sglang/srt/layers/quantization/fp8_block32_sm90.py
+  s_8b0ece6132ddff::t_353a6af14ec31a 43,64-71,84-86,205-218,246
+python/sglang/srt/managers/scheduler_components/internal_state.py
+  s_8b0ece6132ddff::t_4a24d5402fc093 13,55,112-120
+python/sglang/srt/models/deepseek_v4_cp_prefill.py
+  s_8b0ece6132ddff::t_7659938dfe7985 48,535-537
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "808d571df6c3e6755ae0ff5780d0680c5f08dca3",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

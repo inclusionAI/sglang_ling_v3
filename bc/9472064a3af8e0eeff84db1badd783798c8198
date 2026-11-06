@@ -1,0 +1,31 @@
+python/sglang/kernels/ops/kvcache/hicache.py
+  s_02bac1f8866f01::t_249fa8fe5e5030 50
+  s_02bac1f8866f01::t_4720edf342f2ed 43-44
+python/sglang/kernels/jit/csrc/kvcacheio/staged_write_back.cuh
+  s_02bac1f8866f01::t_4720edf342f2ed 105,122,125,132,164-165,167-171,178-181,183-187,216,232,320,325
+  s_02bac1f8866f01::t_249fa8fe5e5030 128-130,166,182,188-199,221-222,226
+  s_02bac1f8866f01::t_3cdc550a01955f 133-136
+  s_02bac1f8866f01::t_8630193d1b570f 131
+python/sglang/srt/environ.py
+  s_02bac1f8866f01::t_4720edf342f2ed 700-701
+test/registered/kernels/ops/kvcache/test_hicache_page_first_write_back.py
+  s_02bac1f8866f01::t_249fa8fe5e5030 264-272,275-289,291-296
+  s_02bac1f8866f01::t_3c2af087048203 263
+  s_02bac1f8866f01::t_530877e6557324 297
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bc9472064a3af8e0eeff84db1badd783798c8198",
+  "prompts": {},
+  "sessions": {
+    "s_02bac1f8866f01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19c45-cf08-7c90-b868-1ee884ff702a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "lzp267823 <lzp267823@alibaba-inc.com>"
+    }
+  }
+}
