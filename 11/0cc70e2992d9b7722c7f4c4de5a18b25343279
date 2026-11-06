@@ -1,0 +1,23 @@
+python/sglang/srt/models/deepseek_common/attention_forward_methods/forward_mha.py
+  s_9fcce24f273208::t_44db6a2cc69d6b 319,410
+python/sglang/srt/models/deepseek_common/attention_forward_methods/forward_mla_rocm.py
+  s_9fcce24f273208::t_2cdcd3e2b9ad15 1076
+python/sglang/srt/models/deepseek_common/utils.py
+  s_9fcce24f273208::t_1ca98f3b51019e 118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "110cc70e2992d9b7722c7f4c4de5a18b25343279",
+  "prompts": {},
+  "sessions": {
+    "s_9fcce24f273208": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8f11576-0caa-4937-81d5-1755f59b7de8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

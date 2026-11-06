@@ -1,0 +1,24 @@
+python/sglang/srt/managers/tokenizer_control_mixin.py
+  s_3972c652cf9de1::t_d665b87e4032a0 113,258-259
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "92e2b91d7295a18f86de476c6c4f9e21a52efefa",
+  "prompts": {},
+  "humans": {
+    "h_090a9801e15a54": {
+      "author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  },
+  "sessions": {
+    "s_3972c652cf9de1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19b24-821b-7740-b2df-f020208d67e8",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}

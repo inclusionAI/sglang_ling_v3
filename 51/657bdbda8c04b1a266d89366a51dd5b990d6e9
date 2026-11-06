@@ -1,0 +1,22 @@
+python/sglang/kernels/jit/csrc/gemm/fused_gemm_all_reduce.cuh
+  h_1d635ecd767a49 29,32,35,38,227,255,515-518,528-529,544,562,567-578,580-591,652-654,658,672-674,678,680-682,684-688,690,696-698,720-722,727,730,740,779-782,787,837-838,840-842,853-855
+python/sglang/kernels/ops/gemm/fused_gemm_all_reduce.py
+  h_1d635ecd767a49 18,154-155,174-175,189-219,309-312,342-343
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 1013-1020,1038-1041,1053,1070,1316-1319,1325
+test/registered/kernels/ops/gemm/test_fused_gemm_all_reduce.py
+  h_1d635ecd767a49 36-78,223-237
+test/registered/unit/models/test_bailing_latent_down_tp.py
+  h_1d635ecd767a49 233-251,253-257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "51657bdbda8c04b1a266d89366a51dd5b990d6e9",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+test/registered/unit/test_fa3_kernel_arguments.py
+  s_3972c652cf9de1::t_ea26a6823dbe62 1-29,35-39,48-54,60-112,117-136
+  s_3972c652cf9de1::t_411a3669e765a0 30-34,40-47,55-59,113-116
+test/registered/unit/run_tool_time_cache_cpu_tests.py
+  s_3972c652cf9de1::t_ea26a6823dbe62 38
+python/sglang/jit_kernel/flash_attention_v3.py
+  s_3972c652cf9de1::t_27587337f69331 18,20,22,26,148-175,221-241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "678fea86ee61cd24215baac9b3ce94d68226e799",
+  "prompts": {},
+  "sessions": {
+    "s_3972c652cf9de1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19b24-821b-7740-b2df-f020208d67e8",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Bean <wengjiaxiang.wjx@antgroup.com>"
+    }
+  }
+}

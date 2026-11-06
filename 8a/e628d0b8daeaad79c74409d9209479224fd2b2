@@ -1,0 +1,27 @@
+python/sglang/srt/managers/schedule_policy.py
+  s_51c34f7332cc20::t_7dc0fba27ac99f 1046-1051,1072-1088,1091-1095,1109-1112
+  s_51c34f7332cc20::t_56cdcd16cda093 1089-1090
+python/sglang/srt/managers/scheduler.py
+  s_51c34f7332cc20::t_7dc0fba27ac99f 3430,3442
+  s_51c34f7332cc20::t_a5066f1e27f972 3431
+test/registered/unit/managers/test_prefill_adder_mamba_branch_split.py
+  s_51c34f7332cc20::t_7dc0fba27ac99f 216-217,220,224,227,229-231,237,252,262-265,278-280,288,309-310,315,319-323,331-368,377
+  s_51c34f7332cc20::t_6516300fa1cfbe 218
+  s_51c34f7332cc20::t_7244bdd6423045 273-277,306-308,311-314,316-318,324-330,369-376
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8ae628d0b8daeaad79c74409d9209479224fd2b2",
+  "prompts": {},
+  "sessions": {
+    "s_51c34f7332cc20": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04205-1b6d-74f0-9aa6-e5bd318c5bc3",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}

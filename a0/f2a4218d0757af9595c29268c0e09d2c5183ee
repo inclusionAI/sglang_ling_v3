@@ -1,0 +1,117 @@
+test/registered/debug_utils/test_rollout_precision_campaign_runtime.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 19-20
+test/registered/debug_utils/test_deterministic_kda_capture.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 18-19
+test/registered/debug_utils/test_rollout_precision_campaign_plan.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 16-17
+test/registered/debug_utils/test_capture_coverage_index.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 29-30
+test/registered/debug_utils/test_exact_reference.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 8-11
+test/registered/debug_utils/test_native_subgraph_replay.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 9-12
+test/registered/debug_utils/test_rollout_precision_campaign.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 27-28
+test/registered/debug_utils/test_native_subgraph_capture.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 8-11
+test/registered/debug_utils/test_training_reference_bi.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 30-31
+test/registered/debug_utils/test_rollout_precision_campaign_followup.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 24-25
+test/registered/debug_utils/test_rollout_precision_cluster.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 14-17
+test/registered/debug_utils/test_rollout_output_tokens.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 12-15
+test/registered/debug_utils/test_rollout_precision_history_references.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 11-14
+test/registered/debug_utils/test_rollout_precision_owned_archive.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 12-15
+test/registered/debug_utils/comparator/test_alignment_backend.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 9-12
+test/registered/debug_utils/test_rollout_precision_retry.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 11-14
+test/registered/debug_utils/comparator/tensor_comparator/test_failed_detail_reuse.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 13-16
+test/registered/debug_utils/test_runtime_observation.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 17-18
+test/registered/debug_utils/test_training_reference_tiny.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 24-25
+test/registered/debug_utils/comparator/test_metric_backend.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 20-23
+test/registered/debug_utils/test_rollout_precision_campaign_cli.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 19-20
+test/registered/debug_utils/test_rollout_precision_history.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 26-27
+test/registered/debug_utils/test_rollout_precision_mechanism.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 15-18
+test/registered/debug_utils/test_training_reference_capture.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 19-20
+test/registered/debug_utils/test_rollout_logit_audit.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 12-15
+test/registered/debug_utils/test_rollout_precision_campaign_report.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 26-27
+test/registered/debug_utils/test_deep_gemm_bf16_padding.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 11-14
+test/registered/debug_utils/test_rollout_precision_nohash.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 12-15
+test/registered/debug_utils/test_rollout_precision_one_click.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 12-15
+test/registered/debug_utils/test_subgraph_plan.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 9-12
+test/registered/debug_utils/test_training_reference_bridge.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 25-26
+test/registered/debug_utils/test_rollout_free_generation.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 8-11
+test/registered/debug_utils/test_comparator_report_sink_io.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 29
+test/registered/debug_utils/test_training_reference_compare.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 26-27
+test/registered/debug_utils/test_rollout_precision_report_plan_only.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 9-12
+test/registered/debug_utils/test_verification_session.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 24-25
+test/registered/debug_utils/test_rollout_precision_history_compare.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 24-25
+test/registered/debug_utils/test_rollout_precision_history_analysis.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 22-23
+test/registered/debug_utils/test_rollout_precision_campaign_integration_review.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 11-14
+test/registered/debug_utils/test_training_reference_profile.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 33-34
+test/registered/debug_utils/test_rollout_precision_cross_batch.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 19-20
+test/registered/debug_utils/test_tensor_intervention.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 9-12
+test/registered/debug_utils/test_rollout_precision_campaign_canonical.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 10-13
+test/registered/debug_utils/test_rollout_linear_audit.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 7-10
+test/registered/debug_utils/test_graph_snapshot_export_cpu.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 16-19
+test/registered/debug_utils/test_rollout_precision_report_csv.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 9-12
+test/registered/debug_utils/test_cpu_reference.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 12-15
+test/registered/debug_utils/test_training_reference_megatron.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 24-25
+test/registered/debug_utils/test_rollout_precision_history_aliases.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 25-26
+test/registered/debug_utils/test_ordered_reduce_scatter.py
+  s_d2f4c9dc120b69::t_4ec88b0212b2c7 11-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a0f2a4218d0757af9595c29268c0e09d2c5183ee",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

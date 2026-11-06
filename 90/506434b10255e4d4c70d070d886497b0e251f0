@@ -1,0 +1,31 @@
+python/sglang/srt/environ.py
+  s_51c34f7332cc20::t_83ca704916b1e8 592-594
+python/sglang/srt/managers/scheduler.py
+  s_51c34f7332cc20::t_83ca704916b1e8 3419-3437,3443-3446
+  s_51c34f7332cc20::t_e7fad715c70f37 3438-3442
+test/registered/unit/managers/test_prefill_adder_mamba_branch_split.py
+  s_51c34f7332cc20::t_dee21947976d84 204-247,274-314
+  s_51c34f7332cc20::t_e7fad715c70f37 248-273
+python/sglang/srt/managers/schedule_policy.py
+  s_51c34f7332cc20::t_83ca704916b1e8 1048-1049,1054-1065,1070-1087,1105-1108
+  s_51c34f7332cc20::t_dee21947976d84 33
+  s_51c34f7332cc20::t_e7fad715c70f37 1045-1047,1050,1066-1069
+  s_51c34f7332cc20::t_37228bcb72ac0b 1051-1053
+  s_51c34f7332cc20::t_248c64eb02251c 1109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "90506434b10255e4d4c70d070d886497b0e251f0",
+  "prompts": {},
+  "sessions": {
+    "s_51c34f7332cc20": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04205-1b6d-74f0-9aa6-e5bd318c5bc3",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "luoyuan.luo <luoyuan.luo@antgroup.com>"
+    }
+  }
+}
