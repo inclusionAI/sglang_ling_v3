@@ -1,0 +1,16 @@
+python/sglang/kernels/ops/layernorm/training_rmsnorm.py
+  h_1d635ecd767a49 24-42,44-47,52-58,64,67-71,74,91-95,97-98,108-114,118-119,125-129,136-138
+test/registered/kernels/ops/layernorm/test_training_rmsnorm.py
+  h_1d635ecd767a49 104-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8acf6e077d239be3e915a8719323b65ac4543b3c",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
