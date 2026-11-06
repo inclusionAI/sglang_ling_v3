@@ -1,0 +1,18 @@
+python/sglang/srt/managers/scheduler_pp_mixin.py
+  h_1d635ecd767a49 121-133
+test/registered/unit/managers/test_model_worker_control_plane.py
+  h_1d635ecd767a49 156,169-209
+test/registered/unit/spec/test_pipeline_eagle_worker.py
+  h_1d635ecd767a49 820
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "30b1dd8be68cb7c859c936d796ec7bd4d19fc7e0",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+python/sglang/kernels/jit/csrc/distributed/custom_all_reduce.cuh
+  h_1d635ecd767a49 504-523,529,534,536-537,592-593,608-609,615-618,625-627,631,692-698,757-761
+python/sglang/kernels/ops/communication/all_reduce.py
+  h_1d635ecd767a49 151,177-185
+python/sglang/srt/distributed/device_communicators/custom_all_reduce_v2.py
+  h_1d635ecd767a49 32,406-410
+python/sglang/srt/distributed/parallel_state.py
+  h_1d635ecd767a49 1309-1328
+test/registered/kernels/ops/communication/test_native_bf16_reduce.py
+  h_1d635ecd767a49 91-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "41bc78c1bb02eb0ed063338d9730b067c2d627bc",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

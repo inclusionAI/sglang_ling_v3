@@ -1,0 +1,19 @@
+docker/ant/aci/sglang_overlay.aci.yml
+  s_8b0ece6132ddff::t_d3873fc066a87f 1-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "52e3b134ef8773a1b730764de14d15bbdd09843c",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

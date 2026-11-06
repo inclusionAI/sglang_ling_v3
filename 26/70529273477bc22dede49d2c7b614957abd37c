@@ -1,0 +1,19 @@
+docker/Dockerfile
+  s_2989e747921d7b::t_48827615c6c66e 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2670529273477bc22dede49d2c7b614957abd37c",
+  "prompts": {},
+  "sessions": {
+    "s_2989e747921d7b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a980-4684-7d13-8058-233d81e9345a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

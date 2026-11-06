@@ -1,0 +1,36 @@
+python/sglang/srt/distributed/parallel_state.py
+  h_1d635ecd767a49 1776-1778,1823,1825-1827
+python/sglang/srt/layers/sampler.py
+  h_1d635ecd767a49 74-84,137,234-250,514-522
+python/sglang/srt/managers/scheduler_pp_mixin.py
+  h_1d635ecd767a49 18,1173,1192,1199-1201
+python/sglang/srt/speculative/eagle_utils.py
+  h_1d635ecd767a49 802-803,940-954
+python/sglang/srt/speculative/pipeline_eagle_worker.py
+  h_1d635ecd767a49 10,24,105-109,297,304-311
+test/manual/pp_nccl_rma/README.md
+  h_1d635ecd767a49 5-16,56,102,112-115
+test/manual/pp_nccl_rma/test_transport.py
+  h_1d635ecd767a49 9,20,46,56-63,75-76,83,86,89,121,125,129,198,206,210,212-216,221-225,230,232,292-316
+test/registered/unit/distributed/test_pp_tensor_transport.py
+  h_1d635ecd767a49 1,7-9,16-38,41-44,46-74
+test/registered/unit/managers/test_pp_result_stream_order.py
+  h_1d635ecd767a49 1,33,56,80,159,162
+test/registered/unit/model_executor/test_attnres_pp_layout.py
+  h_1d635ecd767a49 66,69,80
+test/registered/unit/sampling/test_pp_sampling_consistency.py
+  h_1d635ecd767a49 1-193
+test/registered/unit/spec/test_pipeline_eagle_worker.py
+  h_1d635ecd767a49 482,489,492,640,704-715,722-731
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fe00bfb5fe0589af7cf5603789186e10d30f832e",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

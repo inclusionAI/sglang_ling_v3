@@ -1,0 +1,23 @@
+python/sglang/srt/debug_utils/layer_type_plan.py
+  s_d2f4c9dc120b69::t_0892b7e871b0c2 3,17-50
+python/sglang/srt/debug_utils/subgraph_plan.py
+  s_d2f4c9dc120b69::t_e321a98cf72561 7-11,433-434
+test/registered/debug_utils/test_layer_type_plan.py
+  s_d2f4c9dc120b69::t_e5952c5b4937b2 75-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "120054463490e5ec70211e73e84b384ea60e9562",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

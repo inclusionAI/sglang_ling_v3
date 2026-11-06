@@ -1,0 +1,21 @@
+python/sglang/srt/layers/dsv41_sm90.py
+  s_8b0ece6132ddff::t_332746b3d61386 74-80,251-256,259-264
+python/sglang/srt/layers/logits_processor.py
+  s_8b0ece6132ddff::t_4791b8f7dfa08b 58,477-482,1209-1210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "61ea5d339c660acc1fddb1ac6f8f8d0c4c1a4364",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

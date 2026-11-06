@@ -1,0 +1,28 @@
+python/sglang/kernels/ops/attention/fla/chunk_delta_h.py
+  h_1d635ecd767a49 49,81,97-105,107,109,111,142-149,153-158,163-168,173-178,185-190,195-200,205-210,215-220,228-231,237-240,246-249,255-258,295-299,301-305,314-318,320-324,333-337,339-343,352-356,358-362,369-370,376-377,383-384,390-391,395-402,406-411,416-421,426-431,448-450,471-472,508
+python/sglang/kernels/ops/attention/fla/chunk_intra.py
+  h_1d635ecd767a49 150-153,199,201-202,233-234,236,240,272-273,275,280,285,789,847,900-914
+python/sglang/kernels/ops/attention/fla/kda.py
+  h_1d635ecd767a49 557-558,625-627,763,784-785,828-831,837-838,846-852,892-893,921-922,934,968-969,1017-1035,1046,1088-1105,1118,1137-1138,1161,1201-1205,1216-1218,1231-1232,1247-1248,1253-1256,1277-1278,1303-1304
+python/sglang/kernels/ops/attention/fla/kda_precision.py
+  h_1d635ecd767a49 1-130
+python/sglang/srt/layers/attention/linear/kda_backend.py
+  h_1d635ecd767a49 11,371-386,474,551-577,722-748,892-894
+test/registered/kernels/ops/attention/test_kda_gate_training_layout.py
+  h_1d635ecd767a49 1-56
+test/registered/kernels/ops/attention/test_kda_precision_lifecycle.py
+  h_1d635ecd767a49 1-156
+test/registered/kernels/ops/attention/test_kda_state_layout.py
+  h_1d635ecd767a49 1-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "23ddac52df16b4d95f619fda41dc803dceff14d7",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

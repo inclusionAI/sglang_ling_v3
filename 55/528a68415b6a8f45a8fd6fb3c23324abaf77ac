@@ -1,0 +1,23 @@
+test/registered/debug_utils/test_rollout_precision_one_click.py
+  s_d2f4c9dc120b69::t_18ade08794790f 565-576,584,592
+  s_d2f4c9dc120b69::t_98ff0d233241d1 577-583,585-591,593-594
+scripts/rollout_precision.py
+  s_d2f4c9dc120b69::t_2b0a714b494237 758-768
+  s_d2f4c9dc120b69::t_5260f66f8d5385 769-774,795,3705-3707
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "55528a68415b6a8f45a8fd6fb3c23324abaf77ac",
+  "prompts": {},
+  "sessions": {
+    "s_d2f4c9dc120b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12f45-f2ed-7031-95f2-dafb4259d305",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "灵应 <weiyipeng.wyp@antgroup.com>"
+    }
+  }
+}

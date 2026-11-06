@@ -1,0 +1,26 @@
+test/registered/unit/models/test_rocm_mla_absorb_fusion_gate.py
+  s_2989e747921d7b::t_a79a2cf749df6d 304-349
+  s_2989e747921d7b::t_c47e1afe583cb1 1,3-7,9-10,18-23,31,280-303,350-513
+python/sglang/api/v1/api_types.py
+  s_2989e747921d7b::t_0325983c905a6e 817,829-846,2530-2531,2566-2592
+rust/sglang-api-types/src/generated/sglang.api.v1.rs
+  s_2989e747921d7b::t_1d6f20a8cb55cf 993-1012
+rust/sglang-api-types/src/generated/sglang.api.v1.serde.rs
+  s_2989e747921d7b::t_a6282d91f139a7 4904-4910,4946,5088-5096,5122-5194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "65ef80ccfe4df49ed00907bdcc2a4de018d3d3b1",
+  "prompts": {},
+  "sessions": {
+    "s_2989e747921d7b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a980-4684-7d13-8058-233d81e9345a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "羽癫 <yudian.zy@antgroup.com>"
+    }
+  }
+}

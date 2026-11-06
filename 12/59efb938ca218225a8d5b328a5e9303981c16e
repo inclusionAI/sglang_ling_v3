@@ -1,0 +1,31 @@
+python/sglang/srt/layers/dsv41_sm90.py
+  s_b14c5864faf74b::t_3bab86943069f4 42-47
+python/sglang/srt/models/deepseek_v4_cp_prefill.py
+  s_b14c5864faf74b::t_1a53ca3c10304f 47,248-258,482-483
+test/registered/unit/models/test_deepseek_v4_cp_prefill.py
+  s_8b0ece6132ddff::t_daba0211f1e562 80-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1259efb938ca218225a8d5b328a5e9303981c16e",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    },
+    "s_b14c5864faf74b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f2d80beb-b1f7-4844-b010-4d95995c96b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

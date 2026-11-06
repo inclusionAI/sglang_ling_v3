@@ -1,0 +1,23 @@
+python/sglang/kernels/ops/attention/dsv4/topk.py
+  s_8b0ece6132ddff::t_f49da5484ef4ea 140-147
+python/sglang/srt/layers/attention/deepseek_v4_backend.py
+  s_8b0ece6132ddff::t_1f0a57fd0bff87 126,1410-1419
+python/sglang/srt/layers/attention/dsv4/v41_indexer/sm90_decode.py
+  s_8b0ece6132ddff::t_f1bd16f90a41cb 28,61-70,74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b89c4ecba5087fd22787bdfe7eeb925ebff74412",
+  "prompts": {},
+  "sessions": {
+    "s_8b0ece6132ddff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f18cdcee-c2c3-47aa-8e23-18cf67e3aa63",
+        "model": "claude-opus-5"
+      },
+      "human_author": "从阳 <gaohanlin.ghl@antgroup.com>"
+    }
+  }
+}

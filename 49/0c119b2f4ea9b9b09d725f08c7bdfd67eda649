@@ -1,0 +1,18 @@
+python/sglang/kernels/ops/attention/fla/fused_recurrent.py
+  h_1d635ecd767a49 41-45,81-93,95,138-144
+python/sglang/kernels/ops/attention/fla/kda_precision.py
+  h_1d635ecd767a49 10-13,18-21,26-30,32-34,39-49,51,57-59,83,86-91,96-98,102-104,108-109,111-124,126-146
+test/registered/kernels/ops/attention/test_kda_precision_lifecycle.py
+  h_1d635ecd767a49 8-10,12-16,18,25-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "490c119b2f4ea9b9b09d725f08c7bdfd67eda649",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

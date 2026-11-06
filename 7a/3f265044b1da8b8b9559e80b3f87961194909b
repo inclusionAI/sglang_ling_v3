@@ -1,0 +1,18 @@
+python/sglang/kernels/jit/csrc/elementwise/bailing_rmsnorm.cuh
+  h_1d635ecd767a49 1-194
+python/sglang/kernels/ops/layernorm/training_rmsnorm.py
+  h_1d635ecd767a49 10-22,76,78,97,99-107,109-110
+test/registered/kernels/ops/layernorm/test_training_rmsnorm.py
+  h_1d635ecd767a49 16-18,125-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7a3f265044b1da8b8b9559e80b3f87961194909b",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}

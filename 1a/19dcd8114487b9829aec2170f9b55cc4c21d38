@@ -1,0 +1,18 @@
+python/sglang/kernels/ops/activation/activation.py
+  h_1d635ecd767a49 187-203
+python/sglang/srt/models/bailing_moe_v3.py
+  h_1d635ecd767a49 727-744,1588-1602
+test/registered/kernels/ops/activation/test_activation.py
+  h_1d635ecd767a49 13,86-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1a19dcd8114487b9829aec2170f9b55cc4c21d38",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
