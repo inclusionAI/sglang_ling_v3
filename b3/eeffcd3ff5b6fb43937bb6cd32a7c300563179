@@ -1,0 +1,14 @@
+test/registered/unit/managers/test_pp_result_stream_order.py
+  h_1d635ecd767a49 52-61,85,249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b3eeffcd3ff5b6fb43937bb6cd32a7c300563179",
+  "prompts": {},
+  "humans": {
+    "h_1d635ecd767a49": {
+      "author": "mubai <chaokun.yck@antgroup.com>"
+    }
+  }
+}
